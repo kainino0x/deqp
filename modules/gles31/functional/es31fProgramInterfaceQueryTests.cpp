@@ -953,45 +953,48 @@ bool ResourceListTestCase::verifyResourceIndexQuery (const std::vector<std::stri
 
 		if (index == GL_INVALID_INDEX)
 		{
-			m_testCtx.getLog() << tcu::TestLog::Message << "Error, for active resource " << referenceResources[ndx] << " got index GL_INVALID_INDEX." << tcu::TestLog::EndMessage;
+			m_testCtx.getLog() << tcu::TestLog::Message << "Error, for active resource \"" << referenceResources[ndx] << "\" got index GL_INVALID_INDEX." << tcu::TestLog::EndMessage;
 			error = true;
 		}
 		else if ((int)index >= (int)resourceList.size())
 		{
-			m_testCtx.getLog() << tcu::TestLog::Message << "Error, for active resource " << referenceResources[ndx] << " got index " << index << " (larger or equal to GL_ACTIVE_RESOURCES)." << tcu::TestLog::EndMessage;
+			m_testCtx.getLog() << tcu::TestLog::Message << "Error, for active resource \"" << referenceResources[ndx] << "\" got index " << index << " (larger or equal to GL_ACTIVE_RESOURCES)." << tcu::TestLog::EndMessage;
 			error = true;
 		}
 		else if (resourceList[index] != referenceResources[ndx])
 		{
-			m_testCtx.getLog() << tcu::TestLog::Message << "Error, for active resource " << referenceResources[ndx] << " got index (index = " << index << ") of another resource (" << resourceList[index] << ")." << tcu::TestLog::EndMessage;
+			m_testCtx.getLog() << tcu::TestLog::Message << "Error, for active resource \"" << referenceResources[ndx] << "\" got index (index = " << index << ") of another resource (" << resourceList[index] << ")." << tcu::TestLog::EndMessage;
 			error = true;
 		}
 	}
 
-	// Query for "name" should match "name[0]"
+	// Query for "name" should match "name[0]" except for XFB
 
-	for (int ndx = 0; ndx < (int)referenceResources.size(); ++ndx)
+	if (m_programInterface != PROGRAMINTERFACE_TRANSFORM_FEEDBACK_VARYING)
 	{
-		if (stringEndsWith(referenceResources[ndx], "[0]"))
+		for (int ndx = 0; ndx < (int)referenceResources.size(); ++ndx)
 		{
-			const std::string	queryString	= referenceResources[ndx].substr(0, referenceResources[ndx].length()-3);
-			const glw::GLuint	index		= gl.getProgramResourceIndex(program, programInterface, queryString.c_str());
-			GLU_EXPECT_NO_ERROR(gl.getError(), "query resource index");
+			if (stringEndsWith(referenceResources[ndx], "[0]"))
+			{
+				const std::string	queryString	= referenceResources[ndx].substr(0, referenceResources[ndx].length()-3);
+				const glw::GLuint	index		= gl.getProgramResourceIndex(program, programInterface, queryString.c_str());
+				GLU_EXPECT_NO_ERROR(gl.getError(), "query resource index");
 
-			if (index == GL_INVALID_INDEX)
-			{
-				m_testCtx.getLog() << tcu::TestLog::Message << "Error, query for " << queryString << " resulted in index GL_INVALID_INDEX." << tcu::TestLog::EndMessage;
-				error = true;
-			}
-			else if ((int)index >= (int)resourceList.size())
-			{
-				m_testCtx.getLog() << tcu::TestLog::Message << "Error, query for " << queryString << " resulted in index " << index << " (larger or equal to GL_ACTIVE_RESOURCES)." << tcu::TestLog::EndMessage;
-				error = true;
-			}
-			else if (resourceList[index] != queryString + "[0]")
-			{
-				m_testCtx.getLog() << tcu::TestLog::Message << "Error, query for " << queryString << " got index (index = " << index << ") of another resource (" << resourceList[index] << ")." << tcu::TestLog::EndMessage;
-				error = true;
+				if (index == GL_INVALID_INDEX)
+				{
+					m_testCtx.getLog() << tcu::TestLog::Message << "Error, query for \"" << queryString << "\" resulted in index GL_INVALID_INDEX." << tcu::TestLog::EndMessage;
+					error = true;
+				}
+				else if ((int)index >= (int)resourceList.size())
+				{
+					m_testCtx.getLog() << tcu::TestLog::Message << "Error, query for \"" << queryString << "\" resulted in index " << index << " (larger or equal to GL_ACTIVE_RESOURCES)." << tcu::TestLog::EndMessage;
+					error = true;
+				}
+				else if (resourceList[index] != queryString + "[0]")
+				{
+					m_testCtx.getLog() << tcu::TestLog::Message << "Error, query for \"" << queryString << "\" got index (index = " << index << ") of another resource (\"" << resourceList[index] << "\")." << tcu::TestLog::EndMessage;
+					error = true;
+				}
 			}
 		}
 	}
@@ -4839,7 +4842,7 @@ static void generateProgramOutputLocationBlockContents (Context& context, const 
 		}
 		// .var_array_explicit_location
 		{
-			const ResourceDefinition::Node::SharedPtr layout	(new ResourceDefinition::LayoutQualifier(output, glu::Layout(2)));
+			const ResourceDefinition::Node::SharedPtr layout	(new ResourceDefinition::LayoutQualifier(output, glu::Layout(1)));
 			const ResourceDefinition::Node::SharedPtr arrayElem	(new ResourceDefinition::ArrayElement(layout));
 			const ResourceDefinition::Node::SharedPtr variable	(new ResourceDefinition::Variable(arrayElem, glu::TYPE_FLOAT_VEC4));
 			targetGroup->addChild(new ResourceTestCase(context, variable, ProgramResourceQueryTestTarget(PROGRAMINTERFACE_PROGRAM_OUTPUT, PROGRAMRESOURCEPROP_LOCATION), "var_array_explicit_location"));

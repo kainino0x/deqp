@@ -1,7 +1,32 @@
 # -*- coding: utf-8 -*-
 
+#-------------------------------------------------------------------------
+# drawElements Quality Program utilities
+# --------------------------------------
+#
+# Copyright 2015 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#-------------------------------------------------------------------------
+
 import os
+import sys
+import copy
 import platform
+import multiprocessing
+
+from common import which, DEQP_DIR
 
 try:
 	import _winreg
@@ -9,10 +34,14 @@ except:
 	_winreg = None
 
 class BuildConfig:
-	def __init__ (self, buildDir, buildType, args):
+	def __init__ (self, buildDir, buildType, args, srcPath = DEQP_DIR):
+		self.srcPath		= srcPath
 		self.buildDir		= buildDir
 		self.buildType		= buildType
-		self.args			= args
+		self.args			= copy.copy(args)
+
+	def getSrcPath (self):
+		return self.srcPath
 
 	def getBuildDir (self):
 		return self.buildDir
@@ -24,9 +53,10 @@ class BuildConfig:
 		return self.args
 
 class CMakeGenerator:
-	def __init__ (self, name, isMultiConfig = False):
+	def __init__ (self, name, isMultiConfig = False, extraBuildArgs = []):
 		self.name			= name
 		self.isMultiConfig	= isMultiConfig
+		self.extraBuildArgs	= copy.copy(extraBuildArgs)
 
 	def getName (self):
 		return self.name
@@ -41,20 +71,26 @@ class CMakeGenerator:
 		args = []
 		if self.isMultiConfig:
 			args += ['--config', buildType]
+		if len(self.extraBuildArgs) > 0:
+			args += ['--'] + self.extraBuildArgs
 		return args
 
 	def getBinaryPath (self, buildType, basePath):
 		return basePath
 
-class DefaultGenerator(CMakeGenerator):
+class UnixMakefileGenerator(CMakeGenerator):
 	def __init__(self):
-		CMakeGenerator.__init__("default")
+		CMakeGenerator.__init__(self, "Unix Makefiles", extraBuildArgs = ["-j%d" % multiprocessing.cpu_count()])
 
-	def getGenerateArgs (self, buildType):
-		args = []
-		if not self.isMultiConfig:
-			args.append('-DCMAKE_BUILD_TYPE=%s' % buildType)
-		return args
+	def isAvailable (self):
+		return which('make') != None
+
+class NinjaGenerator(CMakeGenerator):
+	def __init__(self):
+		CMakeGenerator.__init__(self, "Ninja")
+
+	def isAvailable (self):
+		return which('ninja') != None
 
 class VSProjectGenerator(CMakeGenerator):
 	ARCH_32BIT	= 0
@@ -65,12 +101,9 @@ class VSProjectGenerator(CMakeGenerator):
 		if arch == self.ARCH_64BIT:
 			name += " Win64"
 
-		CMakeGenerator.__init__(self, name, isMultiConfig = True)
+		CMakeGenerator.__init__(self, name, isMultiConfig = True, extraBuildArgs = ['/m'])
 		self.version		= version
 		self.arch			= arch
-
-	def getBuildArgs (self, buildType):
-		return CMakeGenerator.getBuildArgs(self, buildType) + ['--', '/m']
 
 	def getBinaryPath (self, buildType, basePath):
 		return os.path.join(os.path.dirname(basePath), buildType, os.path.basename(basePath) + ".exe")
@@ -96,7 +129,7 @@ class VSProjectGenerator(CMakeGenerator):
 			return False
 
 	def isAvailable (self):
-		if _winreg != None:
+		if sys.platform == 'win32' and _winreg != None:
 			nativeArch = VSProjectGenerator.getNativeArch()
 			if nativeArch == self.ARCH_32BIT and self.arch == self.ARCH_64BIT:
 				return False
@@ -119,21 +152,44 @@ class VSProjectGenerator(CMakeGenerator):
 		else:
 			return False
 
-	@staticmethod
-	def getDefault (arch):
-		for version in reversed(range(10, 13)):
-			gen = VSProjectGenerator(version, arch)
-			if gen.isAvailable():
-				return gen
-		return None
-
 # Pre-defined generators
 
-MAKEFILE_GENERATOR		= CMakeGenerator("Unix Makefiles")
+MAKEFILE_GENERATOR		= UnixMakefileGenerator()
+NINJA_GENERATOR			= NinjaGenerator()
 VS2010_X32_GENERATOR	= VSProjectGenerator(10, VSProjectGenerator.ARCH_32BIT)
 VS2010_X64_GENERATOR	= VSProjectGenerator(10, VSProjectGenerator.ARCH_64BIT)
-VS2013_X64_GENERATOR	= VSProjectGenerator(12, VSProjectGenerator.ARCH_32BIT)
+VS2012_X32_GENERATOR	= VSProjectGenerator(11, VSProjectGenerator.ARCH_32BIT)
+VS2012_X64_GENERATOR	= VSProjectGenerator(11, VSProjectGenerator.ARCH_64BIT)
+VS2013_X32_GENERATOR	= VSProjectGenerator(12, VSProjectGenerator.ARCH_32BIT)
 VS2013_X64_GENERATOR	= VSProjectGenerator(12, VSProjectGenerator.ARCH_64BIT)
 
-ANY_VS_X32_GENERATOR	= VSProjectGenerator.getDefault(VSProjectGenerator.ARCH_32BIT)
-ANY_VS_X64_GENERATOR	= VSProjectGenerator.getDefault(VSProjectGenerator.ARCH_64BIT)
+def selectFirstAvailableGenerator (generators):
+	for generator in generators:
+		if generator.isAvailable():
+			return generator
+	return None
+
+ANY_VS_X32_GENERATOR	= selectFirstAvailableGenerator([
+								VS2013_X32_GENERATOR,
+								VS2012_X32_GENERATOR,
+								VS2010_X32_GENERATOR,
+							])
+ANY_VS_X64_GENERATOR	= selectFirstAvailableGenerator([
+								VS2013_X64_GENERATOR,
+								VS2012_X64_GENERATOR,
+								VS2010_X64_GENERATOR,
+							])
+ANY_UNIX_GENERATOR		= selectFirstAvailableGenerator([
+								NINJA_GENERATOR,
+								MAKEFILE_GENERATOR,
+							])
+ANY_GENERATOR			= selectFirstAvailableGenerator([
+								VS2013_X64_GENERATOR,
+								VS2012_X64_GENERATOR,
+								VS2010_X64_GENERATOR,
+								VS2013_X32_GENERATOR,
+								VS2012_X32_GENERATOR,
+								VS2010_X32_GENERATOR,
+								NINJA_GENERATOR,
+								MAKEFILE_GENERATOR,
+							])

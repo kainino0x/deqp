@@ -80,21 +80,6 @@ endif ()
 
 include_directories(${PNG_INCLUDE_PATH})
 
-# \todo [2013-04-14 pyry] Remove once we've got dynamic loading of GL libraries figured out
-if (DEQP_RUNTIME_LINK)
-	include_directories(wrappers/dynlib/inc)
-
-	if (DEQP_SUPPORT_GLES3)
-		set(DEQP_GLES2_LIBRARIES GLESv3)
-		set(DEQP_GLES3_LIBRARIES GLESv3)
-	else ()
-		set(DEQP_GLES2_LIBRARIES GLESv2)
-	endif ()
-
-	set(DEQP_EGL_LIBRARIES EGL)
-	add_definitions(-DKHRONOS_STATIC_LIB)
-endif ()
-
 message(STATUS "DEQP_TARGET_NAME        = ${DEQP_TARGET_NAME}")
 message(STATUS "DEQP_SUPPORT_GLES1      = ${DEQP_SUPPORT_GLES1}")
 message(STATUS "DEQP_GLES1_LIBRARIES    = ${DEQP_GLES1_LIBRARIES}")
@@ -168,7 +153,7 @@ if (DEQP_SUPPORT_VG AND NOT DEFINED DEQP_VG_LIBRARIES)
 endif ()
 
 if (DEQP_SUPPORT_EGL AND NOT DEFINED DEQP_EGL_LIBRARIES)
-	message(FATAL_ERROR "Run-time loading of EGL is not supported (DEQP_EGL_LIBRARIES is not set)")
+	add_definitions(-DDEQP_EGL_RUNTIME_LOAD=1)
 endif ()
 
 if (DEQP_SUPPORT_OPENCL AND NOT DEFINED DEQP_OPENCL_LIBRARIES)
@@ -193,11 +178,6 @@ add_subdirectory(${DELIBS_DIR}/destream		destream)
 add_subdirectory(${DELIBS_DIR}/deutil		deutil)
 add_subdirectory(${DELIBS_DIR}/decpp		decpp)
 
-# \todo [2013-04-14 pyry] Remove once we've got dynamic loading of GL libraries figured out
-if (DEQP_RUNTIME_LINK)
-	add_subdirectory(wrappers/dynlib)
-endif ()
-
 # ExecServer
 add_subdirectory(execserver)
 
@@ -221,11 +201,9 @@ include_directories(
 	framework/referencerenderer
 	framework/opengl/simplereference
 	framework/randomshaders
+	framework/egl
+	framework/egl/wrapper
 	)
-
-if (DEQP_SUPPORT_EGL)
-	include_directories(framework/egl)
-endif ()
 
 if (DE_OS_IS_ANDROID OR DE_OS_IS_IOS)
 	# On Android deqp modules are compiled as libraries and linked into final .so
@@ -316,12 +294,10 @@ add_subdirectory(modules)
 
 # Single-binary targets
 if (DE_OS_IS_ANDROID)
-	# CTS activities require headers from Android port directory
-	include_directories(framework/platform/android)
 	include_directories(executor)
 
-	add_library(testercore SHARED framework/platform/android/tcuAndroidMain.cpp framework/platform/android/tcuAndroidJNI.cpp framework/platform/android/tcuTestLogParserJNI.cpp ${DEQP_MODULE_ENTRY_POINTS})
-	target_link_libraries(testercore tcutil-platform xecore ${DEQP_MODULE_LIBRARIES})
+	add_library(deqp SHARED framework/platform/android/tcuAndroidMain.cpp framework/platform/android/tcuAndroidJNI.cpp framework/platform/android/tcuAndroidPlatformCapabilityQueryJNI.cpp framework/platform/android/tcuTestLogParserJNI.cpp ${DEQP_MODULE_ENTRY_POINTS})
+	target_link_libraries(deqp tcutil-platform xecore ${DEQP_MODULE_LIBRARIES})
 
 elseif (DE_OS_IS_IOS)
 	# Code sign identity

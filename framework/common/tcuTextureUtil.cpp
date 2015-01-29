@@ -113,9 +113,15 @@ TextureChannelClass getTextureChannelClass (TextureFormat::ChannelType channelTy
  *//*--------------------------------------------------------------------*/
 ConstPixelBufferAccess getSubregion (const ConstPixelBufferAccess& access, int x, int y, int z, int width, int height, int depth)
 {
-	DE_ASSERT(de::inBounds(x, 0, access.getWidth())		&& de::inRange(x+width,		x, access.getWidth()));
-	DE_ASSERT(de::inBounds(y, 0, access.getHeight())	&& de::inRange(y+height,	y, access.getHeight()));
-	DE_ASSERT(de::inBounds(z, 0, access.getDepth())		&& de::inRange(z+depth,		z, access.getDepth()));
+	DE_ASSERT(de::inBounds(x, 0, access.getWidth()));
+	DE_ASSERT(de::inRange(x+width, x+1, access.getWidth()));
+
+	DE_ASSERT(de::inBounds(y, 0, access.getHeight()));
+	DE_ASSERT(de::inRange(y+height, y+1, access.getHeight()));
+
+	DE_ASSERT(de::inBounds(z, 0, access.getDepth()));
+	DE_ASSERT(de::inRange(z+depth, z+1, access.getDepth()));
+
 	return ConstPixelBufferAccess(access.getFormat(), width, height, depth, access.getRowPitch(), access.getSlicePitch(),
 								  (const deUint8*)access.getDataPtr() + access.getFormat().getPixelSize()*x + access.getRowPitch()*y + access.getSlicePitch()*z);
 }
@@ -133,9 +139,15 @@ ConstPixelBufferAccess getSubregion (const ConstPixelBufferAccess& access, int x
  *//*--------------------------------------------------------------------*/
 PixelBufferAccess getSubregion (const PixelBufferAccess& access, int x, int y, int z, int width, int height, int depth)
 {
-	DE_ASSERT(de::inBounds(x, 0, access.getWidth())		&& de::inRange(x+width,		x, access.getWidth()));
-	DE_ASSERT(de::inBounds(y, 0, access.getHeight())	&& de::inRange(y+height,	y, access.getHeight()));
-	DE_ASSERT(de::inBounds(z, 0, access.getDepth())		&& de::inRange(z+depth,		z, access.getDepth()));
+	DE_ASSERT(de::inBounds(x, 0, access.getWidth()));
+	DE_ASSERT(de::inRange(x+width, x+1, access.getWidth()));
+
+	DE_ASSERT(de::inBounds(y, 0, access.getHeight()));
+	DE_ASSERT(de::inRange(y+height, y+1, access.getHeight()));
+
+	DE_ASSERT(de::inBounds(z, 0, access.getDepth()));
+	DE_ASSERT(de::inRange(z+depth, z+1, access.getDepth()));
+
 	return PixelBufferAccess(access.getFormat(), width, height, depth, access.getRowPitch(), access.getSlicePitch(),
 							 (deUint8*)access.getDataPtr() + access.getFormat().getPixelSize()*x + access.getRowPitch()*y + access.getSlicePitch()*z);
 }
@@ -930,6 +942,59 @@ int getCubeArrayFaceIndex (CubeFace face)
 		default:
 			return -1;
 	}
+}
+
+void copyRawPixels (const PixelBufferAccess& dst, const ConstPixelBufferAccess& src)
+{
+	DE_ASSERT(dst.getFormat().getPixelSize() == src.getFormat().getPixelSize());
+	DE_ASSERT(dst.getWidth() == src.getWidth());
+	DE_ASSERT(dst.getHeight() == src.getHeight());
+	DE_ASSERT(dst.getDepth() == src.getDepth());
+
+	const int pixelSize = dst.getFormat().getPixelSize();
+
+	for (int z = 0; z < dst.getDepth(); z++)
+	for (int y = 0; y < dst.getHeight(); y++)
+	{
+		const deUint8* const	srcPtr	= (const deUint8*)src.getDataPtr()
+										+ src.getRowPitch() * y
+										+ src.getSlicePitch() * z;
+
+		deUint8* const			dstPtr	= (deUint8*)dst.getDataPtr()
+										+ dst.getRowPitch() * y
+										+ dst.getSlicePitch() * z;
+
+		deMemcpy(dstPtr, srcPtr, dst.getWidth() * pixelSize);
+	}
+}
+
+deUint32 packRGB999E5 (const tcu::Vec4& color)
+{
+	const int	mBits	= 9;
+	const int	eBits	= 5;
+	const int	eBias	= 15;
+	const int	eMax	= (1<<eBits)-1;
+	const float	maxVal	= (float)(((1<<mBits) - 1) * (1<<(eMax-eBias))) / (float)(1<<mBits);
+
+	float	rc		= deFloatClamp(color[0], 0.0f, maxVal);
+	float	gc		= deFloatClamp(color[1], 0.0f, maxVal);
+	float	bc		= deFloatClamp(color[2], 0.0f, maxVal);
+	float	maxc	= de::max(rc, de::max(gc, bc));
+	int		expp	= de::max(-eBias - 1, deFloorFloatToInt32(deFloatLog2(maxc))) + 1 + eBias;
+	float	e		= deFloatPow(2.0f, (float)(expp-eBias-mBits));
+	int		maxs	= deFloorFloatToInt32(maxc / e + 0.5f);
+
+	deUint32	exps	= maxs == (1<<mBits) ? expp+1 : expp;
+	deUint32	rs		= (deUint32)deClamp32(deFloorFloatToInt32(rc / e + 0.5f), 0, (1<<9)-1);
+	deUint32	gs		= (deUint32)deClamp32(deFloorFloatToInt32(gc / e + 0.5f), 0, (1<<9)-1);
+	deUint32	bs		= (deUint32)deClamp32(deFloorFloatToInt32(bc / e + 0.5f), 0, (1<<9)-1);
+
+	DE_ASSERT((exps & ~((1<<5)-1)) == 0);
+	DE_ASSERT((rs & ~((1<<9)-1)) == 0);
+	DE_ASSERT((gs & ~((1<<9)-1)) == 0);
+	DE_ASSERT((bs & ~((1<<9)-1)) == 0);
+
+	return rs | (gs << 9) | (bs << 18) | (exps << 27);
 }
 
 } // tcu

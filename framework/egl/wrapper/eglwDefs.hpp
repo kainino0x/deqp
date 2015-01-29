@@ -1,8 +1,8 @@
-#ifndef _EGLUHEADERWRAPPER_HPP
-#define _EGLUHEADERWRAPPER_HPP
+#ifndef _EGLWDEFS_HPP
+#define _EGLWDEFS_HPP
 /*-------------------------------------------------------------------------
- * drawElements Quality Program Tester Core
- * ----------------------------------------
+ * drawElements Quality Program EGL Utilities
+ * ------------------------------------------
  *
  * Copyright 2014 The Android Open Source Project
  *
@@ -20,28 +20,28 @@
  *
  *//*!
  * \file
- * \brief EGL header file wrapper
+ * \brief EGL wrapper base types and definitions.
+ *
+ * This header defines all standard EGL types using drawElements Base
+ * Portability Library (delibs) types.
  *//*--------------------------------------------------------------------*/
 
-#include "tcuDefs.hpp"
+#include "deDefs.hpp"
 
-// egl.h includes windows.h on Windows
-#if (DE_OS == DE_OS_WIN32)
-#	if !defined(VC_EXTRALEAN)
-#		define VC_EXTRALEAN 1
-#	endif
-#	if !defined(WIN32_LEAN_AND_MEAN)
-#		define WIN32_LEAN_AND_MEAN 1
-#	endif
-#	if !defined(NOMINMAX)
-#		define NOMINMAX 1
-#	endif
-#endif
+/*--------------------------------------------------------------------*//*!
+ * \brief EGL API
+ *//*--------------------------------------------------------------------*/
+namespace eglw
+{
 
-#include <EGL/egl.h>
+// extern "C" since eglwTypes.inl may contain function pointer types.
+extern "C"
+{
 
-#if !defined(EGL_VERSION_1_5)
-	typedef deIntptr EGLAttrib;
-#endif
+#include "eglwTypes.inl"
 
-#endif // _EGLUHEADERWRAPPER_HPP
+}
+
+} // eglw
+
+#endif // _EGLWDEFS_HPP

@@ -96,6 +96,9 @@ void	fillWithRGBAQuads				(const PixelBufferAccess& access);
 void	copy							(const PixelBufferAccess& dst, const ConstPixelBufferAccess& src);
 void	scale							(const PixelBufferAccess& dst, const ConstPixelBufferAccess& src, Sampler::FilterMode filter);
 
+// Copy raw pixel data between buffers. Both buffers must have same pixel size.
+void	copyRawPixels					(const PixelBufferAccess& dst, const ConstPixelBufferAccess& src);
+
 void	estimatePixelValueRange			(const ConstPixelBufferAccess& access, Vec4& minVal, Vec4& maxVal);
 void	computePixelScaleBias			(const ConstPixelBufferAccess& access, Vec4& scale, Vec4& bias);
 
@@ -120,6 +123,8 @@ inline deUint8 floatToU8 (float fv)
 
 	return (deUint8)(m>>24);
 }
+
+deUint32 packRGB999E5 (const tcu::Vec4& color);
 
 } // tcu
 

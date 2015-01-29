@@ -1,6 +1,8 @@
+#ifndef _DITSEEDBUILDERTESTS_HPP
+#define _DITSEEDBUILDERTESTS_HPP
 /*-------------------------------------------------------------------------
- * drawElements Quality Program Tester Core
- * ----------------------------------------
+ * drawElements Internal Test Module
+ * ---------------------------------
  *
  * Copyright 2014 The Android Open Source Project
  *
@@ -18,9 +20,17 @@
  *
  *//*!
  * \file
- * \brief EGL header file wrapper
+ * \brief Seed builder tests.
  *//*--------------------------------------------------------------------*/
 
-#include "egluHeaderWrapper.hpp"
+#include "tcuDefs.hpp"
+#include "tcuTestCase.hpp"
 
-DE_EMPTY_CPP_FILE
+namespace dit
+{
+
+tcu::TestCaseGroup* createSeedBuilderTests (tcu::TestContext& testCtx);
+
+} // dit
+
+#endif // _DITSEEDBUILDERTESTS_HPP

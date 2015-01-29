@@ -1,6 +1,8 @@
 # dEQP-GLES31.functional
 
 set(DEQP_GLES31_FUNCTIONAL_SRCS
+	es31fAndroidExtensionPackES31ATests.cpp
+	es31fAndroidExtensionPackES31ATests.hpp
 	es31fBasicComputeShaderTests.cpp
 	es31fBasicComputeShaderTests.hpp
 	es31fBuiltinPrecisionTests.cpp
@@ -133,6 +135,8 @@ set(DEQP_GLES31_FUNCTIONAL_SRCS
 	es31fShaderBuiltinConstantTests.hpp
 	es31fShaderHelperInvocationTests.cpp
 	es31fShaderHelperInvocationTests.hpp
+	es31fPrimitiveBoundingBoxTests.cpp
+	es31fPrimitiveBoundingBoxTests.hpp
 	)
 
 add_library(deqp-gles31-functional STATIC ${DEQP_GLES31_FUNCTIONAL_SRCS})

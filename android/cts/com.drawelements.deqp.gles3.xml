@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TestPackage name="dEQP-GLES3" appPackageName="com.drawelements.deqp.gles3" testType="deqpTest">
+<TestPackage name="dEQP-GLES3" appPackageName="com.drawelements.deqp.gles3" testType="deqpTest" xmlns:deqp="http://drawelements.com/deqp" deqp:glesVersion="196608">
 <TestSuite name="dEQP-GLES3">
 <TestCase name="info">
 <Test name="renderer" />
@@ -641,6 +641,7 @@
 <Test name="pixel_unpack_full" />
 <Test name="pixel_unpack_partial" />
 <Test name="transform_feedback_full" />
+<Test name="transform_feedback_partial" />
 <Test name="uniform_full" />
 <Test name="uniform_partial" />
 </TestCase>
@@ -3853,6 +3854,8 @@
 <Test name="in_return_type_fragment" />
 <Test name="out_return_type_vertex" />
 <Test name="out_return_type_fragment" />
+<Test name="inout_return_type_vertex" />
+<Test name="inout_return_type_fragment" />
 <Test name="main_invalid_return_type_vertex" />
 <Test name="main_invalid_return_type_fragment" />
 <Test name="main_has_arguments_vertex" />
@@ -15304,6 +15307,11 @@
 <Test name="float_highp" />
 <Test name="vec2_highp" />
 </TestCase>
+<TestCase name="uniform_loop">
+<Test name="float_mediump" />
+<Test name="float_highp" />
+<Test name="vec2_highp" />
+</TestCase>
 <TestCase name="uniform_switch">
 <Test name="float_mediump" />
 <Test name="float_highp" />
@@ -15386,6 +15394,7 @@
 </TestCase>
 <TestCase name="uniform_loop">
 <Test name="float_highp" />
+<Test name="vec2_highp" />
 </TestCase>
 <TestCase name="uniform_switch">
 <Test name="float_highp" />
@@ -15444,6 +15453,7 @@
 <Test name="float_highp" />
 <Test name="vec2_mediump" />
 <Test name="vec2_highp" />
+<Test name="vec4_mediump" />
 </TestCase>
 <TestCase name="static_switch">
 <Test name="float_mediump" />
@@ -15453,6 +15463,13 @@
 <Test name="vec4_mediump" />
 </TestCase>
 <TestCase name="uniform_if">
+<Test name="float_mediump" />
+<Test name="float_highp" />
+<Test name="vec2_mediump" />
+<Test name="vec2_highp" />
+<Test name="vec4_mediump" />
+</TestCase>
+<TestCase name="uniform_loop">
 <Test name="float_mediump" />
 <Test name="float_highp" />
 <Test name="vec2_mediump" />
@@ -17124,7 +17141,6 @@
 </TestCase>
 <TestCase name="highp_vertex">
 <Test name="vec3" />
-<Test name="vec4" />
 </TestCase>
 <TestCase name="highp_fragment">
 <Test name="vec3" />
@@ -22564,9 +22580,6 @@
 <Test name="never_depth24_stencil8" />
 </TestCase>
 <TestCase name="linear">
-<Test name="less_or_equal_depth_component16" />
-<Test name="less_or_equal_depth_component32f" />
-<Test name="less_or_equal_depth24_stencil8" />
 <Test name="greater_or_equal_depth_component16" />
 <Test name="greater_or_equal_depth_component32f" />
 <Test name="greater_or_equal_depth24_stencil8" />
@@ -28010,6 +28023,7 @@
 <Test name="rgba16f" />
 <Test name="depth24_stencil8" />
 <Test name="r11f_g11f_b10f" />
+<Test name="srgb_alpha_unsigned_byte" />
 <Test name="srgb8_alpha8" />
 <Test name="depth_component32f" />
 <Test name="depth32f_stencil8" />
@@ -28073,6 +28087,8 @@
 <Test name="rgb16f" />
 <Test name="depth24_stencil8" />
 <Test name="r11f_g11f_b10f" />
+<Test name="srgb_unsigned_byte" />
+<Test name="srgb_alpha_unsigned_byte" />
 <Test name="srgb8_alpha8" />
 <Test name="depth_component32f" />
 <Test name="depth32f_stencil8" />
@@ -28135,6 +28151,8 @@
 <Test name="rgb16f" />
 <Test name="depth24_stencil8" />
 <Test name="r11f_g11f_b10f" />
+<Test name="srgb_unsigned_byte" />
+<Test name="srgb_alpha_unsigned_byte" />
 <Test name="srgb8_alpha8" />
 <Test name="depth_component32f" />
 <Test name="depth32f_stencil8" />
@@ -32430,7 +32448,6 @@
 <Test name="15" />
 <Test name="18" />
 <Test name="23" />
-<Test name="24" />
 </TestCase>
 <TestCase name="all_per_block_buffers">
 <Test name="4" />

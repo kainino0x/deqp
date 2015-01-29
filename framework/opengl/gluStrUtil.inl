@@ -1,5 +1,7 @@
 /* WARNING: This is auto-generated file. Do not modify, since changes will
  * be lost! Modify the generating script instead.
+ *
+ * Generated from Khronos GL API description (gl.xml) revision 29570.
  */
 
 const char* getErrorName (int value)
@@ -869,6 +871,14 @@ const char* getCompressedTexFormatName (int value)
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR:		return "GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR";
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR:		return "GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR";
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR:		return "GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR";
+		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:				return "GL_COMPRESSED_RGB_S3TC_DXT1_EXT";
+		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:				return "GL_COMPRESSED_RGBA_S3TC_DXT1_EXT";
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:				return "GL_COMPRESSED_RGBA_S3TC_DXT3_EXT";
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:				return "GL_COMPRESSED_RGBA_S3TC_DXT5_EXT";
+		case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:			return "GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG";
+		case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:			return "GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG";
+		case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:			return "GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG";
+		case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG:			return "GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG";
 		default:											return DE_NULL;
 	}
 }
@@ -1190,6 +1200,7 @@ const char* getGettableStateName (int value)
 		case GL_MAX_COMBINED_ATOMIC_COUNTERS:					return "GL_MAX_COMBINED_ATOMIC_COUNTERS";
 		case GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS:				return "GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS";
 		case GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT:			return "GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT";
+		case GL_PRIMITIVE_BOUNDING_BOX_EXT:						return "GL_PRIMITIVE_BOUNDING_BOX_EXT";
 		case GL_TEXTURE_2D:										return "GL_TEXTURE_2D";
 		case GL_CULL_FACE:										return "GL_CULL_FACE";
 		case GL_BLEND:											return "GL_BLEND";
@@ -1470,7 +1481,7 @@ tcu::Format::Bitfield<16> getBufferMaskStr (int value)
 	{
 		tcu::Format::BitDesc(GL_DEPTH_BUFFER_BIT,	"GL_DEPTH_BUFFER_BIT"),
 		tcu::Format::BitDesc(GL_STENCIL_BUFFER_BIT,	"GL_STENCIL_BUFFER_BIT"),
-		tcu::Format::BitDesc(GL_COLOR_BUFFER_BIT,	"GL_COLOR_BUFFER_BIT")
+		tcu::Format::BitDesc(GL_COLOR_BUFFER_BIT,	"GL_COLOR_BUFFER_BIT"),
 	};
 	return tcu::Format::Bitfield<16>(value, &s_desc[0], &s_desc[DE_LENGTH_OF_ARRAY(s_desc)]);
 }
@@ -1484,7 +1495,7 @@ tcu::Format::Bitfield<16> getBufferMapFlagsStr (int value)
 		tcu::Format::BitDesc(GL_MAP_INVALIDATE_RANGE_BIT,	"GL_MAP_INVALIDATE_RANGE_BIT"),
 		tcu::Format::BitDesc(GL_MAP_INVALIDATE_BUFFER_BIT,	"GL_MAP_INVALIDATE_BUFFER_BIT"),
 		tcu::Format::BitDesc(GL_MAP_FLUSH_EXPLICIT_BIT,		"GL_MAP_FLUSH_EXPLICIT_BIT"),
-		tcu::Format::BitDesc(GL_MAP_UNSYNCHRONIZED_BIT,		"GL_MAP_UNSYNCHRONIZED_BIT")
+		tcu::Format::BitDesc(GL_MAP_UNSYNCHRONIZED_BIT,		"GL_MAP_UNSYNCHRONIZED_BIT"),
 	};
 	return tcu::Format::Bitfield<16>(value, &s_desc[0], &s_desc[DE_LENGTH_OF_ARRAY(s_desc)]);
 }
@@ -1504,7 +1515,7 @@ tcu::Format::Bitfield<16> getMemoryBarrierFlagsStr (int value)
 		tcu::Format::BitDesc(GL_BUFFER_UPDATE_BARRIER_BIT,			"GL_BUFFER_UPDATE_BARRIER_BIT"),
 		tcu::Format::BitDesc(GL_FRAMEBUFFER_BARRIER_BIT,			"GL_FRAMEBUFFER_BARRIER_BIT"),
 		tcu::Format::BitDesc(GL_TRANSFORM_FEEDBACK_BARRIER_BIT,		"GL_TRANSFORM_FEEDBACK_BARRIER_BIT"),
-		tcu::Format::BitDesc(GL_ATOMIC_COUNTER_BARRIER_BIT,			"GL_ATOMIC_COUNTER_BARRIER_BIT")
+		tcu::Format::BitDesc(GL_ATOMIC_COUNTER_BARRIER_BIT,			"GL_ATOMIC_COUNTER_BARRIER_BIT"),
 	};
 	return tcu::Format::Bitfield<16>(value, &s_desc[0], &s_desc[DE_LENGTH_OF_ARRAY(s_desc)]);
 }

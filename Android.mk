@@ -5,7 +5,7 @@ delibs_dir := $(LOCAL_PATH)/framework/delibs
 deqp_dir := $(LOCAL_PATH)/
 
 LOCAL_MODULE_TAGS := tests
-LOCAL_MODULE := libtestercore
+LOCAL_MODULE := libdeqp
 LOCAL_SRC_FILES := \
 	execserver/xsDefs.cpp \
 	execserver/xsExecutionServer.cpp \
@@ -63,6 +63,7 @@ LOCAL_SRC_FILES := \
 	framework/common/tcuTextureUtil.cpp \
 	framework/common/tcuTexVerifierUtil.cpp \
 	framework/common/tcuThreadUtil.cpp \
+	framework/common/tcuSeedBuilder.cpp \
 	framework/delibs/debase/deDefs.c \
 	framework/delibs/debase/deFloat16.c \
 	framework/delibs/debase/deInt32.c \
@@ -132,7 +133,7 @@ LOCAL_SRC_FILES := \
 	framework/egl/egluDefs.cpp \
 	framework/egl/egluGLContextFactory.cpp \
 	framework/egl/egluGLFunctionLoader.cpp \
-	framework/egl/egluHeaderWrapper.cpp \
+	framework/egl/egluGLUtil.cpp \
 	framework/egl/egluNativeDisplay.cpp \
 	framework/egl/egluNativePixmap.cpp \
 	framework/egl/egluNativeWindow.cpp \
@@ -141,7 +142,9 @@ LOCAL_SRC_FILES := \
 	framework/egl/egluStrUtil.cpp \
 	framework/egl/egluUnique.cpp \
 	framework/egl/egluUtil.cpp \
-	framework/egl/tcuEgl.cpp \
+	framework/egl/wrapper/eglwDefs.cpp \
+	framework/egl/wrapper/eglwFunctions.cpp \
+	framework/egl/wrapper/eglwLibrary.cpp \
 	framework/opengl/gluCallLogWrapper.cpp \
 	framework/opengl/gluContextFactory.cpp \
 	framework/opengl/gluContextInfo.cpp \
@@ -183,6 +186,7 @@ LOCAL_SRC_FILES := \
 	framework/platform/android/tcuAndroidMain.cpp \
 	framework/platform/android/tcuAndroidNativeActivity.cpp \
 	framework/platform/android/tcuAndroidPlatform.cpp \
+	framework/platform/android/tcuAndroidPlatformCapabilityQueryJNI.cpp \
 	framework/platform/android/tcuAndroidRenderActivity.cpp \
 	framework/platform/android/tcuAndroidTestActivity.cpp \
 	framework/platform/android/tcuAndroidUtil.cpp \
@@ -229,6 +233,7 @@ LOCAL_SRC_FILES := \
 	framework/referencerenderer/rrVertexAttrib.cpp \
 	framework/referencerenderer/rrVertexPacket.cpp \
 	modules/gles31/functional/es31fAdvancedBlendTests.cpp \
+	modules/gles31/functional/es31fAndroidExtensionPackES31ATests.cpp \
 	modules/gles31/functional/es31fAtomicCounterTests.cpp \
 	modules/gles31/functional/es31fBasicComputeShaderTests.cpp \
 	modules/gles31/functional/es31fBuiltinPrecisionTests.cpp \
@@ -255,6 +260,7 @@ LOCAL_SRC_FILES := \
 	modules/gles31/functional/es31fNegativeTextureApiTests.cpp \
 	modules/gles31/functional/es31fNegativeVertexArrayApiTests.cpp \
 	modules/gles31/functional/es31fOpaqueTypeIndexingTests.cpp \
+	modules/gles31/functional/es31fPrimitiveBoundingBoxTests.cpp \
 	modules/gles31/functional/es31fProgramInterfaceDefinition.cpp \
 	modules/gles31/functional/es31fProgramInterfaceDefinitionUtil.cpp \
 	modules/gles31/functional/es31fProgramInterfaceQueryTestCase.cpp \
@@ -482,6 +488,7 @@ LOCAL_SRC_FILES := \
 	modules/internal/ditTestCase.cpp \
 	modules/internal/ditTestLogTests.cpp \
 	modules/internal/ditTestPackage.cpp \
+	modules/internal/ditSeedBuilderTests.cpp \
 	modules/internal/ditTestPackageEntry.cpp
 
 LOCAL_C_INCLUDES := \
@@ -498,6 +505,7 @@ LOCAL_C_INCLUDES := \
 	$(deqp_dir)/framework/qphelper \
 	$(deqp_dir)/framework/platform/android \
 	$(deqp_dir)/framework/egl \
+	$(deqp_dir)/framework/egl/wrapper \
 	$(deqp_dir)/framework/opengl \
 	$(deqp_dir)/framework/opengl/wrapper \
 	$(deqp_dir)/framework/referencerenderer \
