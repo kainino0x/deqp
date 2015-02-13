@@ -32,23 +32,28 @@ LOCAL_SRC_FILES := \
 	executor/xeXMLParser.cpp \
 	executor/xeXMLWriter.cpp \
 	framework/common/tcuApp.cpp \
+	framework/common/tcuArray.cpp \
 	framework/common/tcuBilinearImageCompare.cpp \
 	framework/common/tcuCommandLine.cpp \
 	framework/common/tcuCompressedTexture.cpp \
 	framework/common/tcuCPUWarmup.cpp \
 	framework/common/tcuDefs.cpp \
 	framework/common/tcuFactoryRegistry.cpp \
+	framework/common/tcuFloat.cpp \
 	framework/common/tcuFloatFormat.cpp \
 	framework/common/tcuFunctionLibrary.cpp \
 	framework/common/tcuFuzzyImageCompare.cpp \
 	framework/common/tcuImageCompare.cpp \
 	framework/common/tcuImageIO.cpp \
 	framework/common/tcuInterval.cpp \
+	framework/common/tcuMatrix.cpp \
 	framework/common/tcuPlatform.cpp \
 	framework/common/tcuRandomValueIterator.cpp \
 	framework/common/tcuRenderTarget.cpp \
 	framework/common/tcuResource.cpp \
+	framework/common/tcuResultCollector.cpp \
 	framework/common/tcuRGBA.cpp \
+	framework/common/tcuEither.cpp \
 	framework/common/tcuStringTemplate.cpp \
 	framework/common/tcuSurface.cpp \
 	framework/common/tcuTestCase.cpp \
@@ -64,6 +69,7 @@ LOCAL_SRC_FILES := \
 	framework/common/tcuTexVerifierUtil.cpp \
 	framework/common/tcuThreadUtil.cpp \
 	framework/common/tcuSeedBuilder.cpp \
+	framework/common/tcuMaybe.cpp \
 	framework/delibs/debase/deDefs.c \
 	framework/delibs/debase/deFloat16.c \
 	framework/delibs/debase/deInt32.c \
@@ -248,7 +254,14 @@ LOCAL_SRC_FILES := \
 	modules/gles31/functional/es31fGeometryShaderTests.cpp \
 	modules/gles31/functional/es31fIndirectComputeDispatchTests.cpp \
 	modules/gles31/functional/es31fIntegerStateQueryTests.cpp \
+	modules/gles31/functional/es31fBooleanStateQueryTests.cpp \
+	modules/gles31/functional/es31fIndexedStateQueryTests.cpp \
 	modules/gles31/functional/es31fInternalFormatQueryTests.cpp \
+	modules/gles31/functional/es31fTextureStateQueryTests.cpp \
+	modules/gles31/functional/es31fFramebufferDefaultStateQueryTests.cpp \
+	modules/gles31/functional/es31fProgramPipelineStateQueryTests.cpp \
+	modules/gles31/functional/es31fProgramStateQueryTests.cpp \
+	modules/gles31/functional/es31fInfoLogQueryShared.cpp \
 	modules/gles31/functional/es31fLayoutBindingTests.cpp \
 	modules/gles31/functional/es31fMultisampleShaderRenderCase.cpp \
 	modules/gles31/functional/es31fMultisampleTests.cpp \
@@ -266,6 +279,7 @@ LOCAL_SRC_FILES := \
 	modules/gles31/functional/es31fProgramInterfaceQueryTestCase.cpp \
 	modules/gles31/functional/es31fProgramInterfaceQueryTests.cpp \
 	modules/gles31/functional/es31fProgramUniformTests.cpp \
+	modules/gles31/functional/es31fSamplerStateQueryTests.cpp \
 	modules/gles31/functional/es31fSampleShadingTests.cpp \
 	modules/gles31/functional/es31fSampleVariableTests.cpp \
 	modules/gles31/functional/es31fSeparateShaderTests.cpp \
@@ -299,6 +313,7 @@ LOCAL_SRC_FILES := \
 	modules/gles31/functional/es31fUniformLocationTests.cpp \
 	modules/gles31/functional/es31fVertexAttributeBindingStateQueryTests.cpp \
 	modules/gles31/functional/es31fVertexAttributeBindingTests.cpp \
+	modules/gles31/functional/es31fCopyImageTests.cpp \
 	modules/gles31/stress/es31sDrawTests.cpp \
 	modules/gles31/stress/es31sStressTests.cpp \
 	modules/gles31/stress/es31sTessellationGeometryInteractionTests.cpp \
@@ -475,8 +490,10 @@ LOCAL_SRC_FILES := \
 	modules/glshared/glsShaderPerformanceCase.cpp \
 	modules/glshared/glsShaderPerformanceMeasurer.cpp \
 	modules/glshared/glsShaderRenderCase.cpp \
+	modules/glshared/glsStateQueryUtil.cpp \
 	modules/glshared/glsStateChangePerfTestCases.cpp \
 	modules/glshared/glsTextureBufferCase.cpp \
+	modules/glshared/glsTextureStateQueryTests.cpp \
 	modules/glshared/glsTextureTestUtil.cpp \
 	modules/glshared/glsUniformBlockCase.cpp \
 	modules/glshared/glsVertexArrayTests.cpp \

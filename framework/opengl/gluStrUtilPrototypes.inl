@@ -43,6 +43,7 @@ const char*							getTextureWrapModeName					(int value);
 const char*							getTextureSwizzleName					(int value);
 const char*							getTextureCompareModeName				(int value);
 const char*							getCubeMapFaceName						(int value);
+const char*							getTextureDepthStencilModeName			(int value);
 const char*							getPixelStoreParameterName				(int value);
 const char*							getPixelFormatName						(int value);
 const char*							getCompressedTexFormatName				(int value);
@@ -53,6 +54,7 @@ const char*							getBooleanName							(int value);
 const char*							getGettableStateName					(int value);
 const char*							getGettableIndexedStateName				(int value);
 const char*							getGettableStringName					(int value);
+const char*							getPointerStateName						(int value);
 const char*							getInternalFormatParameterName			(int value);
 const char*							getInternalFormatTargetName				(int value);
 const char*							getMultisampleParameterName				(int value);
@@ -69,9 +71,11 @@ const char*							getDebugMessageSourceName				(int value);
 const char*							getDebugMessageTypeName					(int value);
 const char*							getDebugMessageSeverityName				(int value);
 const char*							getPipelineParamName					(int value);
+const char*							getPatchParamName						(int value);
 tcu::Format::Bitfield<16>			getBufferMaskStr						(int value);
 tcu::Format::Bitfield<16>			getBufferMapFlagsStr					(int value);
 tcu::Format::Bitfield<16>			getMemoryBarrierFlagsStr				(int value);
+tcu::Format::Bitfield<16>			getShaderTypeMaskStr					(int value);
 inline tcu::Format::Enum<int, 2>	getErrorStr								(int value)		{ return tcu::Format::Enum<int, 2>(getErrorName, value); }
 inline tcu::Format::Enum<int, 2>	getTypeStr								(int value)		{ return tcu::Format::Enum<int, 2>(getTypeName, value); }
 inline tcu::Format::Enum<int, 2>	getParamQueryStr						(int value)		{ return tcu::Format::Enum<int, 2>(getParamQueryName, value); }
@@ -112,6 +116,7 @@ inline tcu::Format::Enum<int, 2>	getTextureWrapModeStr					(int value)		{ return
 inline tcu::Format::Enum<int, 2>	getTextureSwizzleStr					(int value)		{ return tcu::Format::Enum<int, 2>(getTextureSwizzleName, value); }
 inline tcu::Format::Enum<int, 2>	getTextureCompareModeStr				(int value)		{ return tcu::Format::Enum<int, 2>(getTextureCompareModeName, value); }
 inline tcu::Format::Enum<int, 2>	getCubeMapFaceStr						(int value)		{ return tcu::Format::Enum<int, 2>(getCubeMapFaceName, value); }
+inline tcu::Format::Enum<int, 2>	getTextureDepthStencilModeStr			(int value)		{ return tcu::Format::Enum<int, 2>(getTextureDepthStencilModeName, value); }
 inline tcu::Format::Enum<int, 2>	getPixelStoreParameterStr				(int value)		{ return tcu::Format::Enum<int, 2>(getPixelStoreParameterName, value); }
 inline tcu::Format::Enum<int, 2>	getPixelFormatStr						(int value)		{ return tcu::Format::Enum<int, 2>(getPixelFormatName, value); }
 inline tcu::Format::Enum<int, 2>	getCompressedTexFormatStr				(int value)		{ return tcu::Format::Enum<int, 2>(getCompressedTexFormatName, value); }
@@ -122,6 +127,7 @@ inline tcu::Format::Enum<int, 2>	getBooleanStr							(int value)		{ return tcu::
 inline tcu::Format::Enum<int, 2>	getGettableStateStr						(int value)		{ return tcu::Format::Enum<int, 2>(getGettableStateName, value); }
 inline tcu::Format::Enum<int, 2>	getGettableIndexedStateStr				(int value)		{ return tcu::Format::Enum<int, 2>(getGettableIndexedStateName, value); }
 inline tcu::Format::Enum<int, 2>	getGettableStringStr					(int value)		{ return tcu::Format::Enum<int, 2>(getGettableStringName, value); }
+inline tcu::Format::Enum<int, 2>	getPointerStateStr						(int value)		{ return tcu::Format::Enum<int, 2>(getPointerStateName, value); }
 inline tcu::Format::Enum<int, 2>	getInternalFormatParameterStr			(int value)		{ return tcu::Format::Enum<int, 2>(getInternalFormatParameterName, value); }
 inline tcu::Format::Enum<int, 2>	getInternalFormatTargetStr				(int value)		{ return tcu::Format::Enum<int, 2>(getInternalFormatTargetName, value); }
 inline tcu::Format::Enum<int, 2>	getMultisampleParameterStr				(int value)		{ return tcu::Format::Enum<int, 2>(getMultisampleParameterName, value); }
@@ -138,4 +144,5 @@ inline tcu::Format::Enum<int, 2>	getDebugMessageSourceStr				(int value)		{ retu
 inline tcu::Format::Enum<int, 2>	getDebugMessageTypeStr					(int value)		{ return tcu::Format::Enum<int, 2>(getDebugMessageTypeName, value); }
 inline tcu::Format::Enum<int, 2>	getDebugMessageSeverityStr				(int value)		{ return tcu::Format::Enum<int, 2>(getDebugMessageSeverityName, value); }
 inline tcu::Format::Enum<int, 2>	getPipelineParamStr						(int value)		{ return tcu::Format::Enum<int, 2>(getPipelineParamName, value); }
+inline tcu::Format::Enum<int, 2>	getPatchParamStr						(int value)		{ return tcu::Format::Enum<int, 2>(getPatchParamName, value); }
 inline tcu::Format::Enum<int, 1>	getBooleanStr							(deUint8 value)	{ return tcu::Format::Enum<int, 1>(getBooleanName, (int)value); }

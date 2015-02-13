@@ -21,6 +21,8 @@ set(DEQP_GLES31_FUNCTIONAL_SRCS
 	es31fTessellationTests.hpp
 	es31fAtomicCounterTests.hpp
 	es31fAtomicCounterTests.cpp
+	es31fSamplerStateQueryTests.cpp
+	es31fSamplerStateQueryTests.hpp
 	es31fSampleShadingTests.cpp
 	es31fSampleShadingTests.hpp
 	es31fSampleVariableTests.cpp
@@ -73,8 +75,22 @@ set(DEQP_GLES31_FUNCTIONAL_SRCS
 	es31fTextureSpecificationTests.cpp
 	es31fIntegerStateQueryTests.cpp
 	es31fIntegerStateQueryTests.hpp
+	es31fBooleanStateQueryTests.cpp
+	es31fBooleanStateQueryTests.hpp
+	es31fIndexedStateQueryTests.cpp
+	es31fIndexedStateQueryTests.hpp
 	es31fInternalFormatQueryTests.cpp
 	es31fInternalFormatQueryTests.hpp
+	es31fTextureStateQueryTests.cpp
+	es31fTextureStateQueryTests.hpp
+	es31fFramebufferDefaultStateQueryTests.cpp
+	es31fFramebufferDefaultStateQueryTests.hpp
+	es31fProgramPipelineStateQueryTests.cpp
+	es31fProgramPipelineStateQueryTests.hpp
+	es31fProgramStateQueryTests.cpp
+	es31fProgramStateQueryTests.hpp
+	es31fInfoLogQueryShared.cpp
+	es31fInfoLogQueryShared.hpp
 	es31fTextureMultisampleTests.cpp
 	es31fTextureMultisampleTests.hpp
 	es31fUniformLocationTests.cpp
@@ -137,6 +153,8 @@ set(DEQP_GLES31_FUNCTIONAL_SRCS
 	es31fShaderHelperInvocationTests.hpp
 	es31fPrimitiveBoundingBoxTests.cpp
 	es31fPrimitiveBoundingBoxTests.hpp
+	es31fCopyImageTests.hpp
+	es31fCopyImageTests.cpp
 	)
 
 add_library(deqp-gles31-functional STATIC ${DEQP_GLES31_FUNCTIONAL_SRCS})

@@ -251,7 +251,8 @@ QueryCase::IterateResult QueryCase::iterate (void)
 
 	for (int caseNdx = 0; caseNdx < (int)cases.size(); ++caseNdx)
 	{
-		const BoundingBox& boundingBox = cases[caseNdx];
+		const tcu::ScopedLogSection	section		(m_testCtx.getLog(), "Iteration", "Iteration " + de::toString(caseNdx+1));
+		const BoundingBox&			boundingBox	= cases[caseNdx];
 
 		gl.glPrimitiveBoundingBoxEXT(boundingBox.min.x(), boundingBox.min.y(), boundingBox.min.z(), boundingBox.min.w(),
 									 boundingBox.max.x(), boundingBox.max.y(), boundingBox.max.z(), boundingBox.max.w());
@@ -903,7 +904,8 @@ const char* BBoxRenderCase::genShaderFunction (ShaderFunction func) const
 					"	if (gl_FragCoord.x < float(u_viewportPos.x) + wc.x || gl_FragCoord.x > float(u_viewportPos.x) + wc.z ||\n"
 					"	    gl_FragCoord.y < float(u_viewportPos.y) + wc.y || gl_FragCoord.y > float(u_viewportPos.y) + wc.w)\n"
 					"	    return false;\n"
-					"	if (depth*2.0-1.0 < v_bbox_clipMin.z || depth*2.0-1.0 > v_bbox_clipMax.z)\n"
+					"	const highp float dEpsilon = 0.001;\n"
+					"	if (depth*2.0-1.0 < v_bbox_clipMin.z - dEpsilon || depth*2.0-1.0 > v_bbox_clipMax.z + dEpsilon)\n"
 					"	    return false;\n"
 					"	return true;\n"
 					"}\n";
@@ -1358,7 +1360,15 @@ void GridRenderCase::verifyRenderResult (const IterationConfig& config)
 		m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image verification failed");
 	}
 	else
-		m_testCtx.getLog() << tcu::TestLog::Message << "Result image ok." << tcu::TestLog::EndMessage;
+	{
+		m_testCtx.getLog()
+			<< tcu::TestLog::Message
+			<< "Result image ok."
+			<< tcu::TestLog::EndMessage
+			<< tcu::TestLog::ImageSet("Images", "Image verification")
+			<< tcu::TestLog::Image("Viewport", "Viewport contents", viewportSurface.getAccess())
+			<< tcu::TestLog::EndImageSet;
+	}
 }
 
 class LineRenderCase : public BBoxRenderCase
@@ -1850,7 +1860,15 @@ void LineRenderCase::verifyRenderResult (const IterationConfig& config)
 		m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image verification failed");
 	}
 	else
-		m_testCtx.getLog() << tcu::TestLog::Message << "Result image ok." << tcu::TestLog::EndMessage;
+	{
+		m_testCtx.getLog()
+			<< tcu::TestLog::Message
+			<< "Result image ok."
+			<< tcu::TestLog::EndMessage
+			<< tcu::TestLog::ImageSet("Images", "Image verification")
+			<< tcu::TestLog::Image("Viewport", "Viewport contents", viewportSurface.getAccess())
+			<< tcu::TestLog::EndImageSet;
+	}
 }
 
 tcu::IVec2 LineRenderCase::getNumberOfLinesRange (int queryAreaBegin, int queryAreaEnd, float patternStart, float patternSize, int viewportArea, QueryDirection queryDir) const
@@ -1989,7 +2007,7 @@ tcu::IVec2 LineRenderCase::getNumMinimaMaxima (const tcu::ConstPixelBufferAccess
 bool LineRenderCase::checkLineWidths (const tcu::ConstPixelBufferAccess& access, const tcu::IVec2& begin, const tcu::IVec2& end, int componentNdx, int& messageLimitCounter) const
 {
 	const bool			multisample		= m_context.getRenderTarget().getNumSamples() > 1;
-	const int			lineRenderWidth	= (m_isWideLineCase) ? (m_wideLineLineWidth) : (1.0);
+	const int			lineRenderWidth	= (m_isWideLineCase) ? (m_wideLineLineWidth) : 1;
 	const tcu::IVec2	lineWidthRange	= (multisample)
 											? (tcu::IVec2(lineRenderWidth, lineRenderWidth+1))	// multisampled "smooth" lines may spread to neighboring pixel
 											: (tcu::IVec2(lineRenderWidth, lineRenderWidth));
@@ -2603,7 +2621,15 @@ void PointRenderCase::verifyRenderResult (const IterationConfig& config)
 		m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image verification failed");
 	}
 	else
-		m_testCtx.getLog() << tcu::TestLog::Message << "Result image ok." << tcu::TestLog::EndMessage;
+	{
+		m_testCtx.getLog()
+			<< tcu::TestLog::Message
+			<< "Result image ok."
+			<< tcu::TestLog::EndMessage
+			<< tcu::TestLog::ImageSet("Images", "Image verification")
+			<< tcu::TestLog::Image("Viewport", "Viewport contents", viewportSurface.getAccess())
+			<< tcu::TestLog::EndImageSet;
+	}
 }
 
 struct PointSorter
@@ -2629,7 +2655,7 @@ void PointRenderCase::genReferencePointData (const IterationConfig& config, std:
 	{
 		currentPoints[ndx].center	= m_attribData[ndx*2].swizzle(0, 1);
 		currentPoints[ndx].even		= (m_attribData[ndx*2 + 1].y() == 1.0f); // is green
-		currentPoints[ndx].size		= ((m_isWidePointCase) ? ((currentPoints[ndx].even) ? (5.0f) : (3.0f)) : (1.0));
+		currentPoints[ndx].size		= ((m_isWidePointCase) ? ((currentPoints[ndx].even) ? 5 : 3) : 1);
 	}
 
 	// tessellation
@@ -2717,7 +2743,7 @@ bool PointRenderCase::verifyNarrowPointPattern (const tcu::Surface& viewport, co
 		else
 		{
 			// transform to viewport coords
-			const tcu::IVec2 pixelCenter(deFloatRound((refPoint.center.x() * 0.5f + 0.5f) * viewport.getWidth()), deFloatRound((refPoint.center.y() * 0.5f + 0.5f) * viewport.getHeight()));
+			const tcu::IVec2 pixelCenter(deRoundFloatToInt32((refPoint.center.x() * 0.5f + 0.5f) * viewport.getWidth()), deRoundFloatToInt32((refPoint.center.y() * 0.5f + 0.5f) * viewport.getHeight()));
 
 			// find rasterized point in the result
 			if (pixelCenter.x() < 1 || pixelCenter.y() < 1 || pixelCenter.x() >= viewport.getWidth()-1 || pixelCenter.y() >= viewport.getHeight()-1)
@@ -2794,13 +2820,13 @@ bool PointRenderCase::verifyWidePoint (const tcu::Surface& viewport, const Gener
 	const int			componentNdx		= (refPoint.even) ? (1) : (2);
 	const int			halfPointSizeCeil	= (refPoint.size + 1) / 2;
 	const int			halfPointSizeFloor	= (refPoint.size + 1) / 2;
-	const tcu::IVec4	viewportBBoxArea	= getViewportBoundingBoxArea(bbox, tcu::IVec2(viewport.getWidth(), viewport.getHeight()), refPoint.size);
+	const tcu::IVec4	viewportBBoxArea	= getViewportBoundingBoxArea(bbox, tcu::IVec2(viewport.getWidth(), viewport.getHeight()), (float)refPoint.size);
 	const tcu::IVec4	verificationArea	= tcu::IVec4(de::max(viewportBBoxArea.x(), 0),
 														 de::max(viewportBBoxArea.y(), 0),
 														 de::min(viewportBBoxArea.z(), viewport.getWidth()),
 														 de::min(viewportBBoxArea.w(), viewport.getHeight()));
-	const tcu::IVec2	pointPos			= tcu::IVec2(deFloatRound((refPoint.center.x()*0.5f + 0.5f) * viewport.getWidth()),
-														 deFloatRound((refPoint.center.y()*0.5f + 0.5f) * viewport.getHeight()));
+	const tcu::IVec2	pointPos			= tcu::IVec2(deRoundFloatToInt32((refPoint.center.x()*0.5f + 0.5f) * viewport.getWidth()),
+														 deRoundFloatToInt32((refPoint.center.y()*0.5f + 0.5f) * viewport.getHeight()));
 
 	// find any fragment within the point that is inside the bbox, start search at the center
 
@@ -3347,7 +3373,10 @@ bool BlitFboCase::verifyImage (const BlitArgs& args)
 		m_testCtx.getLog()
 			<< tcu::TestLog::Message
 			<< "Result image ok."
-			<< tcu::TestLog::EndMessage;
+			<< tcu::TestLog::EndMessage
+			<< tcu::TestLog::ImageSet("Images", "Image verification")
+			<< tcu::TestLog::Image("Viewport", "Viewport contents", viewport.getAccess())
+			<< tcu::TestLog::EndImageSet;
 		return true;
 	}
 }
@@ -3838,7 +3867,10 @@ bool DepthDrawCase::verifyImage (const tcu::Surface& viewport) const
 		m_testCtx.getLog()
 			<< tcu::TestLog::Message
 			<< "Result image ok."
-			<< tcu::TestLog::EndMessage;
+			<< tcu::TestLog::EndMessage
+			<< tcu::TestLog::ImageSet("Images", "Image verification")
+			<< tcu::TestLog::Image("Viewport", "Viewport contents", viewport.getAccess())
+			<< tcu::TestLog::EndImageSet;
 
 	return !anyError;
 }
@@ -4170,7 +4202,7 @@ void ClearCase::renderTo (tcu::Surface& dst, bool useBBox)
 bool ClearCase::verifyImagesEqual (const tcu::PixelBufferAccess& withoutBBox, const tcu::PixelBufferAccess& withBBox)
 {
 	DE_ASSERT(withoutBBox.getWidth() == withBBox.getWidth());
-	DE_ASSERT(withoutBBox.getHeight() == withBBox.getWidth());
+	DE_ASSERT(withoutBBox.getHeight() == withBBox.getHeight());
 
 	tcu::Surface	errorMask	(withoutBBox.getWidth(), withoutBBox.getHeight());
 	bool			anyError	= false;

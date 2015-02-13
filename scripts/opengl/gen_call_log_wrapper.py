@@ -47,6 +47,9 @@ def textureUnit (name):
 def voidPointer (name):
 	return "static_cast<const void*>(%s)" % name
 
+def fnPointer (name):
+	return "((const void*)(%s))" % name
+
 stringVal = lambda name: "getStringStr(%s)" % name
 
 # Special rules for printing call arguments
@@ -63,6 +66,8 @@ CALL_LOG_SPECS = {
 	"glBindTransformFeedback":				LogSpec({0: enum("TransformFeedbackTarget")}),
 	"glBlendEquation":						LogSpec({0: enum("BlendEquation")}),
 	"glBlendEquationSeparate":				LogSpec({0: enum("BlendEquation"), 1: enum("BlendEquation")}),
+	"glBlendEquationi":						LogSpec({1: enum("BlendEquation")}),
+	"glBlendEquationSeparatei":				LogSpec({1: enum("BlendEquation"), 2: enum("BlendEquation")}),
 	"glBlendFunc":							LogSpec({0: enum("BlendFactor"), 1: enum("BlendFactor")}),
 	"glBlendFuncSeparate":					LogSpec({0: enum("BlendFactor"), 1: enum("BlendFactor"), 2: enum("BlendFactor"), 3: enum("BlendFactor")}),
 	"glBlitFramebuffer":					LogSpec({8: enum("BufferMask"), 9: enum("TextureFilter")}),
@@ -87,6 +92,7 @@ CALL_LOG_SPECS = {
 	"glDeleteBuffers":						LogSpec({1: pointer(size = "n")}),
 	"glDeleteTextures":						LogSpec({1: pointer(size = "n")}),
 	"glDeleteVertexArrays":					LogSpec({1: pointer(size = "n")}),
+	"glDeleteProgramPipelines":				LogSpec({1: pointer(size = "n")}),
 	"glDepthFunc":							LogSpec({0: enum("CompareFunc")}),
 	"glDisable":							LogSpec({0: enum("EnableCap")}),
 	"glDrawArrays":							LogSpec({0: enum("PrimitiveType")}),
@@ -119,6 +125,7 @@ CALL_LOG_SPECS = {
 	"glGenTextures":						LogSpec({}, argOutPrints = {1: pointer(size = "n")}),
 	"glGenTransformFeedbacks":				LogSpec({}, argOutPrints = {1: pointer(size = "n")}),
 	"glGenVertexArrays":					LogSpec({}, argOutPrints = {1: pointer(size = "n")}),
+	"glGenProgramPipelines":				LogSpec({}, argOutPrints = {1: pointer(size = "n")}),
 #	"glGetActiveAttrib":
 	"glGetActiveUniform":					LogSpec({}, argOutPrints = {3: pointer(size = "1"), 4: pointer(size = "1"), 5: enumPointer("ShaderVarType", size = "1"), 6: stringVal}),
 	"glGetActiveUniformsiv":				LogSpec({2: pointer(size = "uniformCount"), 3: enum("UniformParam")}, argOutPrints = {4: pointer(size = "uniformCount")}),
@@ -143,34 +150,48 @@ CALL_LOG_SPECS = {
 				2: enum("FramebufferAttachmentParameter")
 			},
 			argOutPrints = {3: lambda name: "getFramebufferAttachmentParameterValueStr(pname, %s)" % name}),
-	"glGetFramebufferParameteriv":			LogSpec({0: enum("FramebufferTarget"), 1: enum("FramebufferParameter")}),
+	"glGetFramebufferParameteriv":			LogSpec({0: enum("FramebufferTarget"), 1: enum("FramebufferParameter")}, argOutPrints = {2: pointer(size = "1")}),
 	"glGetIntegerv":						LogSpec({0: enum("GettableState")}, argOutPrints = {1: pointer(size = "getBasicQueryNumArgsOut(pname)")}),
 	"glGetInteger64v":						LogSpec({0: enum("GettableState")}, argOutPrints = {1: pointer(size = "getBasicQueryNumArgsOut(pname)")}),
-	"glGetIntegeri_v":						LogSpec({0: enum("GettableIndexedState")}),
-	"glGetInteger64i_v":					LogSpec({0: enum("GettableIndexedState")}),
+	"glGetIntegeri_v":						LogSpec({0: enum("GettableIndexedState")}, argOutPrints = {2: pointer(size = "1")}),
+	"glGetInteger64i_v":					LogSpec({0: enum("GettableIndexedState")}, argOutPrints = {2: pointer(size = "1")}),
+	"glGetBooleani_v":
+		LogSpec(
+			{
+				0: enum("GettableIndexedState"),
+				2: voidPointer					# last argument has type of GLboolean* (aka. char*). Prevent
+												# wrapper from attempting to print the argument as a C string.
+			},
+			argOutPrints = {2: booleanPointer(size = "1")}),
 	"glGetInternalformativ":				LogSpec({0: enum("InternalFormatTarget"), 1: enum("PixelFormat"), 2: enum("InternalFormatParameter")}, argOutPrints = {4: pointer(size = "bufSize")}),
 	"glGetMultisamplefv":					LogSpec({0: enum("MultisampleParameter")}, argOutPrints = {2: pointer(size = "2")}),
-	"glGetProgramiv":						LogSpec({1: enum("ProgramParam")}, argOutPrints = {2: pointer(size = "1")}),
-#	"glGetProgramInfoLog":
+	"glGetPointerv":						LogSpec({0: enum("PointerState")}, argOutPrints = {1: pointer(size = "1")}),
+	"glGetProgramiv":						LogSpec({1: enum("ProgramParam")}, argOutPrints = {2: pointer(size = "getProgramQueryNumArgsOut(pname)")}),
+	"glGetProgramInfoLog":					LogSpec({3: voidPointer}, argOutPrints = {2: pointer(size = "1")}),
 	"glGetProgramPipelineiv":				LogSpec({1: enum("PipelineParam")}, argOutPrints = {2: pointer(size = "1")}),
+	"glGetProgramPipelineInfoLog":			LogSpec({3: voidPointer}, argOutPrints = {2: pointer(size = "1")}),
 	"glGetQueryiv":							LogSpec({0: enum("QueryTarget"), 1: enum("QueryParam")}, argOutPrints = {2: pointer(size = "1")}),
 	"glGetQueryObjectiv":					LogSpec({1: enum("QueryObjectParam")}, argOutPrints = {2: pointer(size = "1")}),
 	"glGetQueryObjectuiv":					LogSpec({1: enum("QueryObjectParam")}, argOutPrints = {2: pointer(size = "1")}),
 	"glGetQueryObjecti64v":					LogSpec({1: enum("QueryObjectParam")}, argOutPrints = {2: pointer(size = "1")}),
 	"glGetQueryObjectui64v":				LogSpec({1: enum("QueryObjectParam")}, argOutPrints = {2: pointer(size = "1")}),
 	"glGetRenderbufferParameteriv":			LogSpec({0: enum("FramebufferTarget"), 1: enum("RenderbufferParameter")}),
-	"glGetSamplerParameterfv":				LogSpec({1: enum("TextureParameter")}),
-	"glGetSamplerParameteriv":				LogSpec({1: enum("TextureParameter")}),
+	"glGetSamplerParameterfv":				LogSpec({1: enum("TextureParameter")}, argOutPrints = {2: pointer(size = "1")}),
+	"glGetSamplerParameteriv":				LogSpec({1: enum("TextureParameter")}, argOutPrints = {2: pointer(size = "1")}),
+	"glGetSamplerParameterIiv":				LogSpec({1: enum("TextureParameter")}, argOutPrints = {2: pointer(size = "getTextureParamQueryNumArgsOut(pname)")}),
+	"glGetSamplerParameterIuiv":			LogSpec({1: enum("TextureParameter")}, argOutPrints = {2: pointer(size = "getTextureParamQueryNumArgsOut(pname)")}),
 	"glGetShaderiv":						LogSpec({1: enum("ShaderParam")}, argOutPrints = {2: pointer(size = "1")}),
-#	"glGetShaderInfoLog":
+	"glGetShaderInfoLog":					LogSpec({3: voidPointer}, argOutPrints = {2: pointer(size = "1")}),
 	"glGetShaderPrecisionFormat":			LogSpec({0: enum("ShaderType"), 1: enum("PrecisionFormatType")}),
 #	"glGetShaderSource":
 	"glGetString":							LogSpec({0: enum("GettableString")}),
 	"glGetStringi":							LogSpec({0: enum("GettableString")}),
-	"glGetTexParameterfv":					LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter")}),
-	"glGetTexParameteriv":					LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter")}),
-	"glGetTexLevelParameterfv":				LogSpec({0: enum("TextureTarget"), 2: enum("TextureLevelParameter")}),
-	"glGetTexLevelParameteriv":				LogSpec({0: enum("TextureTarget"), 2: enum("TextureLevelParameter")}),
+	"glGetTexParameterfv":					LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter")}, argOutPrints = {2: pointer(size = "1")}),
+	"glGetTexParameteriv":					LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter")}, argOutPrints = {2: pointer(size = "1")}),
+	"glGetTexParameterIiv":					LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter")}, argOutPrints = {2: pointer(size = "getTextureParamQueryNumArgsOut(pname)")}),
+	"glGetTexParameterIuiv":				LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter")}, argOutPrints = {2: pointer(size = "getTextureParamQueryNumArgsOut(pname)")}),
+	"glGetTexLevelParameterfv":				LogSpec({0: enum("TextureTarget"), 2: enum("TextureLevelParameter")}, argOutPrints = {3: pointer(size = "1")}),
+	"glGetTexLevelParameteriv":				LogSpec({0: enum("TextureTarget"), 2: enum("TextureLevelParameter")}, argOutPrints = {3: pointer(size = "1")}),
 #	"glGetUniformfv":
 #	"glGetUniformiv":
 	"glGetUniformIndices":					LogSpec({2: pointer(size = "uniformCount")}, argOutPrints = {3: pointer(size = "uniformCount")}),
@@ -201,9 +222,17 @@ CALL_LOG_SPECS = {
 	"glTexStorage3DMultisample":			LogSpec({0: enum("TextureTarget"), 2: enum("PixelFormat"), 6: enum("Boolean")}),
 	# \todo [2012-03-08 pyry] Pointer values..
 	"glTexParameterf":						LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter")}),
-	"glTexParameterfv":						LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter")}),
+	"glTexParameterfv":						LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter"), 2: pointer(size = "1")}),
 	"glTexParameteri":						LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter"), 2: lambda name: "getTextureParameterValueStr(pname, %s)" % name}),
-	"glTexParameteriv":						LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter")}),
+	"glTexParameteriv":						LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter"), 2: pointer(size = "1")}),
+	"glTexParameterIiv":					LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter"), 2: pointer(size = "getTextureParamNumArgs(pname)")}),
+	"glTexParameterIuiv":					LogSpec({0: enum("TextureTarget"), 1: enum("TextureParameter"), 2: pointer(size = "getTextureParamNumArgs(pname)")}),
+	"glSamplerParameterf":					LogSpec({1: enum("TextureParameter")}),
+	"glSamplerParameterfv":					LogSpec({1: enum("TextureParameter"), 2: pointer(size = "1")}),
+	"glSamplerParameteri":					LogSpec({1: enum("TextureParameter"), 2: lambda name: "getTextureParameterValueStr(pname, %s)" % name}),
+	"glSamplerParameteriv":					LogSpec({1: enum("TextureParameter"), 2: pointer(size = "1")}),
+	"glSamplerParameterIiv":				LogSpec({1: enum("TextureParameter"), 2: pointer(size = "getTextureParamNumArgs(pname)")}),
+	"glSamplerParameterIuiv":				LogSpec({1: enum("TextureParameter"), 2: pointer(size = "getTextureParamNumArgs(pname)")}),
 	"glTexSubImage1D":						LogSpec({0: enum("TextureTarget"), 4: enum("PixelFormat"), 5: enum("Type")}),
 	"glTexSubImage2D":						LogSpec({0: enum("TextureTarget"), 6: enum("PixelFormat"), 7: enum("Type")}),
 	"glTexSubImage3D":						LogSpec({0: enum("TextureTarget"), 8: enum("PixelFormat"), 9: enum("Type")}),
@@ -228,6 +257,9 @@ CALL_LOG_SPECS = {
 	"glUniformMatrix3x4fv":					LogSpec({3: pointer(size = "(count * 3*4)")}),
 	"glUniformMatrix4x2fv":					LogSpec({3: pointer(size = "(count * 4*2)")}),
 	"glUniformMatrix4x3fv":					LogSpec({3: pointer(size = "(count * 4*3)")}),
+	"glUseProgramStages":					LogSpec({1: enum("ShaderTypeMask")}),
+	"glPatchParameteri":					LogSpec({0: enum("PatchParam")}),
+	"glProgramParameteri":					LogSpec({1: enum("ProgramParam")}),
 	"glProgramUniform1fv":					LogSpec({3: pointer(size = "(count * 1)")}),
 	"glProgramUniform1iv":					LogSpec({3: pointer(size = "(count * 1)")}),
 	"glProgramUniform1uiv":					LogSpec({3: pointer(size = "(count * 1)")}),
@@ -297,9 +329,20 @@ CALL_LOG_SPECS = {
 	"glMemoryBarrier":						LogSpec({0: enum("MemoryBarrierFlags")}),
 	"glBindImageTexture":					LogSpec({5: enum("ImageAccess"), 6: enum("PixelFormat")}),
 	"glGetProgramResourceIndex":			LogSpec({1: enum("ProgramInterface")}),
-	"glGetProgramResourceiv":				LogSpec({1: enum("ProgramInterface")}),
+	"glGetProgramResourceiv":
+		LogSpec(
+			{
+				1: enum("ProgramInterface"),
+				4: enumPointer("ProgramResourceProperty", "propCount")
+			},
+			argOutPrints =
+			{
+				6: pointer(size = "1"),
+				7: pointer(size = "((length == DE_NULL) ? (bufSize) : ((bufSize < *length) ? (bufSize) : (*length)))")
+			}),
 	"glDebugMessageInsert":					LogSpec({0: enum("DebugMessageSource"), 1: enum("DebugMessageType"), 3: enum("DebugMessageSeverity")}),
 	"glDebugMessageControl":				LogSpec({0: enum("DebugMessageSource"), 1: enum("DebugMessageType"), 2: enum("DebugMessageSeverity"), 4: pointer(size = "(count)")}),
+	"glDebugMessageCallback":				LogSpec({0: fnPointer, 1: voidPointer}),
 	"glPushDebugGroup":						LogSpec({0: enum("DebugMessageSource")}),
 	"glTexBuffer":							LogSpec({0: enum("BufferTarget"), 1: enum("PixelFormat")}),
 	"glTexBufferRange":						LogSpec({0: enum("BufferTarget"), 1: enum("PixelFormat")}),
@@ -363,13 +406,20 @@ def commandLogWrapperMemberDef (command):
 
 	if logSpec and len(logSpec.argOutPrints) > 0:
 		# Print values returned in pointers
-		src += "\tif (m_enableLog)\n\t{\n"
+		src += "\tif (m_enableLog)\n"
+		printouts = ""
+		numPrintouts = 0
 
 		for paramNdx, param in enumerate(command.params):
 			if paramNdx in logSpec.argOutPrints:
-				src += "\t\tm_log << TestLog::Message << \"// %s = \" << %s << TestLog::EndMessage;\n" % (param.name, logSpec.argOutPrints[paramNdx](param.name))
+				printouts += "\t\tm_log << TestLog::Message << \"// %s = \" << %s << TestLog::EndMessage;\n" % (param.name, logSpec.argOutPrints[paramNdx](param.name))
+				numPrintouts += 1
 
-		src += "\t}\n"
+		if numPrintouts > 1:
+			src += "\t{\n"
+		src += printouts
+		if numPrintouts > 1:
+			src += "\t}\n"
 
 	if not isVoid:
 		# Print return value
