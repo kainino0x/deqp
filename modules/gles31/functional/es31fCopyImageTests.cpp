@@ -170,60 +170,11 @@ const char* targetToName (deUint32 target)
 	}
 }
 
-bool isCompressedFormat (deUint32 format)
-{
-	switch (format)
-	{
-		case GL_COMPRESSED_R11_EAC:
-		case GL_COMPRESSED_SIGNED_R11_EAC:
-		case GL_COMPRESSED_RG11_EAC:
-		case GL_COMPRESSED_SIGNED_RG11_EAC:
-		case GL_COMPRESSED_RGB8_ETC2:
-		case GL_COMPRESSED_SRGB8_ETC2:
-		case GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
-		case GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
-		case GL_COMPRESSED_RGBA8_ETC2_EAC:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
-		case GL_COMPRESSED_RGBA_ASTC_4x4_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_5x4_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_5x5_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_6x5_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_6x6_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_8x5_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_8x6_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_8x8_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_10x5_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_10x6_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_10x8_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_10x10_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_12x10_KHR:
-		case GL_COMPRESSED_RGBA_ASTC_12x12_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR:
-		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR:
-			return true;
-
-		default:
-			return false;
-	}
-}
-
 string formatToName (deUint32 format)
 {
 	string enumName;
 
-	if (isCompressedFormat(format))
+	if (glu::isCompressedFormat(format))
 		enumName = glu::getCompressedTexFormatStr(format).toString().substr(14); // Strip GL_COMPRESSED_
 	else
 		enumName = glu::getPixelFormatStr(format).toString().substr(3); // Strip GL_
@@ -233,7 +184,7 @@ string formatToName (deUint32 format)
 
 bool isFloatFormat (deUint32 format)
 {
-	if (isCompressedFormat(format))
+	if (glu::isCompressedFormat(format))
 		return false;
 	else
 		return tcu::getTextureChannelClass(glu::mapGLInternalFormat(format).type) == tcu::TEXTURECHANNELCLASS_FLOATING_POINT;
@@ -241,7 +192,7 @@ bool isFloatFormat (deUint32 format)
 
 bool isUintFormat (deUint32 format)
 {
-	if (isCompressedFormat(format))
+	if (glu::isCompressedFormat(format))
 		return false;
 	else
 		return tcu::getTextureChannelClass(glu::mapGLInternalFormat(format).type) == tcu::TEXTURECHANNELCLASS_UNSIGNED_INTEGER;
@@ -249,7 +200,7 @@ bool isUintFormat (deUint32 format)
 
 bool isIntFormat (deUint32 format)
 {
-	if (isCompressedFormat(format))
+	if (glu::isCompressedFormat(format))
 		return false;
 	else
 		return tcu::getTextureChannelClass(glu::mapGLInternalFormat(format).type) == tcu::TEXTURECHANNELCLASS_SIGNED_INTEGER;
@@ -305,7 +256,7 @@ ImageInfo::ImageInfo (deUint32 format, deUint32 target, const IVec3& size)
 	, m_size		(size)
 {
 	DE_ASSERT(m_target == GL_TEXTURE_2D_ARRAY || m_target == GL_TEXTURE_3D || m_size.z() == 1);
-	DE_ASSERT(isTextureTarget(m_target) || !isCompressedFormat(m_target));
+	DE_ASSERT(isTextureTarget(m_target) || !glu::isCompressedFormat(m_target));
 }
 
 
@@ -349,9 +300,9 @@ deUint32 getMoreRestrictiveFormat (deUint32 formatA, deUint32 formatB)
 {
 	if (formatA == formatB)
 		return formatA;
-	else if (isCompressedFormat(formatA) && isAstcFormat(glu::mapGLCompressedTexFormat(formatA)))
+	else if (glu::isCompressedFormat(formatA) && isAstcFormat(glu::mapGLCompressedTexFormat(formatA)))
 		return formatA;
-	else if (isCompressedFormat(formatB) && isAstcFormat(glu::mapGLCompressedTexFormat(formatB)))
+	else if (glu::isCompressedFormat(formatB) && isAstcFormat(glu::mapGLCompressedTexFormat(formatB)))
 		return formatB;
 	else if (isFloatFormat(formatA))
 	{
@@ -365,11 +316,11 @@ deUint32 getMoreRestrictiveFormat (deUint32 formatA, deUint32 formatB)
 
 		return formatB;
 	}
-	else if (isCompressedFormat(formatA))
+	else if (glu::isCompressedFormat(formatA))
 	{
 		return formatA;
 	}
-	else if (isCompressedFormat(formatB))
+	else if (glu::isCompressedFormat(formatB))
 	{
 		return formatB;
 	}
@@ -379,7 +330,7 @@ deUint32 getMoreRestrictiveFormat (deUint32 formatA, deUint32 formatB)
 
 int getTexelBlockSize (deUint32 format)
 {
-	if (isCompressedFormat(format))
+	if (glu::isCompressedFormat(format))
 		return tcu::getBlockSize(glu::mapGLCompressedTexFormat(format));
 	else
 		return glu::mapGLInternalFormat(format).getPixelSize();
@@ -387,7 +338,7 @@ int getTexelBlockSize (deUint32 format)
 
 IVec3 getTexelBlockPixelSize (deUint32 format)
 {
-	if (isCompressedFormat(format))
+	if (glu::isCompressedFormat(format))
 		return tcu::getBlockPixelSize(glu::mapGLCompressedTexFormat(format));
 	else
 		return IVec3(1, 1, 1);
@@ -477,7 +428,7 @@ void genTexel (de::Random& rng, deUint32 glFormat, int texelBlockSize, const int
 			access.setPixel(color, texelNdx, 0, 0);
 		}
 	}
-	else if (isCompressedFormat(glFormat))
+	else if (glu::isCompressedFormat(glFormat))
 	{
 		const tcu::CompressedTexFormat compressedFormat = glu::mapGLCompressedTexFormat(glFormat);
 
@@ -572,7 +523,7 @@ void genericTexImage (const glw::Functions&	gl,
 
 	DE_ASSERT(target == GL_TEXTURE_CUBE_MAP || faceNdx == 0);
 
-	if (isCompressedFormat(format))
+	if (glu::isCompressedFormat(format))
 	{
 		switch (getTargetTexDims(target))
 		{
@@ -655,6 +606,16 @@ void genTextureImage (const glw::Functions&				gl,
 		}
 	}
 
+	gl.texParameteri(info.getTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	gl.texParameteri(info.getTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	if (info.getTarget() == GL_TEXTURE_3D)
+		gl.texParameteri(info.getTarget(), GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	gl.texParameteri(info.getTarget(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	gl.texParameteri(info.getTarget(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	GLU_EXPECT_NO_ERROR(gl.getError(), "Setting texture parameters failed");
+
 	gl.bindTexture(info.getTarget(), 0);
 	GLU_EXPECT_NO_ERROR(gl.getError(), "Unbinding texture failed.");
 }
@@ -672,7 +633,7 @@ void genRenderbufferImage (const glw::Functions&			gl,
 	DE_ASSERT(info.getTarget() == GL_RENDERBUFFER);
 	DE_ASSERT(info.getSize().z() == 1);
 	DE_ASSERT(getLevelCount(info) == 1);
-	DE_ASSERT(!isCompressedFormat(info.getFormat()));
+	DE_ASSERT(!glu::isCompressedFormat(info.getFormat()));
 
 	glu::Framebuffer framebuffer(gl);
 
@@ -777,12 +738,12 @@ int sumComponents (const IVec3& v)
 }
 
 void copyImageData (vector<ArrayBuffer<deUint8> >&			dstImageData,
-				    const ImageInfo&						dstImageInfo,
+					const ImageInfo&						dstImageInfo,
 					int										dstLevel,
 					const IVec3&							dstPos,
 
 					const vector<ArrayBuffer<deUint8> >&	srcImageData,
-				    const ImageInfo&						srcImageInfo,
+					const ImageInfo&						srcImageInfo,
 					int										srcLevel,
 					const IVec3&							srcPos,
 
@@ -1021,7 +982,7 @@ void verifyTexture2D (tcu::TestContext&						testContext,
 					  const vector<ArrayBuffer<deUint8> >&	data,
 					  const ImageInfo&						info)
 {
-	if (isCompressedFormat(info.getFormat()))
+	if (glu::isCompressedFormat(info.getFormat()))
 	{
 		vector<de::ArrayBuffer<deUint8> >	levelDatas;
 		vector<tcu::PixelBufferAccess>		levelAccesses;
@@ -1122,7 +1083,7 @@ void verifyTexture3D (tcu::TestContext&						testContext,
 					  const vector<ArrayBuffer<deUint8> >&	data,
 					  const ImageInfo&						info)
 {
-	if (isCompressedFormat(info.getFormat()))
+	if (glu::isCompressedFormat(info.getFormat()))
 	{
 		vector<de::ArrayBuffer<deUint8> >	levelDatas;
 		vector<tcu::PixelBufferAccess>		levelAccesses;
@@ -1226,7 +1187,7 @@ void verifyTextureCubemap (tcu::TestContext&					testContext,
 						   const vector<ArrayBuffer<deUint8> >&	data,
 						   const ImageInfo&						info)
 {
-	if (isCompressedFormat(info.getFormat()))
+	if (glu::isCompressedFormat(info.getFormat()))
 	{
 		const tcu::CompressedTexFormat&	compressedFormat	= glu::mapGLCompressedTexFormat(info.getFormat());
 		const tcu::TextureFormat&		decompressedFormat	= tcu::getUncompressedFormat(compressedFormat);
@@ -1385,7 +1346,7 @@ void verifyTexture2DArray (tcu::TestContext&					testContext,
 						   const vector<ArrayBuffer<deUint8> >&	data,
 						   const ImageInfo&						info)
 {
-	if (isCompressedFormat(info.getFormat()))
+	if (glu::isCompressedFormat(info.getFormat()))
 	{
 		vector<de::ArrayBuffer<deUint8> >	levelDatas;
 		vector<tcu::PixelBufferAccess>		levelAccesses;
@@ -1603,13 +1564,13 @@ private:
 	struct State
 	{
 		State (int					seed,
-			   tcu::TestContext&	testContext,
+			   tcu::TestLog&		log,
 			   glu::RenderContext&	renderContext)
 			: rng				(seed)
-			, results			(testContext.getLog())
+			, results			(log)
 			, srcImage			(NULL)
 			, dstImage			(NULL)
-			, textureRenderer	(renderContext, testContext, glu::GLSL_VERSION_310_ES, glu::PRECISION_HIGHP)
+			, textureRenderer	(renderContext, log, glu::GLSL_VERSION_310_ES, glu::PRECISION_HIGHP)
 		{
 		}
 
@@ -1657,7 +1618,7 @@ CopyImageTest::~CopyImageTest (void)
 
 void checkFormatSupport (glu::ContextInfo& info, deUint32 format)
 {
-	if (isCompressedFormat(format))
+	if (glu::isCompressedFormat(format))
 	{
 		if (isAstcFormat(glu::mapGLCompressedTexFormat(format)))
 		{
@@ -1691,7 +1652,7 @@ void CopyImageTest::init (void)
 				<< m_srcImageInfo
 				<< m_dstImageInfo;
 
-		m_state = new State(builder.get(), m_testCtx, m_context.getRenderContext());
+		m_state = new State(builder.get(), m_testCtx.getLog(), m_context.getRenderContext());
 	}
 }
 
@@ -2054,13 +2015,13 @@ void addCopyTests (TestCaseGroup* root, deUint32 srcFormat, deUint32 dstFormat)
 		const IVec3		srcTexelBlockPixelSize	= getTexelBlockPixelSize(srcFormat);
 		const bool		srcIs3D					= srcTarget == GL_TEXTURE_2D_ARRAY || srcTarget == GL_TEXTURE_3D;
 
-		if (isCompressedFormat(srcFormat) && srcTarget == GL_RENDERBUFFER)
+		if (glu::isCompressedFormat(srcFormat) && srcTarget == GL_RENDERBUFFER)
 			continue;
 
 		if (srcTarget == GL_RENDERBUFFER && !isColorRenderable(srcFormat))
 			continue;
 
-		if (isCompressedFormat(srcFormat) && !tcu::isAstcFormat(glu::mapGLCompressedTexFormat(srcFormat)) && srcIs3D)
+		if (glu::isCompressedFormat(srcFormat) && !tcu::isAstcFormat(glu::mapGLCompressedTexFormat(srcFormat)) && srcIs3D)
 			continue;
 
 		for (int dstTargetNdx = 0; dstTargetNdx < DE_LENGTH_OF_ARRAY(targets); dstTargetNdx++)
@@ -2069,13 +2030,13 @@ void addCopyTests (TestCaseGroup* root, deUint32 srcFormat, deUint32 dstFormat)
 			const IVec3		dstTexelBlockPixelSize	= getTexelBlockPixelSize(dstFormat);
 			const bool		dstIs3D					= dstTarget == GL_TEXTURE_2D_ARRAY || dstTarget == GL_TEXTURE_3D;
 
-			if (isCompressedFormat(dstFormat) && dstTarget == GL_RENDERBUFFER)
+			if (glu::isCompressedFormat(dstFormat) && dstTarget == GL_RENDERBUFFER)
 				continue;
 
 			if (dstTarget == GL_RENDERBUFFER && !isColorRenderable(dstFormat))
 				continue;
 
-			if (isCompressedFormat(dstFormat) && !tcu::isAstcFormat(glu::mapGLCompressedTexFormat(dstFormat)) && dstIs3D)
+			if (glu::isCompressedFormat(dstFormat) && !tcu::isAstcFormat(glu::mapGLCompressedTexFormat(dstFormat)) && dstIs3D)
 				continue;
 
 			const string	targetTestName	= string(targetToName(srcTarget)) + "_to_" + targetToName(dstTarget);

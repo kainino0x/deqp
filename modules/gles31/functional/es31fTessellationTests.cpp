@@ -1068,7 +1068,6 @@ static void drawTessCoordVisualization (tcu::Surface& dst, TessPrimitiveType pri
 {
 	const int		imageWidth		= 256;
 	const int		imageHeight		= 256;
-	const Vec2		imageSizeFloat	((float)imageWidth, (float)imageHeight);
 	dst.setSize(imageWidth, imageHeight);
 
 	tcu::clear(dst.getAccess(), tcu::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -1326,6 +1325,12 @@ static bool verifyFractionalSpacingSingle (TestLog& log, SpacingMode spacingMode
 					return false;
 				}
 			}
+			else
+			{
+				// We have 2 segmentsA and 2 segmentsB, ensure segmentsB has the shorter lengths
+				if (segmentsB[0].length > segmentsA[0].length)
+					std::swap(segmentsA, segmentsB);
+			}
 
 			// Check that the additional segments are placed symmetrically.
 			if (segmentsB[0].index + segmentsB[1].index + 1 != (int)segments.size())
@@ -1342,8 +1347,8 @@ static bool verifyFractionalSpacingSingle (TestLog& log, SpacingMode spacingMode
 				additionalSegmentLocationDst = de::min(segmentsB[0].index, segmentsB[1].index);
 			else
 				additionalSegmentLocationDst = segmentsB[0].length < segmentsA[0].length - 0.001f ? de::min(segmentsB[0].index, segmentsB[1].index)
-											 : segmentsA[0].length < segmentsB[0].length - 0.001f ? de::min(segmentsA[0].index, segmentsA[1].index)
 											 : -1; // \note -1 when can't reliably decide which ones are the additional segments, a or b.
+
 			return true;
 		}
 	}
@@ -1634,9 +1639,6 @@ void CommonEdgeCase::init (void)
 													 "void main (void)\n"
 													 "{\n"
 													 + (m_primitiveType == TESSPRIMITIVETYPE_TRIANGLES ?
-														string(m_caseType == CASETYPE_PRECISE
-															? "\t// Note: when this is an edge vertex, at most two of the following terms are non-zero (so order doesn't matter)\n"
-															: "") +
 														"	highp vec2 pos = gl_TessCoord.x*in_te_position[0] + gl_TessCoord.y*in_te_position[1] + gl_TessCoord.z*in_te_position[2];\n"
 														"\n"
 														"	highp float f = sqrt(3.0 * min(gl_TessCoord.x, min(gl_TessCoord.y, gl_TessCoord.z))) * 0.5 + 0.5;\n"
@@ -1653,7 +1655,6 @@ void CommonEdgeCase::init (void)
 															"	highp vec2 b = (    gl_TessCoord.x)*(1.0-gl_TessCoord.y)*in_te_position[1];\n"
 															"	highp vec2 c = (1.0-gl_TessCoord.x)*(    gl_TessCoord.y)*in_te_position[2];\n"
 															"	highp vec2 d = (    gl_TessCoord.x)*(    gl_TessCoord.y)*in_te_position[3];\n"
-															"	// Note: when this is an edge vertex, at most two of the following terms are non-zero (so order doesn't matter)\n"
 															"	highp vec2 pos = a+b+c+d;\n"
 														 : DE_NULL) +
 														"\n"
@@ -1716,8 +1717,6 @@ CommonEdgeCase::IterateResult CommonEdgeCase::iterate (void)
 	gridIndices.reserve(numIndices);
 
 	{
-		Random constantSeedRnd(42);
-
 		for (int i = 0; i < gridHeight+1; i++)
 		for (int j = 0; j < gridWidth+1; j++)
 		{
@@ -2443,6 +2442,12 @@ public:
 	}
 
 protected:
+	void init (void)
+	{
+		checkExtensionSupport(m_context, "GL_EXT_gpu_shader5");
+		BasicVariousTessLevelsPosAttrCase::init();
+	}
+
 	const glu::ProgramSources makeSources (TessPrimitiveType primitiveType, SpacingMode spacing, const char* vtxOutPosAttrName) const
 	{
 		return glu::ProgramSources()
@@ -2459,11 +2464,13 @@ protected:
 
 			<< glu::TessellationEvaluationSource	("#version 310 es\n"
 													 "#extension GL_EXT_tessellation_shader : require\n"
+													 "#extension GL_EXT_gpu_shader5 : require\n"
 													 "\n"
 													 + getTessellationEvaluationInLayoutString(primitiveType, spacing) +
 													 "\n"
 													 "in highp vec2 in_te_position[];\n"
 													 "\n"
+													 "precise gl_Position;\n"
 													 "void main (void)\n"
 													 "{\n"
 													 + (primitiveType == TESSPRIMITIVETYPE_TRIANGLES ?

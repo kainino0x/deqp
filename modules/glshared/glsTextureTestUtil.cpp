@@ -937,7 +937,6 @@ void sampleTexture (const SurfaceAccess& dst, const tcu::TextureCubeArrayView& s
 void fetchTexture (const SurfaceAccess& dst, const tcu::ConstPixelBufferAccess& src, const float* texCoord, const tcu::Vec4& colorScale, const tcu::Vec4& colorBias)
 {
 	const tcu::Vec4		sq			= tcu::Vec4(texCoord[0], texCoord[1], texCoord[2], texCoord[3]);
-	const tcu::IVec2	dstSize		= tcu::IVec2(dst.getWidth(), dst.getHeight());
 	const tcu::Vec3		triS[2]		= { sq.swizzle(0, 1, 2), sq.swizzle(3, 2, 1) };
 
 	for (int y = 0; y < dst.getHeight(); y++)
@@ -1027,9 +1026,9 @@ RandomViewport::RandomViewport (const tcu::RenderTarget& renderTarget, int prefe
 	y = rnd.getInt(0, renderTarget.getHeight()	- height);
 }
 
-ProgramLibrary::ProgramLibrary (const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision)
+ProgramLibrary::ProgramLibrary (const glu::RenderContext& context, tcu::TestLog& log, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision)
 	: m_context				(context)
-	, m_testCtx				(testCtx)
+	, m_log					(log)
 	, m_glslVersion			(glslVersion)
 	, m_texCoordPrecision	(texCoordPrecision)
 {
@@ -1052,8 +1051,6 @@ void ProgramLibrary::clear (void)
 
 glu::ShaderProgram* ProgramLibrary::getProgram (Program program)
 {
-	TestLog& log = m_testCtx.getLog();
-
 	if (m_programs.find(program) != m_programs.end())
 		return m_programs[program]; // Return from cache.
 
@@ -1223,7 +1220,7 @@ glu::ShaderProgram* ProgramLibrary::getProgram (Program program)
 	glu::ShaderProgram* progObj = new glu::ShaderProgram(m_context, glu::makeVtxFragSources(vertSrc, fragSrc));
 	if (!progObj->isOk())
 	{
-		log << *progObj;
+		m_log << *progObj;
 		delete progObj;
 		TCU_FAIL("Failed to compile shader program");
 	}
@@ -1241,10 +1238,10 @@ glu::ShaderProgram* ProgramLibrary::getProgram (Program program)
 	return progObj;
 }
 
-TextureRenderer::TextureRenderer (const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision)
+TextureRenderer::TextureRenderer (const glu::RenderContext& context, tcu::TestLog& log, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision)
 	: m_renderCtx		(context)
-	, m_testCtx			(testCtx)
-	, m_programLibrary	(context, testCtx, glslVersion, texCoordPrecision)
+	, m_log				(log)
+	, m_programLibrary	(context, log, glslVersion, texCoordPrecision)
 {
 }
 
@@ -1268,7 +1265,6 @@ void TextureRenderer::renderQuad (int texUnit, const float* texCoord, const Rend
 	const glw::Functions&	gl			= m_renderCtx.getFunctions();
 	tcu::Vec4				wCoord		= params.flags & RenderParams::PROJECTED ? params.w : tcu::Vec4(1.0f);
 	bool					useBias		= !!(params.flags & RenderParams::USE_BIAS);
-	TestLog&				log			= m_testCtx.getLog();
 	bool					logUniforms	= !!(params.flags & RenderParams::LOG_UNIFORMS);
 
 	// Render quad with texture.
@@ -1398,7 +1394,7 @@ void TextureRenderer::renderQuad (int texUnit, const float* texCoord, const Rend
 
 	// \todo [2012-09-26 pyry] Move to ProgramLibrary and log unique programs only(?)
 	if (params.flags & RenderParams::LOG_PROGRAMS)
-		log << *program;
+		m_log << *program;
 
 	GLU_EXPECT_NO_ERROR(gl.getError(), "Set vertex attributes");
 
@@ -1408,20 +1404,20 @@ void TextureRenderer::renderQuad (int texUnit, const float* texCoord, const Rend
 
 	gl.uniform1i(gl.getUniformLocation(prog, "u_sampler"), texUnit);
 	if (logUniforms)
-		log << TestLog::Message << "u_sampler = " << texUnit << TestLog::EndMessage;
+		m_log << TestLog::Message << "u_sampler = " << texUnit << TestLog::EndMessage;
 
 	if (useBias)
 	{
 		gl.uniform1f(gl.getUniformLocation(prog, "u_bias"), params.bias);
 		if (logUniforms)
-			log << TestLog::Message << "u_bias = " << params.bias << TestLog::EndMessage;
+			m_log << TestLog::Message << "u_bias = " << params.bias << TestLog::EndMessage;
 	}
 
 	if (params.samplerType == SAMPLERTYPE_SHADOW)
 	{
 		gl.uniform1f(gl.getUniformLocation(prog, "u_ref"), params.ref);
 		if (logUniforms)
-			log << TestLog::Message << "u_ref = " << params.ref << TestLog::EndMessage;
+			m_log << TestLog::Message << "u_ref = " << params.ref << TestLog::EndMessage;
 	}
 
 	gl.uniform4fv(gl.getUniformLocation(prog, "u_colorScale"),	1, params.colorScale.getPtr());
@@ -1429,8 +1425,8 @@ void TextureRenderer::renderQuad (int texUnit, const float* texCoord, const Rend
 
 	if (logUniforms)
 	{
-		log << TestLog::Message << "u_colorScale = " << params.colorScale << TestLog::EndMessage;
-		log << TestLog::Message << "u_colorBias = " << params.colorBias << TestLog::EndMessage;
+		m_log << TestLog::Message << "u_colorScale = " << params.colorScale << TestLog::EndMessage;
+		m_log << TestLog::Message << "u_colorBias = " << params.colorBias << TestLog::EndMessage;
 	}
 
 	GLU_EXPECT_NO_ERROR(gl.getError(), "Set program state");
@@ -1858,8 +1854,6 @@ int computeTextureLookupDiff (const tcu::ConstPixelBufferAccess&	result,
 					const float		nxo		= wxo/dstW;
 					const float		nyo		= wyo/dstH;
 
-					const tcu::Vec2	coordO		(projectedTriInterpolate(triS[triNdx], triW[triNdx], nxo, nyo),
-												 projectedTriInterpolate(triT[triNdx], triW[triNdx], nxo, nyo));
 					const tcu::Vec2	coordDxo	= tcu::Vec2(triDerivateX(triS[triNdx], triW[triNdx], wxo, dstW, nyo),
 															triDerivateX(triT[triNdx], triW[triNdx], wxo, dstW, nyo)) * srcSize.asFloat();
 					const tcu::Vec2	coordDyo	= tcu::Vec2(triDerivateY(triS[triNdx], triW[triNdx], wyo, dstH, nxo),
@@ -1990,7 +1984,7 @@ int computeTextureLookupDiff (const tcu::ConstPixelBufferAccess&	result,
 
 	const tcu::Vec2		lodBias			((sampleParams.flags & ReferenceParams::USE_BIAS) ? sampleParams.bias : 0.0f);
 
-	const float			posEps			= 1.0f / float((1<<MIN_SUBPIXEL_BITS) + 1);
+	const float			posEps			= 1.0f / float(1<<MIN_SUBPIXEL_BITS);
 
 	int					numFailed		= 0;
 
@@ -2029,8 +2023,8 @@ int computeTextureLookupDiff (const tcu::ConstPixelBufferAccess&	result,
 				const float		nx		= wx / dstW;
 				const float		ny		= wy / dstH;
 
-				const bool		tri0	= nx + ny - posEps <= 1.0f;
-				const bool		tri1	= nx + ny + posEps >= 1.0f;
+				const bool		tri0	= (wx-posEps)/dstW + (wy-posEps)/dstH <= 1.0f;
+				const bool		tri1	= (wx+posEps)/dstW + (wy+posEps)/dstH >= 1.0f;
 
 				bool			isOk	= false;
 
@@ -2169,7 +2163,7 @@ int computeTextureLookupDiff (const tcu::ConstPixelBufferAccess&	result,
 
 	const tcu::Vec2		lodBias			((sampleParams.flags & ReferenceParams::USE_BIAS) ? sampleParams.bias : 0.0f);
 
-	const float			posEps			= 1.0f / float((1<<MIN_SUBPIXEL_BITS) + 1);
+	const float			posEps			= 1.0f / float(1<<MIN_SUBPIXEL_BITS);
 
 	int					numFailed		= 0;
 
@@ -2202,8 +2196,8 @@ int computeTextureLookupDiff (const tcu::ConstPixelBufferAccess&	result,
 				const float		nx		= wx / dstW;
 				const float		ny		= wy / dstH;
 
-				const bool		tri0	= nx + ny - posEps <= 1.0f;
-				const bool		tri1	= nx + ny + posEps >= 1.0f;
+				const bool		tri0	= (wx-posEps)/dstW + (wy-posEps)/dstH <= 1.0f;
+				const bool		tri1	= (wx+posEps)/dstW + (wy+posEps)/dstH >= 1.0f;
 
 				bool			isOk	= false;
 
@@ -2237,9 +2231,6 @@ int computeTextureLookupDiff (const tcu::ConstPixelBufferAccess&	result,
 						const float		nxo		= wxo/dstW;
 						const float		nyo		= wyo/dstH;
 
-						const tcu::Vec3	coordO		(projectedTriInterpolate(triS[triNdx], triW[triNdx], nxo, nyo),
-													 projectedTriInterpolate(triT[triNdx], triW[triNdx], nxo, nyo),
-													 projectedTriInterpolate(triR[triNdx], triW[triNdx], nxo, nyo));
 						const tcu::Vec3	coordDxo	= tcu::Vec3(triDerivateX(triS[triNdx], triW[triNdx], wxo, dstW, nyo),
 																triDerivateX(triT[triNdx], triW[triNdx], wxo, dstW, nyo),
 																triDerivateX(triR[triNdx], triW[triNdx], wxo, dstW, nyo)) * srcSize.asFloat();
@@ -2390,8 +2381,6 @@ int computeTextureLookupDiff (const tcu::ConstPixelBufferAccess&	result,
 					const float		nxo		= wxo/dstW;
 					const float		nyo		= wyo/dstH;
 
-					const tcu::Vec2	coordO		(projectedTriInterpolate(triS[triNdx], triW[triNdx], nxo, nyo),
-												 projectedTriInterpolate(triT[triNdx], triW[triNdx], nxo, nyo));
 					const float	coordDxo		= triDerivateX(triS[triNdx], triW[triNdx], wxo, dstW, nyo) * srcSize;
 					const float	coordDyo		= triDerivateY(triS[triNdx], triW[triNdx], wyo, dstH, nxo) * srcSize;
 					const tcu::Vec2	lodO		= tcu::computeLodBoundsFromDerivates(coordDxo, coordDyo, lodPrec);
@@ -2501,9 +2490,6 @@ int computeTextureLookupDiff (const tcu::ConstPixelBufferAccess&	result,
 					const float		nxo		= wxo/dstW;
 					const float		nyo		= wyo/dstH;
 
-					const tcu::Vec3	coordO		(projectedTriInterpolate(triS[triNdx], triW[triNdx], nxo, nyo),
-												 projectedTriInterpolate(triT[triNdx], triW[triNdx], nxo, nyo),
-												 projectedTriInterpolate(triR[triNdx], triW[triNdx], nxo, nyo));
 					const tcu::Vec2	coordDxo	= tcu::Vec2(triDerivateX(triS[triNdx], triW[triNdx], wxo, dstW, nyo),
 															triDerivateX(triT[triNdx], triW[triNdx], wxo, dstW, nyo)) * srcSize;
 					const tcu::Vec2	coordDyo	= tcu::Vec2(triDerivateY(triS[triNdx], triW[triNdx], wyo, dstH, nxo),
@@ -2872,8 +2858,6 @@ int computeTextureCompareDiff (const tcu::ConstPixelBufferAccess&	result,
 					const float		nxo		= wxo/dstW;
 					const float		nyo		= wyo/dstH;
 
-					const tcu::Vec2	coordO		(projectedTriInterpolate(triS[triNdx], triW[triNdx], nxo, nyo),
-												 projectedTriInterpolate(triT[triNdx], triW[triNdx], nxo, nyo));
 					const tcu::Vec2	coordDxo	= tcu::Vec2(triDerivateX(triS[triNdx], triW[triNdx], wxo, dstW, nyo),
 															triDerivateX(triT[triNdx], triW[triNdx], wxo, dstW, nyo)) * srcSize.asFloat();
 					const tcu::Vec2	coordDyo	= tcu::Vec2(triDerivateY(triS[triNdx], triW[triNdx], wyo, dstH, nxo),
@@ -3103,8 +3087,6 @@ int computeTextureCompareDiff (const tcu::ConstPixelBufferAccess&	result,
 					const float		nxo		= wxo/dstW;
 					const float		nyo		= wyo/dstH;
 
-					const tcu::Vec2	coordO		(projectedTriInterpolate(triS[triNdx], triW[triNdx], nxo, nyo),
-												 projectedTriInterpolate(triT[triNdx], triW[triNdx], nxo, nyo));
 					const tcu::Vec2	coordDxo	= tcu::Vec2(triDerivateX(triS[triNdx], triW[triNdx], wxo, dstW, nyo),
 															triDerivateX(triT[triNdx], triW[triNdx], wxo, dstW, nyo)) * srcSize.asFloat();
 					const tcu::Vec2	coordDyo	= tcu::Vec2(triDerivateY(triS[triNdx], triW[triNdx], wyo, dstH, nxo),

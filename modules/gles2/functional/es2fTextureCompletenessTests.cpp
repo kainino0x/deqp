@@ -151,7 +151,7 @@ Tex2DCompletenessCase::IterateResult Tex2DCompletenessCase::iterate (void)
 	int					viewportWidth	= de::min(64, m_renderCtx.getRenderTarget().getWidth());
 	int					viewportHeight	= de::min(64, m_renderCtx.getRenderTarget().getHeight());
 	TestLog&			log				= m_testCtx.getLog();
-	TextureRenderer		renderer		(m_renderCtx, m_testCtx, glu::GLSL_VERSION_100_ES, glu::PRECISION_MEDIUMP);
+	TextureRenderer		renderer		(m_renderCtx, log, glu::GLSL_VERSION_100_ES, glu::PRECISION_MEDIUMP);
 	tcu::Surface		renderedFrame	(viewportWidth, viewportHeight);
 	vector<float>		texCoord;
 
@@ -204,7 +204,7 @@ TexCubeCompletenessCase::IterateResult TexCubeCompletenessCase::iterate (void)
 	int					viewportHeight	= de::min(64, m_renderCtx.getRenderTarget().getHeight());
 	bool				allFacesOk		= true;
 	TestLog&			log				= m_testCtx.getLog();
-	TextureRenderer		renderer		(m_renderCtx, m_testCtx, glu::GLSL_VERSION_100_ES, glu::PRECISION_MEDIUMP);
+	TextureRenderer		renderer		(m_renderCtx, log, glu::GLSL_VERSION_100_ES, glu::PRECISION_MEDIUMP);
 	tcu::Surface		renderedFrame	(viewportWidth, viewportHeight);
 	vector<float>		texCoord;
 
@@ -537,9 +537,6 @@ Incomplete2DEmptyObjectCase::Incomplete2DEmptyObjectCase (tcu::TestContext& test
 
 void Incomplete2DEmptyObjectCase::createTexture (void)
 {
-	tcu::TextureFormat	fmt			= glu::mapGLTransferFormat(GL_RGBA, GL_UNSIGNED_BYTE);
-	tcu::TextureLevel	levelData	(fmt);
-
 	GLuint texture;
 	glGenTextures	(1, &texture);
 	glPixelStorei	(GL_UNPACK_ALIGNMENT, 1);
@@ -901,9 +898,6 @@ IncompleteCubeEmptyObjectCase::IncompleteCubeEmptyObjectCase (tcu::TestContext& 
 
 void IncompleteCubeEmptyObjectCase::createTexture (void)
 {
-	tcu::TextureFormat		fmt				= glu::mapGLTransferFormat(GL_RGBA, GL_UNSIGNED_BYTE);
-	tcu::TextureLevel		levelData		(fmt);
-
 	GLuint texture;
 	glGenTextures	(1, &texture);
 	glPixelStorei	(GL_UNPACK_ALIGNMENT, 1);

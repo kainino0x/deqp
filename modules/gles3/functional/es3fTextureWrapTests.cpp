@@ -141,7 +141,7 @@ TextureWrapCase::TextureWrapCase (tcu::TestContext& testCtx, glu::RenderContext&
 	, m_height				(height)
 	, m_caseNdx				(0)
 	, m_texture				(DE_NULL)
-	, m_renderer			(renderCtx, testCtx, glu::GLSL_VERSION_300_ES, glu::PRECISION_MEDIUMP)
+	, m_renderer			(renderCtx, testCtx.getLog(), glu::GLSL_VERSION_300_ES, glu::PRECISION_MEDIUMP)
 {
 }
 
@@ -161,7 +161,7 @@ TextureWrapCase::TextureWrapCase (tcu::TestContext& testCtx, glu::RenderContext&
 	, m_filenames			(filenames)
 	, m_caseNdx				(0)
 	, m_texture				(DE_NULL)
-	, m_renderer			(renderCtx, testCtx, glu::GLSL_VERSION_300_ES, glu::PRECISION_MEDIUMP)
+	, m_renderer			(renderCtx, testCtx.getLog(), glu::GLSL_VERSION_300_ES, glu::PRECISION_MEDIUMP)
 {
 }
 
@@ -180,7 +180,7 @@ TextureWrapCase::TextureWrapCase (tcu::TestContext& testCtx, glu::RenderContext&
 	, m_height				(height)
 	, m_caseNdx				(0)
 	, m_texture				(DE_NULL)
-	, m_renderer			(renderCtx, testCtx, glu::GLSL_VERSION_300_ES, glu::PRECISION_MEDIUMP)
+	, m_renderer			(renderCtx, testCtx.getLog(), glu::GLSL_VERSION_300_ES, glu::PRECISION_MEDIUMP)
 {
 }
 
@@ -296,7 +296,6 @@ TextureWrapCase::IterateResult TextureWrapCase::iterate (void)
 	TestLog&						log								= m_testCtx.getLog();
 	const RandomViewport			viewport						(m_renderCtx.getRenderTarget(), VIEWPORT_WIDTH, VIEWPORT_HEIGHT, deStringHash(getName()) + m_caseNdx);
 	tcu::Surface					renderedFrame					(viewport.width, viewport.height);
-	tcu::Surface					referenceFrame					(viewport.width, viewport.height);
 	ReferenceParams					refParams						(TEXTURETYPE_2D);
 	const tcu::TextureFormat		texFormat						= m_texture->getRefTexture().getFormat();
 	vector<float>					texCoord;
