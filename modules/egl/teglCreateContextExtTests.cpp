@@ -349,7 +349,7 @@ void CreateContextExtCase::logAttribList (void)
 				iter++;
 				attribListString << "EGL_CONTEXT_OPENGL_ROBUST_ACCESS_EXT, ";
 
-				if (*iter == EGL_FALSE && *iter == EGL_TRUE)
+				if (*iter == EGL_FALSE || *iter == EGL_TRUE)
 					attribListString << (*iter ? "EGL_TRUE" : "EGL_FALSE");
 				else
 					attribListString << (*iter);
@@ -920,24 +920,18 @@ TestCase::IterateResult CreateContextExtCase::iterate (void)
 		}
 		else if ((surfaceTypes & EGL_WINDOW_BIT) != 0)
 		{
-			const eglu::NativeWindowFactory*	factory	= eglu::selectNativeWindowFactory(m_eglTestCtx.getNativeDisplayFactory(), m_testCtx.getCommandLine());
+			const eglu::NativeWindowFactory&	factory	= eglu::selectNativeWindowFactory(m_eglTestCtx.getNativeDisplayFactory(), m_testCtx.getCommandLine());
 
-			if (!factory)
-				TCU_THROW(NotSupportedError, "Windows not supported");
-
-			de::UniquePtr<eglu::NativeWindow>	window	(factory->createWindow(&m_eglTestCtx.getNativeDisplay(), m_display, config, DE_NULL, eglu::WindowParams(256, 256, eglu::parseWindowVisibility(m_testCtx.getCommandLine()))));
+			de::UniquePtr<eglu::NativeWindow>	window	(factory.createWindow(&m_eglTestCtx.getNativeDisplay(), m_display, config, DE_NULL, eglu::WindowParams(256, 256, eglu::parseWindowVisibility(m_testCtx.getCommandLine()))));
 			eglu::UniqueSurface					surface	(egl, m_display, eglu::createWindowSurface(m_eglTestCtx.getNativeDisplay(), *window, m_display, config, DE_NULL));
 
 			executeForSurface(config, *surface);
 		}
 		else if ((surfaceTypes & EGL_PIXMAP_BIT) != 0)
 		{
-			const eglu::NativePixmapFactory*	factory	= eglu::selectNativePixmapFactory(m_eglTestCtx.getNativeDisplayFactory(), m_testCtx.getCommandLine());
+			const eglu::NativePixmapFactory&	factory	= eglu::selectNativePixmapFactory(m_eglTestCtx.getNativeDisplayFactory(), m_testCtx.getCommandLine());
 
-			if (!factory)
-				TCU_THROW(NotSupportedError, "Pixmaps not supported");
-
-			de::UniquePtr<eglu::NativePixmap>	pixmap	(factory->createPixmap(&m_eglTestCtx.getNativeDisplay(), m_display, config, DE_NULL, 256, 256));
+			de::UniquePtr<eglu::NativePixmap>	pixmap	(factory.createPixmap(&m_eglTestCtx.getNativeDisplay(), m_display, config, DE_NULL, 256, 256));
 			eglu::UniqueSurface					surface	(egl, m_display, eglu::createPixmapSurface(m_eglTestCtx.getNativeDisplay(), *pixmap, m_display, config, DE_NULL));
 
 			executeForSurface(config, *surface);
@@ -995,6 +989,8 @@ void CreateContextExtCase::executeForSurface (EGLConfig config, EGLSurface surfa
 			m_isOk = false;
 		}
 	}
+
+	EGLU_CHECK_CALL(egl, makeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
 }
 
 class CreateContextExtGroup : public TestCaseGroup

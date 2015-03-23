@@ -53,6 +53,8 @@ public:
 		ARGB,
 		BGRA,
 
+		sR,
+		sRG,
 		sRGB,
 		sRGBA,
 
@@ -70,6 +72,7 @@ public:
 		SNORM_INT32,
 		UNORM_INT8,
 		UNORM_INT16,
+		UNORM_INT24,
 		UNORM_INT32,
 		UNORM_SHORT_565,
 		UNORM_SHORT_555,
@@ -116,7 +119,35 @@ public:
 	{
 		return (order != other.order || type != other.type);
 	}
+} DE_WARN_UNUSED_TYPE;
+
+/*--------------------------------------------------------------------*//*!
+ * \brief Texture swizzle
+ *//*--------------------------------------------------------------------*/
+struct TextureSwizzle
+{
+	enum Channel
+	{
+		// \note CHANNEL_N must equal int N
+		CHANNEL_0 = 0,
+		CHANNEL_1,
+		CHANNEL_2,
+		CHANNEL_3,
+
+		CHANNEL_ZERO,
+		CHANNEL_ONE,
+
+		CHANNEL_LAST
+	};
+
+	Channel components[4];
 };
+
+//! get the swizzle used to expand texture data with a given channel order to RGBA form
+const TextureSwizzle& getChannelReadSwizzle		(TextureFormat::ChannelOrder order);
+
+//! get the swizzle used to narrow RGBA form data to native texture data with a given channel order
+const TextureSwizzle& getChannelWriteSwizzle	(TextureFormat::ChannelOrder order);
 
 /*--------------------------------------------------------------------*//*!
  * \brief Sampling parameters
@@ -226,7 +257,7 @@ public:
 		, seamlessCubeMap	(false)
 	{
 	}
-};
+} DE_WARN_UNUSED_TYPE;
 
 // Calculate pitches for pixel data with no padding.
 IVec3 calculatePackedPitch (const TextureFormat& format, const IVec3& size);
@@ -290,7 +321,7 @@ protected:
 	IVec3					m_size;
 	IVec3					m_pitch;	//!< (pixelPitch, rowPitch, slicePitch)
 	mutable void*			m_data;
-};
+} DE_WARN_UNUSED_TYPE;
 
 /*--------------------------------------------------------------------*//*!
  * \brief Read-write pixel data access
@@ -320,7 +351,7 @@ public:
 
 	void				setPixDepth			(float depth, int x, int y, int z = 0) const;
 	void				setPixStencil		(int stencil, int x, int y, int z = 0) const;
-};
+} DE_WARN_UNUSED_TYPE;
 
 /*--------------------------------------------------------------------*//*!
  * \brief Generic pixel data container
@@ -359,7 +390,7 @@ private:
 	de::ArrayBuffer<deUint8>	m_data;
 
 	friend class ConstPixelBufferAccess;
-};
+} DE_WARN_UNUSED_TYPE;
 
 Vec4	sampleLevelArray1D				(const ConstPixelBufferAccess* levels, int numLevels, const Sampler& sampler, float s, int level, float lod);
 Vec4	sampleLevelArray2D				(const ConstPixelBufferAccess* levels, int numLevels, const Sampler& sampler, float s, float t, int depth, float lod);
@@ -399,7 +430,7 @@ struct CubeFaceCoords
 
 					CubeFaceCoords		(CubeFace face_, T s_, T t_) : face(face_), s(s_), t(t_) {}
 					CubeFaceCoords		(CubeFace face_, const Vector<T, 2>& c) : face(face_), s(c.x()), t(c.y()) {}
-};
+} DE_WARN_UNUSED_TYPE;
 
 typedef CubeFaceCoords<float>	CubeFaceFloatCoords;
 typedef CubeFaceCoords<int>		CubeFaceIntCoords;
@@ -430,7 +461,7 @@ public:
 protected:
 	int								m_numLevels;
 	const ConstPixelBufferAccess*	m_levels;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Texture1DView::Texture1DView (int numLevels, const ConstPixelBufferAccess* levels)
 	: m_numLevels	(numLevels)
@@ -484,7 +515,7 @@ public:
 protected:
 	int								m_numLevels;
 	const ConstPixelBufferAccess*	m_levels;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Texture2DView::Texture2DView (int numLevels, const ConstPixelBufferAccess* levels)
 	: m_numLevels	(numLevels)
@@ -554,7 +585,7 @@ private:
 	TextureFormat					m_format;
 	std::vector<LevelData>			m_data;
 	std::vector<PixelBufferAccess>	m_access;
-};
+} DE_WARN_UNUSED_TYPE;
 
 /*--------------------------------------------------------------------*//*!
  * \brief 1D Texture reference implementation
@@ -588,7 +619,7 @@ public:
 private:
 	int								m_width;
 	Texture1DView					m_view;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Vec4 Texture1D::sample (const Sampler& sampler, float s, float lod) const
 {
@@ -639,7 +670,7 @@ private:
 	int								m_width;
 	int								m_height;
 	Texture2DView					m_view;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Vec4 Texture2D::sample (const Sampler& sampler, float s, float t, float lod) const
 {
@@ -694,7 +725,7 @@ public:
 protected:
 	int								m_numLevels;
 	const ConstPixelBufferAccess*	m_levels[CUBEFACE_LAST];
-};
+} DE_WARN_UNUSED_TYPE;
 
 /*--------------------------------------------------------------------*//*!
  * \brief Cube Map Texture reference implementation
@@ -735,7 +766,7 @@ private:
 	std::vector<LevelData>			m_data[CUBEFACE_LAST];
 	std::vector<PixelBufferAccess>	m_access[CUBEFACE_LAST];
 	TextureCubeView					m_view;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Vec4 TextureCube::sample (const Sampler& sampler, float s, float t, float p, float lod) const
 {
@@ -781,7 +812,7 @@ protected:
 
 	int								m_numLevels;
 	const ConstPixelBufferAccess*	m_levels;
-};
+} DE_WARN_UNUSED_TYPE;
 
 /*--------------------------------------------------------------------*//*!
  * \brief 2D Array Texture View
@@ -811,7 +842,7 @@ protected:
 
 	int								m_numLevels;
 	const ConstPixelBufferAccess*	m_levels;
-};
+} DE_WARN_UNUSED_TYPE;
 
 /*--------------------------------------------------------------------*//*!
  * \brief 1D Array Texture reference implementation
@@ -847,7 +878,7 @@ private:
 	int								m_width;
 	int								m_numLayers;
 	Texture1DArrayView				m_view;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Vec4 Texture1DArray::sample (const Sampler& sampler, float s, float t, float lod) const
 {
@@ -908,7 +939,7 @@ private:
 	int								m_height;
 	int								m_numLayers;
 	Texture2DArrayView				m_view;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Vec4 Texture2DArray::sample (const Sampler& sampler, float s, float t, float r, float lod) const
 {
@@ -961,7 +992,7 @@ public:
 protected:
 	int								m_numLevels;
 	const ConstPixelBufferAccess*	m_levels;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Vec4 Texture3DView::sample (const Sampler& sampler, float s, float t, float r, float lod) const
 {
@@ -1007,7 +1038,7 @@ private:
 	int								m_height;
 	int								m_depth;
 	Texture3DView					m_view;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Vec4 Texture3D::sample (const Sampler& sampler, float s, float t, float r, float lod) const
 {
@@ -1044,7 +1075,7 @@ protected:
 
 	int								m_numLevels;
 	const ConstPixelBufferAccess*	m_levels;
-};
+} DE_WARN_UNUSED_TYPE;
 
 /*--------------------------------------------------------------------*//*!
  * \brief Cube Map Array Texture reference implementation
@@ -1080,7 +1111,7 @@ private:
 	int								m_size;
 	int								m_depth;
 	TextureCubeArrayView			m_view;
-};
+} DE_WARN_UNUSED_TYPE;
 
 inline Vec4 TextureCubeArray::sample (const Sampler& sampler, float s, float t, float r, float q, float lod) const
 {

@@ -42,6 +42,7 @@ ConstPixelBufferAccess	flipYAccess		(const ConstPixelBufferAccess& access);
 // sRGB - linear conversion.
 Vec4					sRGBToLinear	(const Vec4& cs);
 Vec4					linearToSRGB	(const Vec4& cl);
+bool					isSRGB			(TextureFormat format);
 
 /*--------------------------------------------------------------------*//*!
  * \brief Color channel storage type
@@ -76,7 +77,7 @@ struct TextureFormatInfo
 		, lookupBias	(lookupBias_)
 	{
 	}
-};
+} DE_WARN_UNUSED_TYPE;
 
 TextureFormatInfo	getTextureFormatInfo				(const TextureFormat& format);
 IVec4				getTextureFormatBitDepth			(const TextureFormat& format);

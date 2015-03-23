@@ -549,6 +549,9 @@ bool GLES2ImageApi::RenderDepthbuffer::invokeGLES2 (GLES2ImageApi& api, MovePtr<
 bool GLES2ImageApi::RenderReadPixelsRenderbuffer::invokeGLES2 (GLES2ImageApi& api, MovePtr<UniqueImage>& img, tcu::Texture2D& reference) const
 {
 	const glw::Functions&	gl				= api.m_gl;
+	const tcu::IVec4		bitDepth		= tcu::getTextureFormatMantissaBitDepth(reference.getFormat());
+	const tcu::IVec4		threshold		(2 * (tcu::IVec4(1) << (tcu::IVec4(8) - bitDepth)));
+	const tcu::RGBA			threshold8		((deUint8)(de::clamp(threshold[0], 0, 255)), (deUint8)(de::clamp(threshold[1], 0, 255)), (deUint8)(de::clamp(threshold[2], 0, 255)), (deUint8)(de::clamp(threshold[3], 0, 255)));
 	tcu::TestLog&			log				= api.getLog();
 	Framebuffer				framebuffer		(gl);
 	Renderbuffer			renderbuffer	(gl);
@@ -572,7 +575,7 @@ bool GLES2ImageApi::RenderReadPixelsRenderbuffer::invokeGLES2 (GLES2ImageApi& ap
 
 	tcu::copy(refSurface.getAccess(), reference.getLevel(0));
 
-	return tcu::pixelThresholdCompare(log, "Renderbuffer read", "Result from reading renderbuffer", refSurface, screen, tcu::RGBA(1,1,1,1), tcu::COMPARE_LOG_RESULT);
+	return tcu::pixelThresholdCompare(log, "Renderbuffer read", "Result from reading renderbuffer", refSurface, screen, threshold8, tcu::COMPARE_LOG_RESULT);
 
 }
 
@@ -801,16 +804,13 @@ void ImageFormatCase::checkExtensions (void)
 void ImageFormatCase::init (void)
 {
 	const Library&						egl				= m_eglTestCtx.getLibrary();
-	const eglu::NativeWindowFactory*	windowFactory	= eglu::selectNativeWindowFactory(m_eglTestCtx.getNativeDisplayFactory(), m_testCtx.getCommandLine());
-
-	if (!windowFactory)
-		TCU_THROW(NotSupportedError, "Windows not supported");
+	const eglu::NativeWindowFactory&	windowFactory	= eglu::selectNativeWindowFactory(m_eglTestCtx.getNativeDisplayFactory(), m_testCtx.getCommandLine());
 
 	try
 	{
 		m_display	= eglu::getAndInitDisplay(m_eglTestCtx.getNativeDisplay());
 		m_config	= getConfig();
-		m_window	= windowFactory->createWindow(&m_eglTestCtx.getNativeDisplay(), m_display, m_config, DE_NULL, eglu::WindowParams(480, 480, eglu::parseWindowVisibility(m_testCtx.getCommandLine())));
+		m_window	= windowFactory.createWindow(&m_eglTestCtx.getNativeDisplay(), m_display, m_config, DE_NULL, eglu::WindowParams(480, 480, eglu::parseWindowVisibility(m_testCtx.getCommandLine())));
 		m_surface	= eglu::createWindowSurface(m_eglTestCtx.getNativeDisplay(), *m_window, m_display, m_config, DE_NULL);
 
 		{

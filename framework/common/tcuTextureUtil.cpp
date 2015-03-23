@@ -70,15 +70,29 @@ Vec4 linearToSRGB (const Vec4& cl)
 				cl[3]);
 }
 
+bool isSRGB (TextureFormat format)
+{
+	return	format.order == TextureFormat::sR	||
+			format.order == TextureFormat::sRG	||
+			format.order == TextureFormat::sRGB	||
+			format.order == TextureFormat::sRGBA;
+}
+
 //! Get texture channel class for format
 TextureChannelClass getTextureChannelClass (TextureFormat::ChannelType channelType)
 {
+	// make sure this table is updated if format table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELTYPE_LAST == 26);
+
 	switch (channelType)
 	{
 		case TextureFormat::SNORM_INT8:						return TEXTURECHANNELCLASS_SIGNED_FIXED_POINT;
 		case TextureFormat::SNORM_INT16:					return TEXTURECHANNELCLASS_SIGNED_FIXED_POINT;
+		case TextureFormat::SNORM_INT32:					return TEXTURECHANNELCLASS_SIGNED_FIXED_POINT;
 		case TextureFormat::UNORM_INT8:						return TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT;
 		case TextureFormat::UNORM_INT16:					return TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT;
+		case TextureFormat::UNORM_INT24:					return TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT;
+		case TextureFormat::UNORM_INT32:					return TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT;
 		case TextureFormat::UNORM_SHORT_565:				return TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT;
 		case TextureFormat::UNORM_SHORT_555:				return TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT;
 		case TextureFormat::UNORM_SHORT_4444:				return TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT;
@@ -88,6 +102,7 @@ TextureChannelClass getTextureChannelClass (TextureFormat::ChannelType channelTy
 		case TextureFormat::UNSIGNED_INT_1010102_REV:		return TEXTURECHANNELCLASS_UNSIGNED_INTEGER;
 		case TextureFormat::UNSIGNED_INT_11F_11F_10F_REV:	return TEXTURECHANNELCLASS_FLOATING_POINT;
 		case TextureFormat::UNSIGNED_INT_999_E5_REV:		return TEXTURECHANNELCLASS_FLOATING_POINT;
+		case TextureFormat::UNSIGNED_INT_24_8:				return TEXTURECHANNELCLASS_LAST;					//!< packed unorm24-uint8
 		case TextureFormat::SIGNED_INT8:					return TEXTURECHANNELCLASS_SIGNED_INTEGER;
 		case TextureFormat::SIGNED_INT16:					return TEXTURECHANNELCLASS_SIGNED_INTEGER;
 		case TextureFormat::SIGNED_INT32:					return TEXTURECHANNELCLASS_SIGNED_INTEGER;
@@ -96,6 +111,7 @@ TextureChannelClass getTextureChannelClass (TextureFormat::ChannelType channelTy
 		case TextureFormat::UNSIGNED_INT32:					return TEXTURECHANNELCLASS_UNSIGNED_INTEGER;
 		case TextureFormat::HALF_FLOAT:						return TEXTURECHANNELCLASS_FLOATING_POINT;
 		case TextureFormat::FLOAT:							return TEXTURECHANNELCLASS_FLOATING_POINT;
+		case TextureFormat::FLOAT_UNSIGNED_INT_24_8_REV:	return TEXTURECHANNELCLASS_LAST;					//!< packed float32-pad24-uint8
 		default:											return TEXTURECHANNELCLASS_LAST;
 	}
 }
@@ -210,6 +226,9 @@ ConstPixelBufferAccess flipYAccess (const ConstPixelBufferAccess& access)
 
 static Vec2 getChannelValueRange (TextureFormat::ChannelType channelType)
 {
+	// make sure this table is updated if format table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELTYPE_LAST == 26);
+
 	float cMin = 0.0f;
 	float cMax = 0.0f;
 
@@ -217,11 +236,14 @@ static Vec2 getChannelValueRange (TextureFormat::ChannelType channelType)
 	{
 		// Signed normalized formats.
 		case TextureFormat::SNORM_INT8:
-		case TextureFormat::SNORM_INT16:					cMin = -1.0f;			cMax = 1.0f;			break;
+		case TextureFormat::SNORM_INT16:
+		case TextureFormat::SNORM_INT32:					cMin = -1.0f;			cMax = 1.0f;			break;
 
 		// Unsigned normalized formats.
 		case TextureFormat::UNORM_INT8:
 		case TextureFormat::UNORM_INT16:
+		case TextureFormat::UNORM_INT24:
+		case TextureFormat::UNORM_INT32:
 		case TextureFormat::UNORM_SHORT_565:
 		case TextureFormat::UNORM_SHORT_4444:
 		case TextureFormat::UNORM_INT_101010:
@@ -273,28 +295,14 @@ TextureFormatInfo getTextureFormatInfo (const TextureFormat& format)
 								 Vec4(1.0f, 1.0f, 1.0f, 1.0f),
 								 Vec4(0.0f, 0.0f, 0.0f, 0.0f));
 
-	Vec2	cRange		= getChannelValueRange(format.type);
-	BVec4	chnMask		= BVec4(false);
-
-	switch (format.order)
-	{
-		case TextureFormat::R:		chnMask = BVec4(true,	false,	false,	false);		break;
-		case TextureFormat::A:		chnMask = BVec4(false,	false,	false,	true);		break;
-		case TextureFormat::L:		chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::LA:		chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::RG:		chnMask = BVec4(true,	true,	false,	false);		break;
-		case TextureFormat::RGB:	chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::RGBA:	chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::sRGB:	chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::sRGBA:	chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::D:		chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::DS:		chnMask = BVec4(true,	true,	true,	true);		break;
-		default:
-			DE_ASSERT(false);
-	}
-
-	float	scale	= 1.0f / (cRange[1] - cRange[0]);
-	float	bias	= -cRange[0] * scale;
+	const Vec2						cRange		= getChannelValueRange(format.type);
+	const TextureSwizzle::Channel*	map			= getChannelReadSwizzle(format.order).components;
+	const BVec4						chnMask		= BVec4(deInRange32(map[0], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE,
+														deInRange32(map[1], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE,
+														deInRange32(map[2], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE,
+														deInRange32(map[3], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE);
+	const float						scale		= 1.0f / (cRange[1] - cRange[0]);
+	const float						bias		= -cRange[0] * scale;
 
 	return TextureFormatInfo(select(cRange[0],	0.0f, chnMask),
 							 select(cRange[1],	0.0f, chnMask),
@@ -304,6 +312,9 @@ TextureFormatInfo getTextureFormatInfo (const TextureFormat& format)
 
 static IVec4 getChannelBitDepth (TextureFormat::ChannelType channelType)
 {
+	// make sure this table is updated if format table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELTYPE_LAST == 26);
+
 	switch (channelType)
 	{
 		case TextureFormat::SNORM_INT8:						return IVec4(8);
@@ -311,6 +322,7 @@ static IVec4 getChannelBitDepth (TextureFormat::ChannelType channelType)
 		case TextureFormat::SNORM_INT32:					return IVec4(32);
 		case TextureFormat::UNORM_INT8:						return IVec4(8);
 		case TextureFormat::UNORM_INT16:					return IVec4(16);
+		case TextureFormat::UNORM_INT24:					return IVec4(24);
 		case TextureFormat::UNORM_INT32:					return IVec4(32);
 		case TextureFormat::UNORM_SHORT_565:				return IVec4(5,6,5,0);
 		case TextureFormat::UNORM_SHORT_4444:				return IVec4(4);
@@ -325,12 +337,12 @@ static IVec4 getChannelBitDepth (TextureFormat::ChannelType channelType)
 		case TextureFormat::UNSIGNED_INT16:					return IVec4(16);
 		case TextureFormat::UNSIGNED_INT32:					return IVec4(32);
 		case TextureFormat::UNSIGNED_INT_1010102_REV:		return IVec4(10,10,10,2);
-		case TextureFormat::UNSIGNED_INT_24_8:				return IVec4(24,0,0,8);
+		case TextureFormat::UNSIGNED_INT_24_8:				return IVec4(24,8,0,0);
 		case TextureFormat::HALF_FLOAT:						return IVec4(16);
 		case TextureFormat::FLOAT:							return IVec4(32);
 		case TextureFormat::UNSIGNED_INT_11F_11F_10F_REV:	return IVec4(11,11,10,0);
 		case TextureFormat::UNSIGNED_INT_999_E5_REV:		return IVec4(9,9,9,0);
-		case TextureFormat::FLOAT_UNSIGNED_INT_24_8_REV:	return IVec4(32,0,0,8);
+		case TextureFormat::FLOAT_UNSIGNED_INT_24_8_REV:	return IVec4(32,8,0,0);
 		default:
 			DE_ASSERT(false);
 			return IVec4(0);
@@ -339,37 +351,25 @@ static IVec4 getChannelBitDepth (TextureFormat::ChannelType channelType)
 
 IVec4 getTextureFormatBitDepth (const TextureFormat& format)
 {
-	IVec4	chnBits		= getChannelBitDepth(format.type);
-	BVec4	chnMask		= BVec4(false);
-	IVec4	chnSwz		(0,1,2,3);
-
-	switch (format.order)
-	{
-		case TextureFormat::R:		chnMask = BVec4(true,	false,	false,	false);		break;
-		case TextureFormat::A:		chnMask = BVec4(false,	false,	false,	true);		break;
-		case TextureFormat::RA:		chnMask = BVec4(true,	false,	false,	true);		break;
-		case TextureFormat::L:		chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::I:		chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::LA:		chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::RG:		chnMask = BVec4(true,	true,	false,	false);		break;
-		case TextureFormat::RGB:	chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::RGBA:	chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::BGRA:	chnMask = BVec4(true,	true,	true,	true);		chnSwz = IVec4(2, 1, 0, 3);	break;
-		case TextureFormat::ARGB:	chnMask = BVec4(true,	true,	true,	true);		chnSwz = IVec4(1, 2, 3, 0);	break;
-		case TextureFormat::sRGB:	chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::sRGBA:	chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::D:		chnMask = BVec4(true,	false,	false,	false);		break;
-		case TextureFormat::DS:		chnMask = BVec4(true,	false,	false,	true);		break;
-		case TextureFormat::S:		chnMask = BVec4(false,	false,	false,	true);		break;
-		default:
-			DE_ASSERT(false);
-	}
+	const IVec4						chnBits		= getChannelBitDepth(format.type);
+	const TextureSwizzle::Channel*	map			= getChannelReadSwizzle(format.order).components;
+	const BVec4						chnMask		= BVec4(deInRange32(map[0], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE,
+														deInRange32(map[1], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE,
+														deInRange32(map[2], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE,
+														deInRange32(map[3], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE);
+	const IVec4						chnSwz		= IVec4((chnMask[0]) ? ((int)map[0]) : (0),
+														(chnMask[1]) ? ((int)map[1]) : (0),
+														(chnMask[2]) ? ((int)map[2]) : (0),
+														(chnMask[3]) ? ((int)map[3]) : (0));
 
 	return select(chnBits.swizzle(chnSwz.x(), chnSwz.y(), chnSwz.z(), chnSwz.w()), IVec4(0), chnMask);
 }
 
 static IVec4 getChannelMantissaBitDepth (TextureFormat::ChannelType channelType)
 {
+	// make sure this table is updated if format table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELTYPE_LAST == 26);
+
 	switch (channelType)
 	{
 		case TextureFormat::SNORM_INT8:
@@ -377,6 +377,7 @@ static IVec4 getChannelMantissaBitDepth (TextureFormat::ChannelType channelType)
 		case TextureFormat::SNORM_INT32:
 		case TextureFormat::UNORM_INT8:
 		case TextureFormat::UNORM_INT16:
+		case TextureFormat::UNORM_INT24:
 		case TextureFormat::UNORM_INT32:
 		case TextureFormat::UNORM_SHORT_565:
 		case TextureFormat::UNORM_SHORT_4444:
@@ -398,7 +399,7 @@ static IVec4 getChannelMantissaBitDepth (TextureFormat::ChannelType channelType)
 		case TextureFormat::HALF_FLOAT:						return IVec4(10);
 		case TextureFormat::FLOAT:							return IVec4(23);
 		case TextureFormat::UNSIGNED_INT_11F_11F_10F_REV:	return IVec4(6,6,5,0);
-		case TextureFormat::FLOAT_UNSIGNED_INT_24_8_REV:	return IVec4(23,0,0,8);
+		case TextureFormat::FLOAT_UNSIGNED_INT_24_8_REV:	return IVec4(23,8,0,0);
 		default:
 			DE_ASSERT(false);
 			return IVec4(0);
@@ -407,31 +408,16 @@ static IVec4 getChannelMantissaBitDepth (TextureFormat::ChannelType channelType)
 
 IVec4 getTextureFormatMantissaBitDepth (const TextureFormat& format)
 {
-	IVec4	chnBits		= getChannelMantissaBitDepth(format.type);
-	BVec4	chnMask		= BVec4(false);
-	IVec4	chnSwz		(0,1,2,3);
-
-	switch (format.order)
-	{
-		case TextureFormat::R:		chnMask = BVec4(true,	false,	false,	false);		break;
-		case TextureFormat::A:		chnMask = BVec4(false,	false,	false,	true);		break;
-		case TextureFormat::RA:		chnMask = BVec4(true,	false,	false,	true);		break;
-		case TextureFormat::L:		chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::I:		chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::LA:		chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::RG:		chnMask = BVec4(true,	true,	false,	false);		break;
-		case TextureFormat::RGB:	chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::RGBA:	chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::BGRA:	chnMask = BVec4(true,	true,	true,	true);		chnSwz = IVec4(2, 1, 0, 3);	break;
-		case TextureFormat::ARGB:	chnMask = BVec4(true,	true,	true,	true);		chnSwz = IVec4(1, 2, 3, 0);	break;
-		case TextureFormat::sRGB:	chnMask = BVec4(true,	true,	true,	false);		break;
-		case TextureFormat::sRGBA:	chnMask = BVec4(true,	true,	true,	true);		break;
-		case TextureFormat::D:		chnMask = BVec4(true,	false,	false,	false);		break;
-		case TextureFormat::DS:		chnMask = BVec4(true,	false,	false,	true);		break;
-		case TextureFormat::S:		chnMask = BVec4(false,	false,	false,	true);		break;
-		default:
-			DE_ASSERT(false);
-	}
+	const IVec4						chnBits		= getChannelMantissaBitDepth(format.type);
+	const TextureSwizzle::Channel*	map			= getChannelReadSwizzle(format.order).components;
+	const BVec4						chnMask		= BVec4(deInRange32(map[0], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE,
+														deInRange32(map[1], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE,
+														deInRange32(map[2], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE,
+														deInRange32(map[3], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3) == DE_TRUE);
+	const IVec4						chnSwz		= IVec4((chnMask[0]) ? ((int)map[0]) : (0),
+														(chnMask[1]) ? ((int)map[1]) : (0),
+														(chnMask[2]) ? ((int)map[2]) : (0),
+														(chnMask[3]) ? ((int)map[3]) : (0));
 
 	return select(chnBits.swizzle(chnSwz.x(), chnSwz.y(), chnSwz.z(), chnSwz.w()), IVec4(0), chnMask);
 }

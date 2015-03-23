@@ -46,14 +46,6 @@ namespace
 using ProgramInterfaceDefinition::VariablePathComponent;
 using ProgramInterfaceDefinition::VariableSearchFilter;
 
-static bool stringEndsWith (const std::string& str, const std::string& suffix)
-{
-	if (suffix.length() > str.length())
-		return false;
-	else
-		return str.substr(str.length() - suffix.length()) == suffix;
-}
-
 static glw::GLenum getProgramDefaultBlockInterfaceFromStorage (glu::Storage storage)
 {
 	switch (storage)
@@ -410,8 +402,8 @@ void TypeValidator::validateBuiltinVariable (const std::string& resource, glw::G
 		{ "gl_InvocationID",			glu::TYPE_INT			},
 		{ "gl_NumWorkGroups",			glu::TYPE_UINT_VEC3		},
 		{ "gl_FragDepth",				glu::TYPE_FLOAT			},
-		{ "gl_TessLevelOuter",			glu::TYPE_FLOAT			},
-		{ "gl_TessLevelInner",			glu::TYPE_FLOAT			},
+		{ "gl_TessLevelOuter[0]",		glu::TYPE_FLOAT			},
+		{ "gl_TessLevelInner[0]",		glu::TYPE_FLOAT			},
 	};
 
 	for (int ndx = 0; ndx < DE_LENGTH_OF_ARRAY(builtins); ++ndx)
@@ -489,8 +481,8 @@ void ArraySizeValidator::validateBuiltinVariable (const std::string& resource, g
 		{ "gl_InvocationID",			1	},
 		{ "gl_NumWorkGroups",			1	},
 		{ "gl_FragDepth",				1	},
-		{ "gl_TessLevelOuter",			4	},
-		{ "gl_TessLevelInner",			2	},
+		{ "gl_TessLevelOuter[0]",		4	},
+		{ "gl_TessLevelInner[0]",		2	},
 	};
 
 	for (int ndx = 0; ndx < DE_LENGTH_OF_ARRAY(builtins); ++ndx)
@@ -1689,8 +1681,8 @@ void PerPatchValidator::validateBuiltinVariable (const std::string& resource, gl
 		{ "gl_Position",				0	},
 		{ "gl_PerVertex.gl_Position",	0	},
 		{ "gl_InvocationID",			0	},
-		{ "gl_TessLevelOuter",			1	},
-		{ "gl_TessLevelInner",			1	},
+		{ "gl_TessLevelOuter[0]",		1	},
+		{ "gl_TessLevelInner[0]",		1	},
 	};
 
 	for (int ndx = 0; ndx < DE_LENGTH_OF_ARRAY(builtins); ++ndx)
@@ -1966,7 +1958,7 @@ static void queryAndValidateProps (tcu::TestContext&							testCtx,
 
 			if (recoveryStrategies[strategyNdx].removeTrailingArray)
 			{
-				if (stringEndsWith(resourceName, "[0]"))
+				if (de::endsWith(resourceName, "[0]"))
 					simplifiedResourceName = resourceName.substr(0, resourceName.length() - 3);
 				else
 					continue;

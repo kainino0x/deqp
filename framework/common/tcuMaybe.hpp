@@ -47,7 +47,7 @@ public:
 	const T&	operator*		(void) const { return get(); }
 
 	const T*	operator->		(void) const;
-				operator bool	(void) const { return m_ptr; }
+				operator bool	(void) const { return !!m_ptr; }
 
 private:
 	T*				m_ptr;
@@ -57,7 +57,7 @@ private:
 		deUint8		m_data[sizeof(T)];
 		deUint64	m_align;
 	};
-};
+} DE_WARN_UNUSED_TYPE;
 
 template<typename T>
 Maybe<T> nothing (void)

@@ -1,7 +1,7 @@
 /* WARNING: This is auto-generated file. Do not modify, since changes will
  * be lost! Modify the generating script instead.
  *
- * Generated from Khronos GL API description (gl.xml) revision 29570.
+ * Generated from Khronos GL API description (gl.xml) revision 30159.
  */
 
 const char* getErrorName (int value)
@@ -490,6 +490,15 @@ const char* getEnableCapName (int value)
 	}
 }
 
+const char* getIndexedEnableCapName (int value)
+{
+	switch (value)
+	{
+		case GL_BLEND:	return "GL_BLEND";
+		default:		return DE_NULL;
+	}
+}
+
 const char* getWindingName (int value)
 {
 	switch (value)
@@ -875,6 +884,8 @@ const char* getPixelFormatName (int value)
 		case GL_DEPTH_COMPONENT32:	return "GL_DEPTH_COMPONENT32";
 		case GL_SRGB:				return "GL_SRGB";
 		case GL_SRGB_ALPHA:			return "GL_SRGB_ALPHA";
+		case GL_SR8_EXT:			return "GL_SR8_EXT";
+		case GL_SRG8_EXT:			return "GL_SRG8_EXT";
 		default:					return DE_NULL;
 	}
 }
@@ -1373,7 +1384,13 @@ const char* getGettableIndexedStateName (int value)
 		case GL_IMAGE_BINDING_LAYER:				return "GL_IMAGE_BINDING_LAYER";
 		case GL_IMAGE_BINDING_ACCESS:				return "GL_IMAGE_BINDING_ACCESS";
 		case GL_IMAGE_BINDING_FORMAT:				return "GL_IMAGE_BINDING_FORMAT";
-		case GL_BLEND_EQUATION:						return "GL_BLEND_EQUATION";
+		case GL_BLEND_EQUATION_RGB:					return "GL_BLEND_EQUATION_RGB";
+		case GL_BLEND_EQUATION_ALPHA:				return "GL_BLEND_EQUATION_ALPHA";
+		case GL_BLEND_SRC_RGB:						return "GL_BLEND_SRC_RGB";
+		case GL_BLEND_SRC_ALPHA:					return "GL_BLEND_SRC_ALPHA";
+		case GL_BLEND_DST_RGB:						return "GL_BLEND_DST_RGB";
+		case GL_BLEND_DST_ALPHA:					return "GL_BLEND_DST_ALPHA";
+		case GL_COLOR_WRITEMASK:					return "GL_COLOR_WRITEMASK";
 		default:									return DE_NULL;
 	}
 }

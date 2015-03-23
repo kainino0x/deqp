@@ -53,6 +53,7 @@
 #include "deRandom.hpp"
 #include "deStringUtil.hpp"
 #include "deUniquePtr.hpp"
+#include "deArrayUtil.hpp"
 
 #include <map>
 #include <string>
@@ -502,7 +503,7 @@ deUint32 mapFaceNdxToFace (int ndx)
 		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
 	};
 
-	return de::getSizedArrayElement(cubeFaces, ndx);
+	return de::getSizedArrayElement<6>(cubeFaces, ndx);
 }
 
 deUint32 getFormatForInternalFormat (deUint32 format)
@@ -575,7 +576,6 @@ void genTextureImage (const glw::Functions&				gl,
 {
 	const int		texelBlockSize			= getTexelBlockSize(info.getFormat());
 	const IVec3		texelBlockPixelSize 	= getTexelBlockPixelSize(info.getFormat());
-	const IVec3		size					= info.getSize();
 
 	levels.resize(getLevelCount(info));
 
@@ -2012,7 +2012,6 @@ void addCopyTests (TestCaseGroup* root, deUint32 srcFormat, deUint32 dstFormat)
 	for (int srcTargetNdx = 0; srcTargetNdx < DE_LENGTH_OF_ARRAY(targets); srcTargetNdx++)
 	{
 		const deUint32	srcTarget				= targets[srcTargetNdx];
-		const IVec3		srcTexelBlockPixelSize	= getTexelBlockPixelSize(srcFormat);
 		const bool		srcIs3D					= srcTarget == GL_TEXTURE_2D_ARRAY || srcTarget == GL_TEXTURE_3D;
 
 		if (glu::isCompressedFormat(srcFormat) && srcTarget == GL_RENDERBUFFER)
@@ -2027,7 +2026,6 @@ void addCopyTests (TestCaseGroup* root, deUint32 srcFormat, deUint32 dstFormat)
 		for (int dstTargetNdx = 0; dstTargetNdx < DE_LENGTH_OF_ARRAY(targets); dstTargetNdx++)
 		{
 			const deUint32	dstTarget				= targets[dstTargetNdx];
-			const IVec3		dstTexelBlockPixelSize	= getTexelBlockPixelSize(dstFormat);
 			const bool		dstIs3D					= dstTarget == GL_TEXTURE_2D_ARRAY || dstTarget == GL_TEXTURE_3D;
 
 			if (glu::isCompressedFormat(dstFormat) && dstTarget == GL_RENDERBUFFER)
@@ -2043,10 +2041,6 @@ void addCopyTests (TestCaseGroup* root, deUint32 srcFormat, deUint32 dstFormat)
 
 			const IVec3		targetSize2D	(128, 128, 1);
 			const IVec3		targetSize3D	(128, 128, 16);
-
-			const IVec3		targetPos2D		(32, 32, 0);
-			const IVec3		targetPos3D		(16, 16, 2);
-			const IVec3		targetCopySize	(16, 16, 4);
 
 			const IVec3		srcSize			= getTestedSize(srcTarget, srcFormat, (srcIs3D ? targetSize3D : targetSize2D));
 			const IVec3		dstSize			= getTestedSize(dstTarget, dstFormat, (dstIs3D ? targetSize3D : targetSize2D));

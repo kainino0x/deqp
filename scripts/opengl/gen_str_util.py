@@ -328,6 +328,9 @@ ENUM_GROUPS = [
 							 "PRIMITIVE_RESTART", "SAMPLE_MASK", "DEBUG_OUTPUT", "DEBUG_OUTPUT_SYNCHRONOUS",
 							 "BLEND_ADVANCED_COHERENT_KHR"]),
 
+	# Indexed enable-disable bit
+	("IndexedEnableCap",	["BLEND"]),
+
 	# Polygon winding
 	("Winding",				["CW", "CCW"]),
 
@@ -551,6 +554,10 @@ ENUM_GROUPS = [
 		# EXT_sRGB
 		"SRGB",
 		"SRGB_ALPHA",
+
+		# GL_EXT_texture_sRGB_R8 & RG8
+		"SR8_EXT",
+		"SRG8_EXT",
 		]),
 
 	("CompressedTexFormat", [
@@ -788,7 +795,13 @@ ENUM_GROUPS = [
 		"IMAGE_BINDING_LAYER",
 		"IMAGE_BINDING_ACCESS",
 		"IMAGE_BINDING_FORMAT",
-		"BLEND_EQUATION",
+		"BLEND_EQUATION_RGB",
+		"BLEND_EQUATION_ALPHA",
+		"BLEND_SRC_RGB",
+		"BLEND_SRC_ALPHA",
+		"BLEND_DST_RGB",
+		"BLEND_DST_ALPHA",
+		"COLOR_WRITEMASK",
 	]),
 
 	("GettableString", [

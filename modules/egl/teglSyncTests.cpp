@@ -184,7 +184,7 @@ SyncTest::Extension getSyncTypeExtension (EGLenum syncType)
 void SyncTest::init (void)
 {
 	const Library&						egl				= m_eglTestCtx.getLibrary();
-	const eglu::NativeWindowFactory*	windowFactory	= eglu::selectNativeWindowFactory(m_eglTestCtx.getNativeDisplayFactory(), m_testCtx.getCommandLine());
+	const eglu::NativeWindowFactory&	windowFactory	= eglu::selectNativeWindowFactory(m_eglTestCtx.getNativeDisplayFactory(), m_testCtx.getCommandLine());
 
 	const EGLint displayAttribList[] =
 	{
@@ -200,9 +200,6 @@ void SyncTest::init (void)
 		EGL_NONE
 	};
 
-	if (!windowFactory)
-		TCU_THROW(NotSupportedError, "Windows not supported");
-
 	m_eglDisplay	= eglu::getAndInitDisplay(m_eglTestCtx.getNativeDisplay());
 	m_eglConfig 	= eglu::chooseSingleConfig(egl, m_eglDisplay, displayAttribList);
 
@@ -217,7 +214,7 @@ void SyncTest::init (void)
 	EGLU_CHECK_MSG(egl, "Failed to create GLES2 context");
 
 	// Create surface
-	m_nativeWindow = windowFactory->createWindow(&m_eglTestCtx.getNativeDisplay(), m_eglDisplay, m_eglConfig, DE_NULL, eglu::WindowParams(480, 480, eglu::parseWindowVisibility(m_testCtx.getCommandLine())));
+	m_nativeWindow = windowFactory.createWindow(&m_eglTestCtx.getNativeDisplay(), m_eglDisplay, m_eglConfig, DE_NULL, eglu::WindowParams(480, 480, eglu::parseWindowVisibility(m_testCtx.getCommandLine())));
 	m_eglSurface = eglu::createWindowSurface(m_eglTestCtx.getNativeDisplay(), *m_nativeWindow, m_eglDisplay, m_eglConfig, DE_NULL);
 
 	EGLU_CHECK_CALL(egl, makeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext));
@@ -618,40 +615,6 @@ public:
 
 		EGLint status = egl.clientWaitSyncKHR(m_eglDisplay, EGL_NO_SYNC_KHR, 0, EGL_FOREVER_KHR);
 		log << TestLog::Message << status << " = eglClientWaitSyncKHR(" << m_eglDisplay << ", EGL_NO_SYNC_KHR, 0, EGL_FOREVER_KHR)" << TestLog::EndMessage;
-
-		EGLint error = egl.getError();
-		log << TestLog::Message << error << " = eglGetError()" << TestLog::EndMessage;
-
-		if (error != EGL_BAD_PARAMETER)
-		{
-			log << TestLog::Message << "Unexpected error '" << eglu::getErrorStr(error) << "' expected EGL_BAD_PARAMETER" << TestLog::EndMessage;
-			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Fail");
-			return STOP;
-		}
-
-		TCU_CHECK(status == EGL_FALSE);
-
-		m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
-		return STOP;
-	}
-};
-
-class ClientWaitInvalidFlagTest : public SyncTest
-{
-public:
-					ClientWaitInvalidFlagTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "wait_invalid_flag", "wait_invalid_flag") {}
-
-	IterateResult	iterate						(void)
-	{
-		const Library&	egl		= m_eglTestCtx.getLibrary();
-		TestLog&		log		= m_testCtx.getLog();
-
-		m_sync = egl.createSyncKHR(m_eglDisplay, m_syncType, NULL);
-		log << TestLog::Message << m_sync << " = eglCreateSyncKHR(" << m_eglDisplay << ", " << getSyncTypeName(m_syncType) << ", NULL)" << TestLog::EndMessage;
-		EGLU_CHECK_MSG(egl, "eglCreateSyncKHR()");
-
-		EGLint status = egl.clientWaitSyncKHR(m_eglDisplay, m_sync, 0xFFFFFFFF, EGL_FOREVER_KHR);
-		log << TestLog::Message << status << " = eglClientWaitSyncKHR(" << m_eglDisplay << ", " << m_sync << ", 0xFFFFFFFF, EGL_FOREVER_KHR)" << TestLog::EndMessage;
 
 		EGLint error = egl.getError();
 		log << TestLog::Message << error << " = eglGetError()" << TestLog::EndMessage;
@@ -1194,7 +1157,6 @@ void FenceSyncTests::init (void)
 		// eglClientWaitSyncKHR tests
 		invalid->addChild(new ClientWaitInvalidDisplayTest(m_eglTestCtx, EGL_SYNC_FENCE_KHR));
 		invalid->addChild(new ClientWaitInvalidSyncTest(m_eglTestCtx, EGL_SYNC_FENCE_KHR));
-		invalid->addChild(new ClientWaitInvalidFlagTest(m_eglTestCtx, EGL_SYNC_FENCE_KHR));
 
 		// eglGetSyncAttribKHR tests
 		invalid->addChild(new GetSyncInvalidDisplayTest(m_eglTestCtx, EGL_SYNC_FENCE_KHR));
@@ -1258,12 +1220,10 @@ void ReusableSyncTests::init (void)
 		invalid->addChild(new CreateInvalidDisplayTest(m_eglTestCtx, EGL_SYNC_REUSABLE_KHR));
 		invalid->addChild(new CreateInvalidTypeTest(m_eglTestCtx, EGL_SYNC_REUSABLE_KHR));
 		invalid->addChild(new CreateInvalidAttribsTest(m_eglTestCtx, EGL_SYNC_REUSABLE_KHR));
-		invalid->addChild(new CreateInvalidContextTest(m_eglTestCtx, EGL_SYNC_REUSABLE_KHR));
 
 		// eglClientWaitSyncKHR tests
 		invalid->addChild(new ClientWaitInvalidDisplayTest(m_eglTestCtx, EGL_SYNC_REUSABLE_KHR));
 		invalid->addChild(new ClientWaitInvalidSyncTest(m_eglTestCtx, EGL_SYNC_REUSABLE_KHR));
-		invalid->addChild(new ClientWaitInvalidFlagTest(m_eglTestCtx, EGL_SYNC_REUSABLE_KHR));
 
 		// eglGetSyncAttribKHR tests
 		invalid->addChild(new GetSyncInvalidDisplayTest(m_eglTestCtx, EGL_SYNC_REUSABLE_KHR));

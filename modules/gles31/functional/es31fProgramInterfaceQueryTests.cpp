@@ -38,6 +38,7 @@
 #include "deSharedPtr.hpp"
 #include "deUniquePtr.hpp"
 #include "deSTLUtil.hpp"
+#include "deArrayUtil.hpp"
 
 #include <set>
 #include <map>
@@ -50,14 +51,6 @@ namespace Functional
 {
 namespace
 {
-
-static bool stringEndsWith (const std::string& str, const std::string& suffix)
-{
-	if (suffix.length() > str.length())
-		return false;
-	else
-		return str.substr(str.length() - suffix.length()) == suffix;
-}
 
 static int getTypeSize (glu::DataType type)
 {
@@ -1105,7 +1098,7 @@ bool ResourceListTestCase::verifyResourceIndexQuery (const std::vector<std::stri
 	{
 		for (int ndx = 0; ndx < (int)referenceResources.size(); ++ndx)
 		{
-			if (stringEndsWith(referenceResources[ndx], "[0]"))
+			if (de::endsWith(referenceResources[ndx], "[0]"))
 			{
 				const std::string	queryString	= referenceResources[ndx].substr(0, referenceResources[ndx].length()-3);
 				const glw::GLuint	index		= gl.getProgramResourceIndex(program, programInterface, queryString.c_str());
@@ -1232,7 +1225,7 @@ std::string ResourceListTestCase::genTestCaseName (ProgramInterface interface, c
 				if (arrayedInterface && isImplicitlySizedArray)
 				{
 					// omit implicit arrayness from name, i.e. remove trailing "_array"
-					DE_ASSERT(stringEndsWith(buf, "_array"));
+					DE_ASSERT(de::endsWith(buf, "_array"));
 					buf = buf.substr(0, buf.length() - 6);
 				}
 
@@ -6195,13 +6188,6 @@ static void generateTransformFeedbackResourceListBlockContents (Context& context
 		const ResourceDefinition::Node::SharedPtr variable	(new ResourceDefinition::Variable(xfbTarget, glu::TYPE_FLOAT_VEC4));
 		targetGroup->addChild(new FeedbackResourceListTestCase(context, variable, "default_block_basic_type"));
 	}
-	// .default_block_struct
-	{
-		const ResourceDefinition::Node::SharedPtr xfbTarget	(new ResourceDefinition::TransformFeedbackTarget(output));
-		const ResourceDefinition::Node::SharedPtr structMbr	(new ResourceDefinition::StructMember(xfbTarget));
-		const ResourceDefinition::Node::SharedPtr variable	(new ResourceDefinition::Variable(structMbr, glu::TYPE_FLOAT_VEC4));
-		targetGroup->addChild(new FeedbackResourceListTestCase(context, variable, "default_block_struct"));
-	}
 	// .default_block_struct_member
 	{
 		const ResourceDefinition::Node::SharedPtr structMbr	(new ResourceDefinition::StructMember(output));
@@ -6243,13 +6229,6 @@ static void generateTransformFeedbackVariableBlockContents (Context& context, co
 		const ResourceDefinition::Node::SharedPtr xfbTarget	(new ResourceDefinition::TransformFeedbackTarget(output));
 		const ResourceDefinition::Node::SharedPtr variable	(new ResourceDefinition::Variable(xfbTarget, glu::TYPE_FLOAT_VEC4));
 		targetGroup->addChild(new ResourceTestCase(context, variable, ProgramResourceQueryTestTarget(PROGRAMINTERFACE_TRANSFORM_FEEDBACK_VARYING, TargetProp), "default_block_basic_type"));
-	}
-	// .default_block_struct
-	{
-		const ResourceDefinition::Node::SharedPtr xfbTarget	(new ResourceDefinition::TransformFeedbackTarget(output));
-		const ResourceDefinition::Node::SharedPtr structMbr	(new ResourceDefinition::StructMember(xfbTarget));
-		const ResourceDefinition::Node::SharedPtr variable	(new ResourceDefinition::Variable(structMbr, glu::TYPE_FLOAT_VEC4));
-		targetGroup->addChild(new ResourceTestCase(context, variable, ProgramResourceQueryTestTarget(PROGRAMINTERFACE_TRANSFORM_FEEDBACK_VARYING, TargetProp), "default_block_struct"));
 	}
 	// .default_block_struct_member
 	{

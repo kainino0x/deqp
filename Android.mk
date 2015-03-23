@@ -79,6 +79,7 @@ LOCAL_SRC_FILES := \
 	framework/delibs/debase/deRandom.c \
 	framework/delibs/debase/deString.c \
 	framework/delibs/decpp/deArrayBuffer.cpp \
+	framework/delibs/decpp/deArrayUtil.cpp \
 	framework/delibs/decpp/deBlockBuffer.cpp \
 	framework/delibs/decpp/deCommandLine.cpp \
 	framework/delibs/decpp/deDefs.cpp \
@@ -86,6 +87,7 @@ LOCAL_SRC_FILES := \
 	framework/delibs/decpp/deDynamicLibrary.cpp \
 	framework/delibs/decpp/deFilePath.cpp \
 	framework/delibs/decpp/deMemPool.cpp \
+	framework/delibs/decpp/deMeta.cpp \
 	framework/delibs/decpp/deMutex.cpp \
 	framework/delibs/decpp/dePoolArray.cpp \
 	framework/delibs/decpp/dePoolString.cpp \
@@ -314,6 +316,7 @@ LOCAL_SRC_FILES := \
 	modules/gles31/functional/es31fVertexAttributeBindingStateQueryTests.cpp \
 	modules/gles31/functional/es31fVertexAttributeBindingTests.cpp \
 	modules/gles31/functional/es31fCopyImageTests.cpp \
+	modules/gles31/functional/es31fDrawBuffersIndexedTests.cpp \
 	modules/gles31/stress/es31sDrawTests.cpp \
 	modules/gles31/stress/es31sStressTests.cpp \
 	modules/gles31/stress/es31sTessellationGeometryInteractionTests.cpp \

@@ -34,9 +34,10 @@ except ImportError:
 	import dummy_threading as threading
 
 class NativeLib:
-	def __init__ (self, apiVersion, abiVersion):
-		self.apiVersion	= apiVersion
-		self.abiVersion	= abiVersion
+	def __init__ (self, apiVersion, abiVersion, prebuiltDir):
+		self.apiVersion		= apiVersion
+		self.abiVersion		= abiVersion
+		self.prebuiltDir	= prebuiltDir
 
 	def __str__ (self):
 		return "(API: %s, ABI: %s)" % (self.apiVersion, self.abiVersion)
@@ -109,10 +110,20 @@ def execArgs (args):
 	if retcode != 0:
 		raise Exception("Failed to execute '%s', got %d" % (str(args), retcode))
 
-def execArgsInDirectory (args, cwd):
-	# Make sure previous stdout prints have been written out.
-	sys.stdout.flush()
-	process = subprocess.Popen(args, cwd=cwd)
+def execArgsInDirectory (args, cwd, linePrefix=""):
+
+	def readApplyPrefixAndPrint (source, prefix, sink):
+		while True:
+			line = source.readline()
+			if len(line) == 0: # EOF
+				break;
+			sink.write(prefix + line)
+
+	process = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	stdoutJob = threading.Thread(target=readApplyPrefixAndPrint, args=(process.stdout, linePrefix, sys.stdout))
+	stderrJob = threading.Thread(target=readApplyPrefixAndPrint, args=(process.stdout, linePrefix, sys.stderr))
+	stdoutJob.start()
+	stderrJob.start()
 	retcode = process.wait()
 	if retcode != 0:
 		raise Exception("Failed to execute '%s', got %d" % (str(args), retcode))
@@ -219,11 +230,12 @@ ANDROID_DIR				= os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(_
 
 # Build configuration
 NATIVE_LIBS				= [
-		#		  API		ABI
-		NativeLib(13,		"armeabi-v7a"),		# ARM v7a ABI
-		NativeLib(13,		"x86"),				# x86
-		NativeLib(21,		"arm64-v8a"),		# ARM64 v8a ABI
+		#		  API		ABI				prebuiltsDir
+		NativeLib(13,		"armeabi-v7a",	'android-arm'),		# ARM v7a ABI
+		NativeLib(13,		"x86",			'android-x86'),		# x86
+		NativeLib(21,		"arm64-v8a",	'android-arm64'),	# ARM64 v8a ABI
 	]
+
 ANDROID_JAVA_API		= "android-13"
 NATIVE_LIB_NAME			= "libdeqp.so"
 

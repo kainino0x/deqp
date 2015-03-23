@@ -31,6 +31,7 @@
 #include "tcuFloat.hpp"
 #include "tcuTextureUtil.hpp"
 #include "deStringUtil.hpp"
+#include "deArrayUtil.hpp"
 
 #include <limits>
 
@@ -84,17 +85,31 @@ inline void writeRGB888Float (deUint8* ptr, const Vec4& val)
 	ptr[2] = floatToU8(val[2]);
 }
 
-enum Channel
+inline void writeUint24 (deUint8* dst, deUint32 val)
 {
-	// \note CHANNEL_N must equal int N
-	CHANNEL_0 = 0,
-	CHANNEL_1,
-	CHANNEL_2,
-	CHANNEL_3,
+#if (DE_ENDIANNESS == DE_LITTLE_ENDIAN)
+	dst[0] = (deUint8)((val & 0x0000FFu) >>  0u);
+	dst[1] = (deUint8)((val & 0x00FF00u) >>  8u);
+	dst[2] = (deUint8)((val & 0xFF0000u) >> 16u);
+#else
+	dst[0] = (deUint8)((val & 0xFF0000u) >> 16u);
+	dst[1] = (deUint8)((val & 0x00FF00u) >>  8u);
+	dst[2] = (deUint8)((val & 0x0000FFu) >>  0u);
+#endif
+}
 
-	CHANNEL_ZERO,
-	CHANNEL_ONE
-};
+inline deUint32 readUint24 (const deUint8* src)
+{
+#if (DE_ENDIANNESS == DE_LITTLE_ENDIAN)
+	return	(((deUint32)src[0]) <<  0u) |
+			(((deUint32)src[1]) <<  8u) |
+			(((deUint32)src[2]) << 16u);
+#else
+	return	(((deUint32)src[0]) << 16u) |
+			(((deUint32)src[1]) <<  8u) |
+			(((deUint32)src[2]) <<  0u);
+#endif
+}
 
 // \todo [2011-09-21 pyry] Move to tcutil?
 template <typename T>
@@ -125,91 +140,18 @@ inline T convertSatRte (float f)
 	return (T)intVal;
 }
 
-const Channel* getChannelReadMap (TextureFormat::ChannelOrder order)
+inline deUint32 convertSatRteUint24 (float f)
 {
-	static const Channel INV[]	= { CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_ONE };
-	static const Channel R[]	= { CHANNEL_0,		CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_ONE };
-	static const Channel A[]	= { CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_0	};
-	static const Channel I[]	= { CHANNEL_0,		CHANNEL_0,		CHANNEL_0,		CHANNEL_0	};
-	static const Channel L[]	= { CHANNEL_0,		CHANNEL_0,		CHANNEL_0,		CHANNEL_ONE	};
-	static const Channel LA[]	= { CHANNEL_0,		CHANNEL_0,		CHANNEL_0,		CHANNEL_1	};
-	static const Channel RG[]	= { CHANNEL_0,		CHANNEL_1,		CHANNEL_ZERO,	CHANNEL_ONE	};
-	static const Channel RA[]	= { CHANNEL_0,		CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_1	};
-	static const Channel RGB[]	= { CHANNEL_0,		CHANNEL_1,		CHANNEL_2,		CHANNEL_ONE	};
-	static const Channel RGBA[]	= { CHANNEL_0,		CHANNEL_1,		CHANNEL_2,		CHANNEL_3	};
-	static const Channel BGRA[]	= { CHANNEL_2,		CHANNEL_1,		CHANNEL_0,		CHANNEL_3	};
-	static const Channel ARGB[]	= { CHANNEL_1,		CHANNEL_2,		CHANNEL_3,		CHANNEL_0	};
-	static const Channel D[]	= { CHANNEL_0,		CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_ONE	};
-	static const Channel S[]	= { CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_0	};
-	static const Channel DS[]	= { CHANNEL_0,		CHANNEL_ZERO,	CHANNEL_ZERO,	CHANNEL_1	};
-
-	switch (order)
-	{
-		case TextureFormat::R:			return R;
-		case TextureFormat::A:			return A;
-		case TextureFormat::I:			return I;
-		case TextureFormat::L:			return L;
-		case TextureFormat::LA:			return LA;
-		case TextureFormat::RG:			return RG;
-		case TextureFormat::RA:			return RA;
-		case TextureFormat::RGB:		return RGB;
-		case TextureFormat::RGBA:		return RGBA;
-		case TextureFormat::ARGB:		return ARGB;
-		case TextureFormat::BGRA:		return BGRA;
-		case TextureFormat::sRGB:		return RGB;
-		case TextureFormat::sRGBA:		return RGBA;
-		case TextureFormat::D:			return D;
-		case TextureFormat::S:			return S;
-		case TextureFormat::DS:			return DS;
-		default:
-			DE_ASSERT(DE_FALSE);
-			return INV;
-	}
-}
-
-const int* getChannelWriteMap (TextureFormat::ChannelOrder order)
-{
-	static const int R[]	= { 0 };
-	static const int A[]	= { 3 };
-	static const int I[]	= { 0 };
-	static const int L[]	= { 0 };
-	static const int LA[]	= { 0, 3 };
-	static const int RG[]	= { 0, 1 };
-	static const int RA[]	= { 0, 3 };
-	static const int RGB[]	= { 0, 1, 2 };
-	static const int RGBA[]	= { 0, 1, 2, 3 };
-	static const int BGRA[]	= { 2, 1, 0, 3 };
-	static const int ARGB[]	= { 3, 0, 1, 2 };
-	static const int D[]	= { 0 };
-	static const int S[]	= { 3 };
-	static const int DS[]	= { 0, 3 };
-
-	switch (order)
-	{
-		case TextureFormat::R:			return R;
-		case TextureFormat::A:			return A;
-		case TextureFormat::I:			return I;
-		case TextureFormat::L:			return L;
-		case TextureFormat::LA:			return LA;
-		case TextureFormat::RG:			return RG;
-		case TextureFormat::RA:			return RA;
-		case TextureFormat::RGB:		return RGB;
-		case TextureFormat::RGBA:		return RGBA;
-		case TextureFormat::ARGB:		return ARGB;
-		case TextureFormat::BGRA:		return BGRA;
-		case TextureFormat::sRGB:		return RGB;
-		case TextureFormat::sRGBA:		return RGBA;
-		case TextureFormat::D:			return D;
-		case TextureFormat::S:			return S;
-		case TextureFormat::DS:			return DS;
-		default:
-			DE_ASSERT(DE_FALSE);
-			return DE_NULL;
-	}
+	const deUint32 rounded		= convertSatRte<deUint32>(f);
+	const deUint32 maxUint24	= 0xFFFFFFu;
+	return de::min(rounded, maxUint24);
 }
 
 int getChannelSize (TextureFormat::ChannelType type)
 {
+	// make sure this table is updated if format table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELTYPE_LAST == 26);
+
 	switch (type)
 	{
 		case TextureFormat::SNORM_INT8:			return 1;
@@ -217,6 +159,7 @@ int getChannelSize (TextureFormat::ChannelType type)
 		case TextureFormat::SNORM_INT32:		return 4;
 		case TextureFormat::UNORM_INT8:			return 1;
 		case TextureFormat::UNORM_INT16:		return 2;
+		case TextureFormat::UNORM_INT24:		return 3;
 		case TextureFormat::UNORM_INT32:		return 4;
 		case TextureFormat::SIGNED_INT8:		return 1;
 		case TextureFormat::SIGNED_INT16:		return 2;
@@ -234,6 +177,9 @@ int getChannelSize (TextureFormat::ChannelType type)
 
 int getNumUsedChannels (TextureFormat::ChannelOrder order)
 {
+	// make sure this table is updated if type table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELORDER_LAST == 18);
+
 	switch (order)
 	{
 		case TextureFormat::R:			return 1;
@@ -247,6 +193,8 @@ int getNumUsedChannels (TextureFormat::ChannelOrder order)
 		case TextureFormat::RGBA:		return 4;
 		case TextureFormat::ARGB:		return 4;
 		case TextureFormat::BGRA:		return 4;
+		case TextureFormat::sR:			return 1;
+		case TextureFormat::sRG:		return 2;
 		case TextureFormat::sRGB:		return 3;
 		case TextureFormat::sRGBA:		return 4;
 		case TextureFormat::D:			return 1;
@@ -260,6 +208,9 @@ int getNumUsedChannels (TextureFormat::ChannelOrder order)
 
 inline float channelToFloat (const deUint8* value, TextureFormat::ChannelType type)
 {
+	// make sure this table is updated if format table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELTYPE_LAST == 26);
+
 	switch (type)
 	{
 		case TextureFormat::SNORM_INT8:			return de::max(-1.0f, (float)*((const deInt8*)value) / 127.0f);
@@ -267,6 +218,7 @@ inline float channelToFloat (const deUint8* value, TextureFormat::ChannelType ty
 		case TextureFormat::SNORM_INT32:		return de::max(-1.0f, (float)*((const deInt32*)value) / 2147483647.0f);
 		case TextureFormat::UNORM_INT8:			return (float)*((const deUint8*)value) / 255.0f;
 		case TextureFormat::UNORM_INT16:		return (float)*((const deUint16*)value) / 65535.0f;
+		case TextureFormat::UNORM_INT24:		return (float)readUint24(value) / 16777215.0f;
 		case TextureFormat::UNORM_INT32:		return (float)*((const deUint32*)value) / 4294967295.0f;
 		case TextureFormat::SIGNED_INT8:		return (float)*((const deInt8*)value);
 		case TextureFormat::SIGNED_INT16:		return (float)*((const deInt16*)value);
@@ -284,6 +236,9 @@ inline float channelToFloat (const deUint8* value, TextureFormat::ChannelType ty
 
 inline int channelToInt (const deUint8* value, TextureFormat::ChannelType type)
 {
+	// make sure this table is updated if format table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELTYPE_LAST == 26);
+
 	switch (type)
 	{
 		case TextureFormat::SNORM_INT8:			return (int)*((const deInt8*)value);
@@ -291,6 +246,7 @@ inline int channelToInt (const deUint8* value, TextureFormat::ChannelType type)
 		case TextureFormat::SNORM_INT32:		return (int)*((const deInt32*)value);
 		case TextureFormat::UNORM_INT8:			return (int)*((const deUint8*)value);
 		case TextureFormat::UNORM_INT16:		return (int)*((const deUint16*)value);
+		case TextureFormat::UNORM_INT24:		return (int)readUint24(value);
 		case TextureFormat::UNORM_INT32:		return (int)*((const deUint32*)value);
 		case TextureFormat::SIGNED_INT8:		return (int)*((const deInt8*)value);
 		case TextureFormat::SIGNED_INT16:		return (int)*((const deInt16*)value);
@@ -308,6 +264,9 @@ inline int channelToInt (const deUint8* value, TextureFormat::ChannelType type)
 
 void floatToChannel (deUint8* dst, float src, TextureFormat::ChannelType type)
 {
+	// make sure this table is updated if format table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELTYPE_LAST == 26);
+
 	switch (type)
 	{
 		case TextureFormat::SNORM_INT8:			*((deInt8*)dst)			= convertSatRte<deInt8>		(src * 127.0f);			break;
@@ -315,6 +274,7 @@ void floatToChannel (deUint8* dst, float src, TextureFormat::ChannelType type)
 		case TextureFormat::SNORM_INT32:		*((deInt32*)dst)		= convertSatRte<deInt32>	(src * 2147483647.0f);	break;
 		case TextureFormat::UNORM_INT8:			*((deUint8*)dst)		= convertSatRte<deUint8>	(src * 255.0f);			break;
 		case TextureFormat::UNORM_INT16:		*((deUint16*)dst)		= convertSatRte<deUint16>	(src * 65535.0f);		break;
+		case TextureFormat::UNORM_INT24:		writeUint24(dst, convertSatRteUint24(src * 16777215.0f));						break;
 		case TextureFormat::UNORM_INT32:		*((deUint32*)dst)		= convertSatRte<deUint32>	(src * 4294967295.0f);	break;
 		case TextureFormat::SIGNED_INT8:		*((deInt8*)dst)			= convertSatRte<deInt8>		(src);					break;
 		case TextureFormat::SIGNED_INT16:		*((deInt16*)dst)		= convertSatRte<deInt16>	(src);					break;
@@ -343,14 +303,32 @@ static inline T convertSat (S src)
 		return (T)src;
 }
 
+template <typename S>
+static inline deUint32 convertSatUint24 (S src)
+{
+	S min = (S)0u;
+	S max = (S)0xFFFFFFu;
+
+	if (src < min)
+		return (deUint32)min;
+	else if (src > max)
+		return (deUint32)max;
+	else
+		return (deUint32)src;
+}
+
 void intToChannel (deUint8* dst, int src, TextureFormat::ChannelType type)
 {
+	// make sure this table is updated if format table is updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELTYPE_LAST == 26);
+
 	switch (type)
 	{
 		case TextureFormat::SNORM_INT8:			*((deInt8*)dst)			= convertSat<deInt8>	(src);				break;
 		case TextureFormat::SNORM_INT16:		*((deInt16*)dst)		= convertSat<deInt16>	(src);				break;
 		case TextureFormat::UNORM_INT8:			*((deUint8*)dst)		= convertSat<deUint8>	(src);				break;
 		case TextureFormat::UNORM_INT16:		*((deUint16*)dst)		= convertSat<deUint16>	(src);				break;
+		case TextureFormat::UNORM_INT24:		writeUint24(dst, convertSatUint24(src));							break;
 		case TextureFormat::SIGNED_INT8:		*((deInt8*)dst)			= convertSat<deInt8>	(src);				break;
 		case TextureFormat::SIGNED_INT16:		*((deInt16*)dst)		= convertSat<deInt16>	(src);				break;
 		case TextureFormat::SIGNED_INT32:		*((deInt32*)dst)		= convertSat<deInt32>	(src);				break;
@@ -403,6 +381,100 @@ tcu::Vec4 unpackRGB999E5 (deUint32 color)
 
 } // anonymous
 
+const TextureSwizzle& getChannelReadSwizzle (TextureFormat::ChannelOrder order)
+{
+	// make sure to update these tables when channel orders are updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELORDER_LAST == 18);
+
+	static const TextureSwizzle INV		= {{ TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ONE	}};
+	static const TextureSwizzle R		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ONE	}};
+	static const TextureSwizzle A		= {{ TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_0	}};
+	static const TextureSwizzle I		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_0	}};
+	static const TextureSwizzle L		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_ONE	}};
+	static const TextureSwizzle LA		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_1	}};
+	static const TextureSwizzle RG		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ONE	}};
+	static const TextureSwizzle RA		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_1	}};
+	static const TextureSwizzle RGB		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_2,		TextureSwizzle::CHANNEL_ONE	}};
+	static const TextureSwizzle RGBA	= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_2,		TextureSwizzle::CHANNEL_3	}};
+	static const TextureSwizzle BGRA	= {{ TextureSwizzle::CHANNEL_2,		TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_3	}};
+	static const TextureSwizzle ARGB	= {{ TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_2,		TextureSwizzle::CHANNEL_3,		TextureSwizzle::CHANNEL_0	}};
+	static const TextureSwizzle D		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ONE	}};
+	static const TextureSwizzle S		= {{ TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_0	}};
+	static const TextureSwizzle DS		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_ZERO,	TextureSwizzle::CHANNEL_1	}};
+
+	switch (order)
+	{
+		case TextureFormat::R:			return R;
+		case TextureFormat::A:			return A;
+		case TextureFormat::I:			return I;
+		case TextureFormat::L:			return L;
+		case TextureFormat::LA:			return LA;
+		case TextureFormat::RG:			return RG;
+		case TextureFormat::RA:			return RA;
+		case TextureFormat::RGB:		return RGB;
+		case TextureFormat::RGBA:		return RGBA;
+		case TextureFormat::ARGB:		return ARGB;
+		case TextureFormat::BGRA:		return BGRA;
+		case TextureFormat::sR:			return R;
+		case TextureFormat::sRG:		return RG;
+		case TextureFormat::sRGB:		return RGB;
+		case TextureFormat::sRGBA:		return RGBA;
+		case TextureFormat::D:			return D;
+		case TextureFormat::S:			return S;
+		case TextureFormat::DS:			return DS;
+		default:
+			DE_ASSERT(DE_FALSE);
+			return INV;
+	}
+}
+
+const TextureSwizzle& getChannelWriteSwizzle (TextureFormat::ChannelOrder order)
+{
+	// make sure to update these tables when channel orders are updated
+	DE_STATIC_ASSERT(TextureFormat::CHANNELORDER_LAST == 18);
+
+	static const TextureSwizzle INV		= {{ TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle R		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle A		= {{ TextureSwizzle::CHANNEL_3,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle I		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle L		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle LA		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_3,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle RG		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle RA		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_3,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle RGB		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_2,		TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle RGBA	= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_2,		TextureSwizzle::CHANNEL_3		}};
+	static const TextureSwizzle BGRA	= {{ TextureSwizzle::CHANNEL_2,		TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_3		}};
+	static const TextureSwizzle ARGB	= {{ TextureSwizzle::CHANNEL_3,		TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_1,		TextureSwizzle::CHANNEL_2		}};
+	static const TextureSwizzle D		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle S		= {{ TextureSwizzle::CHANNEL_3,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+	static const TextureSwizzle DS		= {{ TextureSwizzle::CHANNEL_0,		TextureSwizzle::CHANNEL_3,		TextureSwizzle::CHANNEL_LAST,	TextureSwizzle::CHANNEL_LAST	}};
+
+	switch (order)
+	{
+		case TextureFormat::R:			return R;
+		case TextureFormat::A:			return A;
+		case TextureFormat::I:			return I;
+		case TextureFormat::L:			return L;
+		case TextureFormat::LA:			return LA;
+		case TextureFormat::RG:			return RG;
+		case TextureFormat::RA:			return RA;
+		case TextureFormat::RGB:		return RGB;
+		case TextureFormat::RGBA:		return RGBA;
+		case TextureFormat::ARGB:		return ARGB;
+		case TextureFormat::BGRA:		return BGRA;
+		case TextureFormat::sR:			return R;
+		case TextureFormat::sRG:		return RG;
+		case TextureFormat::sRGB:		return RGB;
+		case TextureFormat::sRGBA:		return RGBA;
+		case TextureFormat::D:			return D;
+		case TextureFormat::S:			return S;
+		case TextureFormat::DS:			return DS;
+		default:
+			DE_ASSERT(DE_FALSE);
+			return INV;
+	}
+}
+
 IVec3 calculatePackedPitch (const TextureFormat& format, const IVec3& size)
 {
 	const int pixelSize		= format.getPixelSize();
@@ -452,52 +524,7 @@ int TextureFormat::getPixelSize (void) const
 		return 8;
 	}
 	else
-	{
-		int numChannels	= 0;
-		int channelSize	= 0;
-
-		switch (order)
-		{
-			case R:			numChannels = 1;	break;
-			case A:			numChannels = 1;	break;
-			case I:			numChannels = 1;	break;
-			case L:			numChannels = 1;	break;
-			case LA:		numChannels = 2;	break;
-			case RG:		numChannels = 2;	break;
-			case RA:		numChannels = 2;	break;
-			case RGB:		numChannels = 3;	break;
-			case RGBA:		numChannels = 4;	break;
-			case ARGB:		numChannels = 4;	break;
-			case BGRA:		numChannels = 4;	break;
-			case sRGB:		numChannels = 3;	break;
-			case sRGBA:		numChannels = 4;	break;
-			case D:			numChannels = 1;	break;
-			case S:			numChannels = 1;	break;
-			case DS:		numChannels = 2;	break;
-			default:		DE_ASSERT(DE_FALSE);
-		}
-
-		switch (type)
-		{
-			case SNORM_INT8:		channelSize = 1;	break;
-			case SNORM_INT16:		channelSize = 2;	break;
-			case SNORM_INT32:		channelSize = 4;	break;
-			case UNORM_INT8:		channelSize = 1;	break;
-			case UNORM_INT16:		channelSize = 2;	break;
-			case UNORM_INT32:		channelSize = 4;	break;
-			case SIGNED_INT8:		channelSize = 1;	break;
-			case SIGNED_INT16:		channelSize = 2;	break;
-			case SIGNED_INT32:		channelSize = 4;	break;
-			case UNSIGNED_INT8:		channelSize = 1;	break;
-			case UNSIGNED_INT16:	channelSize = 2;	break;
-			case UNSIGNED_INT32:	channelSize = 4;	break;
-			case HALF_FLOAT:		channelSize = 2;	break;
-			case FLOAT:				channelSize = 4;	break;
-			default:				DE_ASSERT(DE_FALSE);
-		}
-
-		return numChannels*channelSize;
-	}
+		return getNumUsedChannels(order) * getChannelSize(type);
 }
 
 ConstPixelBufferAccess::ConstPixelBufferAccess (void)
@@ -645,19 +672,32 @@ Vec4 ConstPixelBufferAccess::getPixel (int x, int y, int z) const
 #undef UB32
 
 	// Generic path.
-	Vec4			result;
-	const Channel*	channelMap	= getChannelReadMap(m_format.order);
-	int				channelSize	= getChannelSize(m_format.type);
+	Vec4							result;
+	const TextureSwizzle::Channel*	channelMap	= getChannelReadSwizzle(m_format.order).components;
+	int								channelSize	= getChannelSize(m_format.type);
 
 	for (int c = 0; c < 4; c++)
 	{
-		Channel map = channelMap[c];
-		if (map == CHANNEL_ZERO)
-			result[c] = 0.0f;
-		else if (map == CHANNEL_ONE)
-			result[c] = 1.0f;
-		else
-			result[c] = channelToFloat(pixelPtr + channelSize*((int)map), m_format.type);
+		switch (channelMap[c])
+		{
+			case TextureSwizzle::CHANNEL_0:
+			case TextureSwizzle::CHANNEL_1:
+			case TextureSwizzle::CHANNEL_2:
+			case TextureSwizzle::CHANNEL_3:
+				result[c] = channelToFloat(pixelPtr + channelSize*((int)channelMap[c]), m_format.type);
+				break;
+
+			case TextureSwizzle::CHANNEL_ZERO:
+				result[c] = 0.0f;
+				break;
+
+			case TextureSwizzle::CHANNEL_ONE:
+				result[c] = 1.0f;
+				break;
+
+			default:
+				DE_ASSERT(false);
+		}
 	}
 
 	return result;
@@ -669,8 +709,8 @@ IVec4 ConstPixelBufferAccess::getPixelInt (int x, int y, int z) const
 	DE_ASSERT(de::inBounds(y, 0, m_size.y()));
 	DE_ASSERT(de::inBounds(z, 0, m_size.z()));
 
-	const deUint8*	pixelPtr = (const deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
-	IVec4			result;
+	const deUint8* const	pixelPtr = (const deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
+	IVec4					result;
 
 	// Optimized fomats.
 	if (m_format.type == TextureFormat::UNORM_INT8)
@@ -719,18 +759,31 @@ IVec4 ConstPixelBufferAccess::getPixelInt (int x, int y, int z) const
 #undef U32
 
 	// Generic path.
-	const Channel*	channelMap	= getChannelReadMap(m_format.order);
-	int				channelSize	= getChannelSize(m_format.type);
+	const TextureSwizzle::Channel*	channelMap	= getChannelReadSwizzle(m_format.order).components;
+	int								channelSize	= getChannelSize(m_format.type);
 
 	for (int c = 0; c < 4; c++)
 	{
-		Channel map = channelMap[c];
-		if (map == CHANNEL_ZERO)
-			result[c] = 0;
-		else if (map == CHANNEL_ONE)
-			result[c] = 1;
-		else
-			result[c] = channelToInt(pixelPtr + channelSize*((int)map), m_format.type);
+		switch (channelMap[c])
+		{
+			case TextureSwizzle::CHANNEL_0:
+			case TextureSwizzle::CHANNEL_1:
+			case TextureSwizzle::CHANNEL_2:
+			case TextureSwizzle::CHANNEL_3:
+				result[c] = channelToInt(pixelPtr + channelSize*((int)channelMap[c]), m_format.type);
+				break;
+
+			case TextureSwizzle::CHANNEL_ZERO:
+				result[c] = 0;
+				break;
+
+			case TextureSwizzle::CHANNEL_ONE:
+				result[c] = 1;
+				break;
+
+			default:
+				DE_ASSERT(false);
+		}
 	}
 
 	return result;
@@ -760,7 +813,7 @@ float ConstPixelBufferAccess::getPixDepth (int x, int y, int z) const
 	DE_ASSERT(de::inBounds(y, 0, getHeight()));
 	DE_ASSERT(de::inBounds(z, 0, getDepth()));
 
-	deUint8* pixelPtr = (deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
+	const deUint8* const pixelPtr = (const deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
 
 #define UB32(OFFS, COUNT) ((*((const deUint32*)pixelPtr) >> (OFFS)) & ((1<<(COUNT))-1))
 #define NB32(OFFS, COUNT) channelToNormFloat(UB32(OFFS, COUNT), (COUNT))
@@ -799,7 +852,7 @@ int ConstPixelBufferAccess::getPixStencil (int x, int y, int z) const
 	DE_ASSERT(de::inBounds(y, 0, getHeight()));
 	DE_ASSERT(de::inBounds(z, 0, getDepth()));
 
-	deUint8* pixelPtr = (deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
+	const deUint8* const pixelPtr = (const deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
 
 	switch (m_format.type)
 	{
@@ -910,13 +963,15 @@ void PixelBufferAccess::setPixel (const Vec4& color, int x, int y, int z) const
 		default:
 		{
 			// Generic path.
-			int			numChannels	= getNumUsedChannels(m_format.order);
-			const int*	map			= getChannelWriteMap(m_format.order);
-			int			channelSize	= getChannelSize(m_format.type);
+			int								numChannels	= getNumUsedChannels(m_format.order);
+			const TextureSwizzle::Channel*	map			= getChannelWriteSwizzle(m_format.order).components;
+			int								channelSize	= getChannelSize(m_format.type);
 
 			for (int c = 0; c < numChannels; c++)
+			{
+				DE_ASSERT(deInRange32(map[c], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3));
 				floatToChannel(pixelPtr + channelSize*c, color[map[c]], m_format.type);
-
+			}
 			break;
 		}
 	}
@@ -931,7 +986,7 @@ void PixelBufferAccess::setPixel (const IVec4& color, int x, int y, int z) const
 	DE_ASSERT(de::inBounds(y, 0, getHeight()));
 	DE_ASSERT(de::inBounds(z, 0, getDepth()));
 
-	deUint8* pixelPtr = (deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
+	deUint8* const pixelPtr = (deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
 
 	// Optimized fomats.
 	if (m_format.type == TextureFormat::UNORM_INT8)
@@ -972,13 +1027,15 @@ void PixelBufferAccess::setPixel (const IVec4& color, int x, int y, int z) const
 		default:
 		{
 			// Generic path.
-			int			numChannels	= getNumUsedChannels(m_format.order);
-			const int*	map			= getChannelWriteMap(m_format.order);
-			int			channelSize	= getChannelSize(m_format.type);
+			int								numChannels	= getNumUsedChannels(m_format.order);
+			const TextureSwizzle::Channel*	map			= getChannelWriteSwizzle(m_format.order).components;
+			int								channelSize	= getChannelSize(m_format.type);
 
 			for (int c = 0; c < numChannels; c++)
+			{
+				DE_ASSERT(deInRange32(map[c], TextureSwizzle::CHANNEL_0, TextureSwizzle::CHANNEL_3));
 				intToChannel(pixelPtr + channelSize*c, color[map[c]], m_format.type);
-
+			}
 			break;
 		}
 	}
@@ -992,7 +1049,7 @@ void PixelBufferAccess::setPixDepth (float depth, int x, int y, int z) const
 	DE_ASSERT(de::inBounds(y, 0, getHeight()));
 	DE_ASSERT(de::inBounds(z, 0, getDepth()));
 
-	deUint8* pixelPtr = (deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
+	deUint8* const pixelPtr = (deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
 
 #define PN(VAL, OFFS, BITS) (normFloatToChannel((VAL), (BITS)) << (OFFS))
 
@@ -1028,7 +1085,7 @@ void PixelBufferAccess::setPixStencil (int stencil, int x, int y, int z) const
 	DE_ASSERT(de::inBounds(y, 0, getHeight()));
 	DE_ASSERT(de::inBounds(z, 0, getDepth()));
 
-	deUint8* pixelPtr = (deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
+	deUint8* const pixelPtr = (deUint8*)getDataPtr() + z*m_pitch.z() + y*m_pitch.y() + x*m_pitch.x();
 
 #define PU(VAL, OFFS, BITS) (uintToChannel((deUint32)(VAL), (BITS)) << (OFFS))
 
@@ -1143,11 +1200,6 @@ static inline float unnormalize (Sampler::WrapMode mode, float c, int size)
 	}
 }
 
-static inline bool isSRGB (TextureFormat format)
-{
-	return format.order == TextureFormat::sRGB || format.order == TextureFormat::sRGBA;
-}
-
 static bool isFixedPointDepthTextureFormat (const tcu::TextureFormat& format)
 {
 	const tcu::TextureChannelClass channelClass = tcu::getTextureChannelClass(format.type);
@@ -1208,20 +1260,6 @@ static inline float execCompare (const tcu::Vec4& color, Sampler::CompareMode co
 	return res ? 1.0f : 0.0f;
 }
 
-static Vec4 sampleNearest1D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, int level)
-{
-	int width	= access.getWidth();
-	int x		= deFloorFloatToInt32(u);
-
-	// Check for CLAMP_TO_BORDER.
-	if ((sampler.wrapS == Sampler::CLAMP_TO_BORDER && !deInBounds32(x, 0, width)))
-		return sampler.borderColor;
-
-	int i = wrap(sampler.wrapS, x, width);
-
-	return lookup(access, i, level, 0);
-}
-
 static Vec4 sampleNearest1D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, const IVec2& offset)
 {
 	int width	= access.getWidth();
@@ -1235,25 +1273,6 @@ static Vec4 sampleNearest1D (const ConstPixelBufferAccess& access, const Sampler
 	int i = wrap(sampler.wrapS, x, width);
 
 	return lookup(access, i, offset.y(), 0);
-}
-
-static Vec4 sampleNearest2D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, float v, int depth)
-{
-	int width	= access.getWidth();
-	int height	= access.getHeight();
-
-	int x = deFloorFloatToInt32(u);
-	int y = deFloorFloatToInt32(v);
-
-	// Check for CLAMP_TO_BORDER.
-	if ((sampler.wrapS == Sampler::CLAMP_TO_BORDER && !deInBounds32(x, 0, width)) ||
-		(sampler.wrapT == Sampler::CLAMP_TO_BORDER && !deInBounds32(y, 0, height)))
-		return sampler.borderColor;
-
-	int i = wrap(sampler.wrapS, x, width);
-	int j = wrap(sampler.wrapT, y, height);
-
-	return lookup(access, i, j, depth);
 }
 
 static Vec4 sampleNearest2D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, float v, const IVec3& offset)
@@ -1273,29 +1292,6 @@ static Vec4 sampleNearest2D (const ConstPixelBufferAccess& access, const Sampler
 	int j = wrap(sampler.wrapT, y, height);
 
 	return lookup(access, i, j, offset.z());
-}
-
-static Vec4 sampleNearest3D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, float v, float w)
-{
-	int width	= access.getWidth();
-	int height	= access.getHeight();
-	int depth	= access.getDepth();
-
-	int x = deFloorFloatToInt32(u);
-	int y = deFloorFloatToInt32(v);
-	int z = deFloorFloatToInt32(w);
-
-	// Check for CLAMP_TO_BORDER.
-	if ((sampler.wrapS == Sampler::CLAMP_TO_BORDER && !deInBounds32(x, 0, width))	||
-		(sampler.wrapT == Sampler::CLAMP_TO_BORDER && !deInBounds32(y, 0, height))	||
-		(sampler.wrapR == Sampler::CLAMP_TO_BORDER && !deInBounds32(z, 0, depth)))
-		return sampler.borderColor;
-
-	int i = wrap(sampler.wrapS, x, width);
-	int j = wrap(sampler.wrapT, y, height);
-	int k = wrap(sampler.wrapR, z, depth);
-
-	return lookup(access, i, j, k);
 }
 
 static Vec4 sampleNearest3D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, float v, float w, const IVec3& offset)
@@ -1321,29 +1317,6 @@ static Vec4 sampleNearest3D (const ConstPixelBufferAccess& access, const Sampler
 	return lookup(access, i, j, k);
 }
 
-static Vec4 sampleLinear1D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, int level)
-{
-	int w = access.getWidth();
-
-	int x0 = deFloorFloatToInt32(u-0.5f);
-	int x1 = x0+1;
-
-	int i0 = wrap(sampler.wrapS, x0, w);
-	int i1 = wrap(sampler.wrapS, x1, w);
-
-	float a = deFloatFrac(u-0.5f);
-
-	bool i0UseBorder = sampler.wrapS == Sampler::CLAMP_TO_BORDER && !de::inBounds(i0, 0, w);
-	bool i1UseBorder = sampler.wrapS == Sampler::CLAMP_TO_BORDER && !de::inBounds(i1, 0, w);
-
-	// Border color for out-of-range coordinates if using CLAMP_TO_BORDER, otherwise execute lookups.
-	Vec4 p0 = i0UseBorder ? sampler.borderColor : lookup(access, i0, level, 0);
-	Vec4 p1 = i1UseBorder ? sampler.borderColor : lookup(access, i1, level, 0);
-
-	// Interpolate.
-	return p0 * (1.0f-a) + a * p1;
-}
-
 static Vec4 sampleLinear1D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, const IVec2& offset)
 {
 	int w = access.getWidth();
@@ -1365,42 +1338,6 @@ static Vec4 sampleLinear1D (const ConstPixelBufferAccess& access, const Sampler&
 
 	// Interpolate.
 	return p0 * (1.0f - a) + p1 * a;
-}
-
-static Vec4 sampleLinear2D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, float v, int depth)
-{
-	int w = access.getWidth();
-	int h = access.getHeight();
-
-	int x0 = deFloorFloatToInt32(u-0.5f);
-	int x1 = x0+1;
-	int y0 = deFloorFloatToInt32(v-0.5f);
-	int y1 = y0+1;
-
-	int i0 = wrap(sampler.wrapS, x0, w);
-	int i1 = wrap(sampler.wrapS, x1, w);
-	int j0 = wrap(sampler.wrapT, y0, h);
-	int j1 = wrap(sampler.wrapT, y1, h);
-
-	float a = deFloatFrac(u-0.5f);
-	float b = deFloatFrac(v-0.5f);
-
-	bool i0UseBorder = sampler.wrapS == Sampler::CLAMP_TO_BORDER && !de::inBounds(i0, 0, w);
-	bool i1UseBorder = sampler.wrapS == Sampler::CLAMP_TO_BORDER && !de::inBounds(i1, 0, w);
-	bool j0UseBorder = sampler.wrapT == Sampler::CLAMP_TO_BORDER && !de::inBounds(j0, 0, h);
-	bool j1UseBorder = sampler.wrapT == Sampler::CLAMP_TO_BORDER && !de::inBounds(j1, 0, h);
-
-	// Border color for out-of-range coordinates if using CLAMP_TO_BORDER, otherwise execute lookups.
-	Vec4 p00 = (i0UseBorder || j0UseBorder) ? sampler.borderColor : lookup(access, i0, j0, depth);
-	Vec4 p10 = (i1UseBorder || j0UseBorder) ? sampler.borderColor : lookup(access, i1, j0, depth);
-	Vec4 p01 = (i0UseBorder || j1UseBorder) ? sampler.borderColor : lookup(access, i0, j1, depth);
-	Vec4 p11 = (i1UseBorder || j1UseBorder) ? sampler.borderColor : lookup(access, i1, j1, depth);
-
-	// Interpolate.
-	return (p00*(1.0f-a)*(1.0f-b)) +
-		   (p10*(     a)*(1.0f-b)) +
-		   (p01*(1.0f-a)*(     b)) +
-		   (p11*(     a)*(     b));
 }
 
 static Vec4 sampleLinear2D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, float v, const IVec3& offset)
@@ -1508,58 +1445,6 @@ static float sampleLinear2DCompare (const ConstPixelBufferAccess& access, const 
 		   (p11*(     a)*(     b));
 }
 
-static Vec4 sampleLinear3D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, float v, float w)
-{
-	int width	= access.getWidth();
-	int height	= access.getHeight();
-	int depth	= access.getDepth();
-
-	int x0 = deFloorFloatToInt32(u-0.5f);
-	int x1 = x0+1;
-	int y0 = deFloorFloatToInt32(v-0.5f);
-	int y1 = y0+1;
-	int z0 = deFloorFloatToInt32(w-0.5f);
-	int z1 = z0+1;
-
-	int i0 = wrap(sampler.wrapS, x0, width);
-	int i1 = wrap(sampler.wrapS, x1, width);
-	int j0 = wrap(sampler.wrapT, y0, height);
-	int j1 = wrap(sampler.wrapT, y1, height);
-	int k0 = wrap(sampler.wrapR, z0, depth);
-	int k1 = wrap(sampler.wrapR, z1, depth);
-
-	float a = deFloatFrac(u-0.5f);
-	float b = deFloatFrac(v-0.5f);
-	float c = deFloatFrac(w-0.5f);
-
-	bool i0UseBorder = sampler.wrapS == Sampler::CLAMP_TO_BORDER && !de::inBounds(i0, 0, width);
-	bool i1UseBorder = sampler.wrapS == Sampler::CLAMP_TO_BORDER && !de::inBounds(i1, 0, width);
-	bool j0UseBorder = sampler.wrapT == Sampler::CLAMP_TO_BORDER && !de::inBounds(j0, 0, height);
-	bool j1UseBorder = sampler.wrapT == Sampler::CLAMP_TO_BORDER && !de::inBounds(j1, 0, height);
-	bool k0UseBorder = sampler.wrapR == Sampler::CLAMP_TO_BORDER && !de::inBounds(k0, 0, depth);
-	bool k1UseBorder = sampler.wrapR == Sampler::CLAMP_TO_BORDER && !de::inBounds(k1, 0, depth);
-
-	// Border color for out-of-range coordinates if using CLAMP_TO_BORDER, otherwise execute lookups.
-	Vec4 p000 = (i0UseBorder || j0UseBorder || k0UseBorder) ? sampler.borderColor : lookup(access, i0, j0, k0);
-	Vec4 p100 = (i1UseBorder || j0UseBorder || k0UseBorder) ? sampler.borderColor : lookup(access, i1, j0, k0);
-	Vec4 p010 = (i0UseBorder || j1UseBorder || k0UseBorder) ? sampler.borderColor : lookup(access, i0, j1, k0);
-	Vec4 p110 = (i1UseBorder || j1UseBorder || k0UseBorder) ? sampler.borderColor : lookup(access, i1, j1, k0);
-	Vec4 p001 = (i0UseBorder || j0UseBorder || k1UseBorder) ? sampler.borderColor : lookup(access, i0, j0, k1);
-	Vec4 p101 = (i1UseBorder || j0UseBorder || k1UseBorder) ? sampler.borderColor : lookup(access, i1, j0, k1);
-	Vec4 p011 = (i0UseBorder || j1UseBorder || k1UseBorder) ? sampler.borderColor : lookup(access, i0, j1, k1);
-	Vec4 p111 = (i1UseBorder || j1UseBorder || k1UseBorder) ? sampler.borderColor : lookup(access, i1, j1, k1);
-
-	// Interpolate.
-	return (p000*(1.0f-a)*(1.0f-b)*(1.0f-c)) +
-		   (p100*(     a)*(1.0f-b)*(1.0f-c)) +
-		   (p010*(1.0f-a)*(     b)*(1.0f-c)) +
-		   (p110*(     a)*(     b)*(1.0f-c)) +
-		   (p001*(1.0f-a)*(1.0f-b)*(     c)) +
-		   (p101*(     a)*(1.0f-b)*(     c)) +
-		   (p011*(1.0f-a)*(     b)*(     c)) +
-		   (p111*(     a)*(     b)*(     c));
-}
-
 static Vec4 sampleLinear3D (const ConstPixelBufferAccess& access, const Sampler& sampler, float u, float v, float w, const IVec3& offset)
 {
 	int width	= access.getWidth();
@@ -1614,51 +1499,30 @@ static Vec4 sampleLinear3D (const ConstPixelBufferAccess& access, const Sampler&
 
 Vec4 ConstPixelBufferAccess::sample1D (const Sampler& sampler, Sampler::FilterMode filter, float s, int level) const
 {
+	// check selected layer exists
 	DE_ASSERT(de::inBounds(level, 0, m_size.y()));
 
-	// Non-normalized coordinates.
-	float u = s;
-
-	if (sampler.normalizedCoords)
-		u = unnormalize(sampler.wrapS, s, m_size.x());
-
-	switch (filter)
-	{
-		case Sampler::NEAREST:	return sampleNearest1D	(*this, sampler, u, level);
-		case Sampler::LINEAR:	return sampleLinear1D	(*this, sampler, u, level);
-		default:
-			DE_ASSERT(DE_FALSE);
-			return Vec4(0.0f);
-	}
+	return sample1DOffset(sampler, filter, s, tcu::IVec2(0, level));
 }
 
 Vec4 ConstPixelBufferAccess::sample2D (const Sampler& sampler, Sampler::FilterMode filter, float s, float t, int depth) const
 {
+	// check selected layer exists
 	DE_ASSERT(de::inBounds(depth, 0, m_size.z()));
 
-	// Non-normalized coordinates.
-	float u = s;
-	float v = t;
+	return sample2DOffset(sampler, filter, s, t, tcu::IVec3(0, 0, depth));
+}
 
-	if (sampler.normalizedCoords)
-	{
-		u = unnormalize(sampler.wrapS, s, m_size.x());
-		v = unnormalize(sampler.wrapT, t, m_size.y());
-	}
-
-	switch (filter)
-	{
-		case Sampler::NEAREST:	return sampleNearest2D	(*this, sampler, u, v, depth);
-		case Sampler::LINEAR:	return sampleLinear2D	(*this, sampler, u, v, depth);
-		default:
-			DE_ASSERT(DE_FALSE);
-			return Vec4(0.0f);
-	}
+Vec4 ConstPixelBufferAccess::sample3D (const Sampler& sampler, Sampler::FilterMode filter, float s, float t, float r) const
+{
+	return sample3DOffset(sampler, filter, s, t, r, tcu::IVec3(0, 0, 0));
 }
 
 Vec4 ConstPixelBufferAccess::sample1DOffset (const Sampler& sampler, Sampler::FilterMode filter, float s, const IVec2& offset) const
 {
-	DE_ASSERT(de::inBounds(offset.y(), 0, m_size.x()));
+	// check selected layer exists
+	// \note offset.x is X offset, offset.y is the selected layer
+	DE_ASSERT(de::inBounds(offset.y(), 0, m_size.y()));
 
 	// Non-normalized coordinates.
 	float u = s;
@@ -1678,6 +1542,8 @@ Vec4 ConstPixelBufferAccess::sample1DOffset (const Sampler& sampler, Sampler::Fi
 
 Vec4 ConstPixelBufferAccess::sample2DOffset (const Sampler& sampler, Sampler::FilterMode filter, float s, float t, const IVec3& offset) const
 {
+	// check selected layer exists
+	// \note offset.xy is the XY offset, offset.z is the selected layer
 	DE_ASSERT(de::inBounds(offset.z(), 0, m_size.z()));
 
 	// Non-normalized coordinates.
@@ -1694,80 +1560,6 @@ Vec4 ConstPixelBufferAccess::sample2DOffset (const Sampler& sampler, Sampler::Fi
 	{
 		case Sampler::NEAREST:	return sampleNearest2D	(*this, sampler, u, v, offset);
 		case Sampler::LINEAR:	return sampleLinear2D	(*this, sampler, u, v, offset);
-		default:
-			DE_ASSERT(DE_FALSE);
-			return Vec4(0.0f);
-	}
-}
-
-float ConstPixelBufferAccess::sample1DCompare (const Sampler& sampler, Sampler::FilterMode filter, float ref, float s, const IVec2& offset) const
-{
-	DE_ASSERT(de::inBounds(offset.y(), 0, m_size.y()));
-
-	// Format information for comparison function
-	const bool isFixedPointDepth = isFixedPointDepthTextureFormat(m_format);
-
-	// Non-normalized coordinates.
-	float u = s;
-
-	if (sampler.normalizedCoords)
-		u = unnormalize(sampler.wrapS, s, m_size.x());
-
-	switch (filter)
-	{
-		case Sampler::NEAREST:	return execCompare(sampleNearest1D(*this, sampler, u, offset), sampler.compare, sampler.compareChannel, ref, isFixedPointDepth);
-		case Sampler::LINEAR:	return sampleLinear1DCompare(*this, sampler, ref, u, offset, isFixedPointDepth);
-		default:
-			DE_ASSERT(DE_FALSE);
-			return 0.0f;
-	}
-}
-
-float ConstPixelBufferAccess::sample2DCompare (const Sampler& sampler, Sampler::FilterMode filter, float ref, float s, float t, const IVec3& offset) const
-{
-	DE_ASSERT(de::inBounds(offset.z(), 0, m_size.z()));
-
-	// Format information for comparison function
-	const bool isFixedPointDepth = isFixedPointDepthTextureFormat(m_format);
-
-	// Non-normalized coordinates.
-	float u = s;
-	float v = t;
-
-	if (sampler.normalizedCoords)
-	{
-		u = unnormalize(sampler.wrapS, s, m_size.x());
-		v = unnormalize(sampler.wrapT, t, m_size.y());
-	}
-
-	switch (filter)
-	{
-		case Sampler::NEAREST:	return execCompare(sampleNearest2D(*this, sampler, u, v, offset), sampler.compare, sampler.compareChannel, ref, isFixedPointDepth);
-		case Sampler::LINEAR:	return sampleLinear2DCompare(*this, sampler, ref, u, v, offset, isFixedPointDepth);
-		default:
-			DE_ASSERT(DE_FALSE);
-			return 0.0f;
-	}
-}
-
-Vec4 ConstPixelBufferAccess::sample3D (const Sampler& sampler, Sampler::FilterMode filter, float s, float t, float r) const
-{
-	// Non-normalized coordinates.
-	float u = s;
-	float v = t;
-	float w = r;
-
-	if (sampler.normalizedCoords)
-	{
-		u = unnormalize(sampler.wrapS, s, m_size.x());
-		v = unnormalize(sampler.wrapT, t, m_size.y());
-		w = unnormalize(sampler.wrapR, r, m_size.z());
-	}
-
-	switch (filter)
-	{
-		case Sampler::NEAREST:	return sampleNearest3D	(*this, sampler, u, v, w);
-		case Sampler::LINEAR:	return sampleLinear3D	(*this, sampler, u, v, w);
 		default:
 			DE_ASSERT(DE_FALSE);
 			return Vec4(0.0f);
@@ -1795,6 +1587,60 @@ Vec4 ConstPixelBufferAccess::sample3DOffset (const Sampler& sampler, Sampler::Fi
 		default:
 			DE_ASSERT(DE_FALSE);
 			return Vec4(0.0f);
+	}
+}
+
+float ConstPixelBufferAccess::sample1DCompare (const Sampler& sampler, Sampler::FilterMode filter, float ref, float s, const IVec2& offset) const
+{
+	// check selected layer exists
+	// \note offset.x is X offset, offset.y is the selected layer
+	DE_ASSERT(de::inBounds(offset.y(), 0, m_size.y()));
+
+	// Format information for comparison function
+	const bool isFixedPointDepth = isFixedPointDepthTextureFormat(m_format);
+
+	// Non-normalized coordinates.
+	float u = s;
+
+	if (sampler.normalizedCoords)
+		u = unnormalize(sampler.wrapS, s, m_size.x());
+
+	switch (filter)
+	{
+		case Sampler::NEAREST:	return execCompare(sampleNearest1D(*this, sampler, u, offset), sampler.compare, sampler.compareChannel, ref, isFixedPointDepth);
+		case Sampler::LINEAR:	return sampleLinear1DCompare(*this, sampler, ref, u, offset, isFixedPointDepth);
+		default:
+			DE_ASSERT(DE_FALSE);
+			return 0.0f;
+	}
+}
+
+float ConstPixelBufferAccess::sample2DCompare (const Sampler& sampler, Sampler::FilterMode filter, float ref, float s, float t, const IVec3& offset) const
+{
+	// check selected layer exists
+	// \note offset.xy is XY offset, offset.z is the selected layer
+	DE_ASSERT(de::inBounds(offset.z(), 0, m_size.z()));
+
+	// Format information for comparison function
+	const bool isFixedPointDepth = isFixedPointDepthTextureFormat(m_format);
+
+	// Non-normalized coordinates.
+	float u = s;
+	float v = t;
+
+	if (sampler.normalizedCoords)
+	{
+		u = unnormalize(sampler.wrapS, s, m_size.x());
+		v = unnormalize(sampler.wrapT, t, m_size.y());
+	}
+
+	switch (filter)
+	{
+		case Sampler::NEAREST:	return execCompare(sampleNearest2D(*this, sampler, u, v, offset), sampler.compare, sampler.compareChannel, ref, isFixedPointDepth);
+		case Sampler::LINEAR:	return sampleLinear2DCompare(*this, sampler, ref, u, v, offset, isFixedPointDepth);
+		default:
+			DE_ASSERT(DE_FALSE);
+			return 0.0f;
 	}
 }
 
@@ -3575,6 +3421,8 @@ std::ostream& operator<< (std::ostream& str, TextureFormat::ChannelOrder order)
 		"ARGB",
 		"BGRA",
 
+		"sR",
+		"sRG",
 		"sRGB",
 		"sRGBA",
 
@@ -3595,6 +3443,7 @@ std::ostream& operator<< (std::ostream& str, TextureFormat::ChannelType type)
 		"SNORM_INT32",
 		"UNORM_INT8",
 		"UNORM_INT16",
+		"UNORM_INT24",
 		"UNORM_INT32",
 		"UNORM_SHORT_565",
 		"UNORM_SHORT_555",
