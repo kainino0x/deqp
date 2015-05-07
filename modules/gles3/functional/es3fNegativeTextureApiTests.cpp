@@ -1986,9 +1986,10 @@ void NegativeTextureApiTests::init (void)
 			expectError(GL_INVALID_ENUM);
 			m_log << TestLog::EndSection;
 
-			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if internalFormat is not one of the accepted resolution and format symbolic constants.");
+			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if internalFormat is not one of the accepted resolution and format symbolic constants "
+										  "or GL_INVALID_OPERATION is generated if internalformat, format and type are not compatible.");
 			glTexImage3D(GL_TEXTURE_3D, 0, 0, 1, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-			expectError(GL_INVALID_VALUE);
+			expectError(GL_INVALID_VALUE, GL_INVALID_OPERATION);
 			m_log << TestLog::EndSection;
 
 			m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if target is GL_TEXTURE_3D and format is GL_DEPTH_COMPONENT, or GL_DEPTH_STENCIL.");
@@ -2754,26 +2755,27 @@ void NegativeTextureApiTests::init (void)
 		{
 			deUint32					buf;
 			deUint32					texture;
-			std::vector<GLubyte>		data(512);
+			GLsizei						bufferSize = etc2EacDataSize(4, 4);
+			std::vector<GLubyte>		data(bufferSize);
 
 			glGenTextures				(1, &texture);
 			glBindTexture				(GL_TEXTURE_2D_ARRAY, texture);
 			glCompressedTexImage3D		(GL_TEXTURE_2D_ARRAY, 0, GL_COMPRESSED_RGBA8_ETC2_EAC, 16, 16, 1, 0, etc2EacDataSize(16, 16), 0);
 			glGenBuffers				(1, &buf);
 			glBindBuffer				(GL_PIXEL_UNPACK_BUFFER, buf);
-			glBufferData				(GL_PIXEL_UNPACK_BUFFER, 512, &data[0], GL_DYNAMIC_COPY);
+			glBufferData				(GL_PIXEL_UNPACK_BUFFER, bufferSize, &data[0], GL_DYNAMIC_COPY);
 			expectError					(GL_NO_ERROR);
 
 			m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if a non-zero buffer object name is bound to the GL_PIXEL_UNPACK_BUFFER target and...");
 			m_log << TestLog::Section("", "...the buffer object's data store is currently mapped.");
-			glMapBufferRange			(GL_PIXEL_UNPACK_BUFFER, 0, 512, GL_MAP_WRITE_BIT);
+			glMapBufferRange			(GL_PIXEL_UNPACK_BUFFER, 0, bufferSize, GL_MAP_WRITE_BIT);
 			glCompressedTexSubImage3D	(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, 4, 4, 1, GL_COMPRESSED_RGBA8_ETC2_EAC, etc2EacDataSize(4, 4), 0);
 			expectError					(GL_INVALID_OPERATION);
 			glUnmapBuffer				(GL_PIXEL_UNPACK_BUFFER);
 			m_log << TestLog::EndSection;
 
 			m_log << TestLog::Section("", "...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.");
-			glCompressedTexSubImage3D	(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, 32, 32, 1, GL_COMPRESSED_RGBA8_ETC2_EAC, etc2EacDataSize(32, 32), 0);
+			glCompressedTexSubImage3D	(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, 16, 16, 1, GL_COMPRESSED_RGBA8_ETC2_EAC, etc2EacDataSize(16, 16), 0);
 			expectError					(GL_INVALID_OPERATION);
 			m_log << TestLog::EndSection;
 			m_log << TestLog::EndSection;
@@ -2832,7 +2834,7 @@ void NegativeTextureApiTests::init (void)
 			glBindTexture	(GL_TEXTURE_2D, texture);
 
 			m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if the texture object currently bound to target already has GL_TEXTURE_IMMUTABLE_FORMAT set to GL_TRUE.");
-			deInt32			immutable;
+			deInt32			immutable	= -1;
 			glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
 			m_log << TestLog::Message << "// GL_TEXTURE_IMMUTABLE_FORMAT = " << ((immutable != 0) ? "GL_TRUE" : "GL_FALSE") << TestLog::EndMessage;
 			glTexStorage2D	(GL_TEXTURE_2D, 1, GL_RGBA8, 16, 16);
@@ -2922,7 +2924,7 @@ void NegativeTextureApiTests::init (void)
 			glBindTexture	(GL_TEXTURE_3D, texture);
 
 			m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if the texture object currently bound to target already has GL_TEXTURE_IMMUTABLE_FORMAT set to GL_TRUE.");
-			deInt32			immutable;
+			deInt32			immutable	= -1;
 			glGetTexParameteriv(GL_TEXTURE_3D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
 			m_log << TestLog::Message << "// GL_TEXTURE_IMMUTABLE_FORMAT = " << ((immutable != 0) ? "GL_TRUE" : "GL_FALSE") << TestLog::EndMessage;
 			glTexStorage3D	(GL_TEXTURE_3D, 1, GL_RGBA8, 4, 4, 4);

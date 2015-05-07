@@ -329,7 +329,10 @@ inline deUint32 getBits (deUint64 src, int low, int high)
 {
 	const int numBits = (high-low) + 1;
 	DE_ASSERT(de::inRange(numBits, 1, 32));
-	return (src >> low) & ((1<<numBits)-1);
+	if (numBits < 32)
+		return (src >> low) & ((1u<<numBits)-1);
+	else
+		return (src >> low) & 0xFFFFFFFFu;
 }
 
 inline deUint8 extend4To8 (deUint8 src)
@@ -2602,7 +2605,7 @@ void decompress (const PixelBufferAccess& dst, CompressedTexFormat fmt, const de
 
 		decompressBlock(fmt, blockAccess, blockPtr, params);
 
-		copyRawPixels(getSubregion(dst, dstPixelPos.x(), dstPixelPos.y(), dstPixelPos.z(), copySize.x(), copySize.y(), copySize.z()), getSubregion(blockAccess, 0, 0, 0, copySize.x(), copySize.y(), copySize.z()));
+		copy(getSubregion(dst, dstPixelPos.x(), dstPixelPos.y(), dstPixelPos.z(), copySize.x(), copySize.y(), copySize.z()), getSubregion(blockAccess, 0, 0, 0, copySize.x(), copySize.y(), copySize.z()));
 	}
 }
 

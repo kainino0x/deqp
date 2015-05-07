@@ -26,14 +26,25 @@
 #if (DE_OS == DE_OS_UNIX || DE_OS == DE_OS_OSX || DE_OS == DE_OS_ANDROID || DE_OS == DE_OS_SYMBIAN || DE_OS == DE_OS_IOS)
 
 #include "deMemory.h"
+#include "deInt32.h"
 
 #if !defined(_XOPEN_SOURCE) || (_XOPEN_SOURCE < 500)
-#	error You are using too old posix API!
+#	error "You are using too old posix API!"
 #endif
 
 #include <unistd.h>
 #include <pthread.h>
 #include <sched.h>
+#include <sys/syscall.h>
+
+#if (DE_OS == DE_OS_OSX) || (DE_OS == DE_OS_IOS)
+#	if !defined(_SC_NPROCESSORS_CONF)
+#		define _SC_NPROCESSORS_CONF 57
+#	endif
+#	if !defined(_SC_NPROCESSORS_ONLN)
+#		define _SC_NPROCESSORS_ONLN 58
+#	endif
+#endif
 
 typedef struct Thread_s
 {
@@ -145,6 +156,75 @@ void deSleep (deUint32 milliseconds)
 void deYield (void)
 {
 	sched_yield();
+}
+
+#if (DE_OS == DE_OS_UNIX) || (DE_OS == DE_OS_ANDROID)
+
+deUint32 deGetNumAvailableLogicalCores (void)
+{
+	unsigned long		mask		= 0;
+	const unsigned int	maskSize	= sizeof(mask);
+	long				ret;
+
+	deMemset(&mask, 0, sizeof(mask));
+
+	ret = syscall(__NR_sched_getaffinity, 0, maskSize, &mask);
+
+	if (ret > 0)
+	{
+		return dePop64(mask);
+	}
+	else
+	{
+#if defined(_SC_NPROCESSORS_ONLN)
+		const int count = sysconf(_SC_NPROCESSORS_ONLN);
+
+		if (count <= 0)
+			return 1;
+		else
+			return (deUint32)count;
+#else
+		return 1;
+#endif
+	}
+}
+
+#else
+
+deUint32 deGetNumAvailableLogicalCores (void)
+{
+#if defined(_SC_NPROCESSORS_ONLN)
+	const int count = sysconf(_SC_NPROCESSORS_ONLN);
+
+	if (count <= 0)
+		return 1;
+	else
+		return (deUint32)count;
+#else
+	return 1;
+#endif
+}
+
+#endif
+
+deUint32 deGetNumTotalLogicalCores (void)
+{
+#if defined(_SC_NPROCESSORS_CONF)
+	const int count = sysconf(_SC_NPROCESSORS_CONF);
+
+	if (count <= 0)
+		return 1;
+	else
+		return (deUint32)count;
+#else
+	return 1;
+#endif
+}
+
+deUint32 deGetNumTotalPhysicalCores (void)
+{
+	/* \todo [2015-04-09 pyry] Parse /proc/cpuinfo perhaps? */
+	return deGetNumTotalLogicalCores();
 }
 
 #endif /* DE_OS */

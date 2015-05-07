@@ -125,6 +125,22 @@ struct DrawPrimitiveOp
 	int				stencilRef;
 };
 
+static bool isANarrowScreenSpaceTriangle (const tcu::Vec4& p0, const tcu::Vec4& p1, const tcu::Vec4& p2)
+{
+	// to clip space
+	const tcu::Vec2	csp0 				= p0.swizzle(0, 1) / p0.w();
+	const tcu::Vec2	csp1 				= p1.swizzle(0, 1) / p1.w();
+	const tcu::Vec2	csp2 				= p2.swizzle(0, 1) / p2.w();
+
+	const tcu::Vec2	e01					= (csp1 - csp0);
+	const tcu::Vec2	e02					= (csp2 - csp0);
+
+	const float		minimumVisibleArea	= 0.4f; // must cover at least 10% of the surface
+	const float		visibleArea			= de::abs(e01.x() * e02.y() - e02.x() * e01.y()) * 0.5f;
+
+	return visibleArea < minimumVisibleArea;
+}
+
 void randomizeDrawOp (de::Random& rnd, DrawPrimitiveOp& drawOp)
 {
 	const int	minStencilRef	= 0;
@@ -172,6 +188,34 @@ void randomizeDrawOp (de::Random& rnd, DrawPrimitiveOp& drawOp)
 				color.y()		= rnd.getFloat(minRGB, maxRGB);
 				color.z()		= rnd.getFloat(minRGB, maxRGB);
 				color.w()		= rnd.getFloat(minAlpha, maxAlpha);
+			}
+
+			// avoid generating narrow triangles
+			{
+				const int	maxAttempts	= 40;
+				int			numAttempts	= 0;
+				tcu::Vec4&	p0			= drawOp.positions[triNdx*3 + 0];
+				tcu::Vec4&	p1			= drawOp.positions[triNdx*3 + 1];
+				tcu::Vec4&	p2			= drawOp.positions[triNdx*3 + 2];
+
+				while (isANarrowScreenSpaceTriangle(p0, p1, p2))
+				{
+					p1.x()	= cx + rnd.getFloat(-maxTriOffset, maxTriOffset);
+					p1.y()	= cy + rnd.getFloat(-maxTriOffset, maxTriOffset);
+					p1.z()	= rnd.getFloat(minDepth, maxDepth);
+					p1.w()	= 1.0f;
+
+					p2.x()	= cx + rnd.getFloat(-maxTriOffset, maxTriOffset);
+					p2.y()	= cy + rnd.getFloat(-maxTriOffset, maxTriOffset);
+					p2.z()	= rnd.getFloat(minDepth, maxDepth);
+					p2.w()	= 1.0f;
+
+					if (++numAttempts > maxAttempts)
+					{
+						DE_ASSERT(false);
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -535,6 +579,8 @@ void drawGLES2 (const glw::Functions& gl, const Program& program, const DrawPrim
 			DE_ASSERT(false);
 	}
 
+	gl.disable(GL_DITHER);
+
 	gl.vertexAttribPointer(gles2Program.getPositionLoc(), 4, GL_FLOAT, GL_FALSE, 0, &drawOp.positions[0]);
 	gl.vertexAttribPointer(gles2Program.getColorLoc(), 4, GL_FLOAT, GL_FALSE, 0, &drawOp.colors[0]);
 
@@ -591,6 +637,20 @@ static void readPixels (const glw::Functions& gl, EGLint api, tcu::Surface& dst)
 	}
 }
 
+static void finish (const glw::Functions& gl, EGLint api)
+{
+	switch (api)
+	{
+		case EGL_OPENGL_ES2_BIT:
+		case EGL_OPENGL_ES3_BIT_KHR:
+			gl.finish();
+			break;
+
+		default:
+			throw tcu::NotSupportedError("Unsupported API");
+	}
+}
+
 tcu::PixelFormat getPixelFormat (const Library& egl, EGLDisplay display, EGLConfig config)
 {
 	tcu::PixelFormat fmt;
@@ -610,6 +670,8 @@ class SingleThreadRenderCase : public MultiContextRenderCase
 public:
 						SingleThreadRenderCase		(EglTestContext& eglTestCtx, const char* name, const char* description, EGLint api, EGLint surfaceType, const eglu::FilterList& filters, int numContextsPerApi);
 
+	void				init						(void);
+
 private:
 	virtual void		executeForContexts			(EGLDisplay display, EGLSurface surface, const Config& config, const std::vector<std::pair<EGLint, EGLContext> >& contexts);
 
@@ -621,6 +683,11 @@ private:
 SingleThreadRenderCase::SingleThreadRenderCase (EglTestContext& eglTestCtx, const char* name, const char* description, EGLint api, EGLint surfaceType, const eglu::FilterList& filters, int numContextsPerApi)
 	: MultiContextRenderCase(eglTestCtx, name, description, api, surfaceType, filters, numContextsPerApi)
 {
+}
+
+void SingleThreadRenderCase::init (void)
+{
+	MultiContextRenderCase::init();
 	m_eglTestCtx.initGLFunctions(&m_gl, glu::ApiType::es(2,0));
 }
 
@@ -682,6 +749,7 @@ void SingleThreadRenderCase::executeForContexts (EGLDisplay display, EGLSurface 
 		EGLU_CHECK_CALL(egl, makeCurrent(display, surface, surface, context));
 
 		clear(m_gl, api, CLEAR_COLOR, CLEAR_DEPTH, CLEAR_STENCIL);
+		finish(m_gl, api);
 	}
 
 	// Render.
@@ -699,6 +767,8 @@ void SingleThreadRenderCase::executeForContexts (EGLDisplay display, EGLSurface 
 				const DrawPrimitiveOp& drawOp = drawOps[iterNdx*numContexts*drawsPerCtx + ctxNdx*drawsPerCtx + drawNdx];
 				draw(m_gl, api, *programs[ctxNdx], drawOp);
 			}
+
+			finish(m_gl, api);
 		}
 	}
 
@@ -733,6 +803,8 @@ class MultiThreadRenderCase : public MultiContextRenderCase
 {
 public:
 						MultiThreadRenderCase		(EglTestContext& eglTestCtx, const char* name, const char* description, EGLint api, EGLint surfaceType, const eglu::FilterList& filters, int numContextsPerApi);
+
+	void				init						(void);
 
 private:
 	virtual void		executeForContexts			(EGLDisplay display, EGLSurface surface, const Config& config, const std::vector<std::pair<EGLint, EGLContext> >& contexts);
@@ -788,6 +860,8 @@ public:
 			for (int ndx = 0; ndx < packetIter->numOps; ndx++)
 				draw(m_gl, m_api, m_program, packetIter->drawOps[ndx]);
 
+			finish(m_gl, m_api);
+
 			// Release context.
 			EGLU_CHECK_CALL(m_egl, makeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
 
@@ -810,6 +884,11 @@ private:
 MultiThreadRenderCase::MultiThreadRenderCase (EglTestContext& eglTestCtx, const char* name, const char* description, EGLint api, EGLint surfaceType, const eglu::FilterList& filters, int numContextsPerApi)
 	: MultiContextRenderCase(eglTestCtx, name, description, api, surfaceType, filters, numContextsPerApi)
 {
+}
+
+void MultiThreadRenderCase::init (void)
+{
+	MultiContextRenderCase::init();
 	m_eglTestCtx.initGLFunctions(&m_gl, glu::ApiType::es(2,0));
 }
 
@@ -901,6 +980,7 @@ void MultiThreadRenderCase::executeForContexts (EGLDisplay display, EGLSurface s
 		EGLU_CHECK_CALL(egl, makeCurrent(display, surface, surface, context));
 
 		clear(m_gl, api, CLEAR_COLOR, CLEAR_DEPTH, CLEAR_STENCIL);
+		finish(m_gl, api);
 
 		// Release context
 		EGLU_CHECK_CALL(egl, makeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));

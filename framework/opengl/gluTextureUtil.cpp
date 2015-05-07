@@ -84,6 +84,11 @@ TransferFormat getTransferFormat (tcu::TextureFormat texFormat)
 		case TextureFormat::DS:		format = GL_DEPTH_STENCIL;						break;
 		case TextureFormat::S:		format = GL_STENCIL_INDEX;						break;
 
+		case TextureFormat::BGRA:
+			DE_ASSERT(!isInt);
+			format = GL_BGRA;
+			break;
+
 		default:
 			DE_ASSERT(false);
 	}
@@ -1151,6 +1156,18 @@ bool isSizedFormatColorRenderable (const RenderContext& renderCtx, const Context
 		throw tcu::InternalError("Context type not supported in query");
 
 	return (renderable & RENDERABLE_COLOR) != 0;
+}
+
+const tcu::IVec2 (&getDefaultGatherOffsets (void))[4]
+{
+	static const tcu::IVec2 s_defaultOffsets[4] =
+	{
+		tcu::IVec2(0, 1),
+		tcu::IVec2(1, 1),
+		tcu::IVec2(1, 0),
+		tcu::IVec2(0, 0),
+	};
+	return s_defaultOffsets;
 }
 
 } // glu

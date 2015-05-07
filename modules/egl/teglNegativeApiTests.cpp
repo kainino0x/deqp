@@ -681,18 +681,6 @@ void NegativeApiTests::init (void)
 			expectError(EGL_BAD_CONFIG);
 
 			log << TestLog::EndSection;
-
-			log << TestLog::Section("Test3", "EGL_BAD_NATIVE_WINDOW may be generated if native_window is not a valid native window");
-
-			// Any window-capable config.
-			EGLConfig windowConfig;
-			if (getConfig(&windowConfig, FilterList() << surfaceBits<EGL_WINDOW_BIT>))
-			{
-				expectNoSurface(eglCreateWindowSurface(display, windowConfig, DE_NULL, s_emptyAttribList));
-				expectError(EGL_BAD_NATIVE_WINDOW);
-			}
-
-			log << TestLog::EndSection;
 		});
 
 	TEGL_ADD_API_CASE(destroy_context, "eglDestroyContext() negative tests",
@@ -1371,10 +1359,10 @@ void NegativeApiTests::init (void)
 				expectTrue(eglMakeCurrent(display, *surface, *surface, context));
 				expectError(EGL_SUCCESS);
 
-				log << TestLog::Section("Test1", "EGL_BAD_PARAMETER is generated if engine is not a recognized marking engine");
+				log << TestLog::Section("Test1", "EGL_BAD_PARAMETER is generated if engine is not a recognized marking engine and native rendering is supported by current surface");
 
-				expectFalse(eglWaitNative(-1));
-				expectError(EGL_BAD_PARAMETER);
+				eglWaitNative(-1);
+				expectEitherError(EGL_BAD_PARAMETER, EGL_NONE);
 
 				log << TestLog::EndSection;
 

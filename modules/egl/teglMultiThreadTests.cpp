@@ -286,8 +286,11 @@ void MultiThreadedTest::init (void)
 
 void MultiThreadedTest::deinit (void)
 {
-	m_eglTestCtx.getLibrary().terminate(m_display);
-	m_display = EGL_NO_DISPLAY;
+	if (m_display != EGL_NO_DISPLAY)
+	{
+		m_eglTestCtx.getLibrary().terminate(m_display);
+		m_display = EGL_NO_DISPLAY;
+	}
 }
 
 void MultiThreadedTest::barrier (TestThread& thread)
@@ -1055,7 +1058,7 @@ void MultiThreadedObjectTest::createDestroyObjects (TestThread& thread, int coun
 			create	= true;
 			type	= TYPE_WINDOW;
 		}
-		else if (windows.empty() && ((m_types & TYPE_WINDOW) != 0) && ((m_types & TYPE_SINGLE_WINDOW) != 0))
+		else if (windows.empty() && (m_hasWindow == 0) && ((m_types & TYPE_WINDOW) != 0) && ((m_types & TYPE_SINGLE_WINDOW) != 0))
 		{
 			create	= true;
 			type	= TYPE_WINDOW;

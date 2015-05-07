@@ -1675,6 +1675,22 @@ group declaration "Declaring arrays"
 		""
 	end
 
+	case empty_declaration_without_var_name
+		version 300 es
+
+		both ""
+			#version 300 es
+			precision mediump float;
+			${DECLARATIONS}
+
+			void main ()
+			{
+				int[];
+				${OUTPUT}
+			}
+		""
+	end
+
 end # declaration
 
 group length "Array length method"
@@ -1888,23 +1904,6 @@ group invalid "Invalid Functions"
 		""
 	end
 
-	case empty_declaration_without_var_name
-		version 300 es
-		expect compile_or_link_fail
-
-		both ""
-			#version 300 es
-			precision mediump float;
-			${DECLARATIONS}
-
-			void main ()
-			{
-				int[];
-				${POSITION_FRAG_COLOR} = vec4(1.0);
-			}
-		""
-	end
-
 	case empty_declaration_with_var_name
 		version 300 es
 		expect compile_or_link_fail
@@ -1922,7 +1921,7 @@ group invalid "Invalid Functions"
 		""
 	end
 
-	case constructor_c-style1
+	case constructor_c_style1
 		version 300 es
 		expect compile_fail
 
@@ -1941,7 +1940,7 @@ group invalid "Invalid Functions"
 		""
 	end
 
-	case constructor_c-style2
+	case constructor_c_style2
 		version 300 es
 		expect compile_fail
 
@@ -1953,6 +1952,42 @@ group invalid "Invalid Functions"
 			void main ()
 			{
 				float a[5] = { 1.0, 2.0, 3.0 };
+
+				${POSITION_FRAG_COLOR} = vec4(1.0);
+			}
+		""
+	end
+
+	case constructor_c_style3
+		version 300 es
+		expect compile_fail
+
+		both ""
+			#version 300 es
+			precision mediump float;
+			${DECLARATIONS}
+
+			void main ()
+			{
+				float a[] = float[3] { 1.0, 2.0, 3.0 };
+
+				${POSITION_FRAG_COLOR} = vec4(1.0);
+			}
+		""
+	end
+
+	case constructor_c_style4
+		version 300 es
+		expect compile_fail
+
+		both ""
+			#version 300 es
+			precision mediump float;
+			${DECLARATIONS}
+
+			void main ()
+			{
+				float a[3] = { 1.0, 2.0, 3.0 };
 
 				${POSITION_FRAG_COLOR} = vec4(1.0);
 			}

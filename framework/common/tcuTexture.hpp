@@ -25,6 +25,7 @@
 
 #include "tcuDefs.hpp"
 #include "tcuVector.hpp"
+#include "rrGenericVector.hpp"
 #include "deArrayBuffer.hpp"
 
 #include <vector>
@@ -89,6 +90,7 @@ public:
 		SIGNED_INT32,
 		UNSIGNED_INT8,
 		UNSIGNED_INT16,
+		UNSIGNED_INT24,
 		UNSIGNED_INT32,
 		HALF_FLOAT,
 		FLOAT,
@@ -195,40 +197,56 @@ public:
 		COMPAREMODE_LAST
 	};
 
+	enum DepthStencilMode
+	{
+		MODE_DEPTH = 0,
+		MODE_STENCIL,
+
+		MODE_LAST
+	};
+
 	// Wrap control
-	WrapMode		wrapS;
-	WrapMode		wrapT;
-	WrapMode		wrapR;
+	WrapMode			wrapS;
+	WrapMode			wrapT;
+	WrapMode			wrapR;
 
 	// Minifcation & magnification
-	FilterMode		minFilter;
-	FilterMode		magFilter;
-	float			lodThreshold;		// lod <= lodThreshold ? magnified : minified
+	FilterMode			minFilter;
+	FilterMode			magFilter;
+	float				lodThreshold;		// lod <= lodThreshold ? magnified : minified
 
 	// Coordinate normalization
-	bool			normalizedCoords;
+	bool				normalizedCoords;
 
 	// Shadow comparison
-	CompareMode		compare;
-	int				compareChannel;
+	CompareMode			compare;
+	int					compareChannel;
 
-	// Border color
-	Vec4			borderColor;
+	// Border color.
+	// \note It is setter's responsibility to guarantee that the values are representable
+	//       in sampled texture's internal format.
+	// \note It is setter's responsibility to guarantee that the format is compatible with the
+	//       sampled texture's internal format. Otherwise results are undefined.
+	rr::GenericVec4		borderColor;
 
 	// Seamless cube map filtering
-	bool			seamlessCubeMap;
+	bool				seamlessCubeMap;
 
-	Sampler (WrapMode		wrapS_,
-			 WrapMode		wrapT_,
-			 WrapMode		wrapR_,
-			 FilterMode		minFilter_,
-			 FilterMode		magFilter_,
-			 float			lodThreshold_		= 0.0f,
-			 bool			normalizedCoords_	= true,
-			 CompareMode	compare_			= COMPAREMODE_NONE,
-			 int			compareChannel_		= 0,
-			 const Vec4&	borderColor_		= Vec4(0.0f, 0.0f, 0.0f, 0.0f),
-			 bool			seamlessCubeMap_	= false)
+	// Depth stencil mode
+	DepthStencilMode	depthStencilMode;
+
+	Sampler (WrapMode			wrapS_,
+			 WrapMode			wrapT_,
+			 WrapMode			wrapR_,
+			 FilterMode			minFilter_,
+			 FilterMode			magFilter_,
+			 float				lodThreshold_		= 0.0f,
+			 bool				normalizedCoords_	= true,
+			 CompareMode		compare_			= COMPAREMODE_NONE,
+			 int				compareChannel_		= 0,
+			 const Vec4&		borderColor_		= Vec4(0.0f, 0.0f, 0.0f, 0.0f),
+			 bool				seamlessCubeMap_	= false,
+			 DepthStencilMode	depthStencilMode_	= MODE_DEPTH)
 		: wrapS				(wrapS_)
 		, wrapT				(wrapT_)
 		, wrapR				(wrapR_)
@@ -240,6 +258,7 @@ public:
 		, compareChannel	(compareChannel_)
 		, borderColor		(borderColor_)
 		, seamlessCubeMap	(seamlessCubeMap_)
+		, depthStencilMode	(depthStencilMode_)
 	{
 	}
 
@@ -253,8 +272,9 @@ public:
 		, normalizedCoords	(true)
 		, compare			(COMPAREMODE_NONE)
 		, compareChannel	(0)
-		, borderColor		(0.0f, 0.0f, 0.0f, 0.0f)
+		, borderColor		(Vec4(0.0f, 0.0f, 0.0f, 0.0f))
 		, seamlessCubeMap	(false)
+		, depthStencilMode	(MODE_DEPTH)
 	{
 	}
 } DE_WARN_UNUSED_TYPE;
@@ -289,11 +309,13 @@ public:
 	int						getWidth					(void) const	{ return m_size.x();				}
 	int						getHeight					(void) const	{ return m_size.y();				}
 	int						getDepth					(void) const	{ return m_size.z();				}
+	int						getPixelPitch				(void) const	{ return m_pitch.x();				}
 	int						getRowPitch					(void) const	{ return m_pitch.y();				}
 	int						getSlicePitch				(void) const	{ return m_pitch.z();				}
+	const IVec3&			getPitch					(void) const	{ return m_pitch;					}
 
 	const void*				getDataPtr					(void) const	{ return m_data;					}
-	int						getDataSize					(void) const	{ return m_size.z()*m_pitch.z();	}
+	const void*				getPixelPtr					(int x, int y, int z = 0) const { return (const deUint8*)m_data + x * m_pitch.x() + y * m_pitch.y() + z * m_pitch.z(); }
 
 	Vec4					getPixel					(int x, int y, int z = 0) const;
 	IVec4					getPixelInt					(int x, int y, int z = 0) const;
@@ -343,8 +365,8 @@ public:
 						PixelBufferAccess	(const TextureFormat& format, const IVec3& size, const IVec3& pitch, void* data);
 
 	void*				getDataPtr			(void) const { return m_data; }
+	void*				getPixelPtr			(int x, int y, int z = 0) const { return (deUint8*)m_data + x * m_pitch.x() + y * m_pitch.y() + z * m_pitch.z(); }
 
-	void				setPixels			(const void* buf, int bufSize) const;
 	void				setPixel			(const tcu::Vec4& color, int x, int y, int z = 0) const;
 	void				setPixel			(const tcu::IVec4& color, int x, int y, int z = 0) const;
 	void				setPixel			(const tcu::UVec4& color, int x, int y, int z = 0) const { setPixel(color.cast<int>(), x, y, z); }
