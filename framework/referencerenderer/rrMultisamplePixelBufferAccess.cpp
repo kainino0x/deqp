@@ -42,11 +42,8 @@ const tcu::PixelBufferAccess MultisamplePixelBufferAccess::toSinglesampleAccess 
 	DE_ASSERT(getNumSamples() == 1);
 
 	return tcu::PixelBufferAccess(m_access.getFormat(),
-								  m_access.getHeight(),
-								  m_access.getDepth(),
-								  1,
-								  m_access.getSlicePitch(),
-								  m_access.getSlicePitch() * m_access.getDepth(),
+								  tcu::IVec3(m_access.getHeight(), m_access.getDepth(), 1),
+								  tcu::IVec3(m_access.getRowPitch(), m_access.getSlicePitch(), m_access.getSlicePitch() * m_access.getDepth()),
 								  m_access.getDataPtr());
 }
 
@@ -55,11 +52,8 @@ MultisamplePixelBufferAccess MultisamplePixelBufferAccess::fromSinglesampleAcces
 	return MultisamplePixelBufferAccess(
 				tcu::PixelBufferAccess(
 								original.getFormat(),
-								1,
-								original.getWidth(),
-								original.getHeight(),
-								original.getFormat().getPixelSize(),
-								original.getRowPitch(),
+								tcu::IVec3(1, original.getWidth(), original.getHeight()),
+								tcu::IVec3(original.getPixelPitch(), original.getPixelPitch(), original.getRowPitch()),
 								original.getDataPtr()));
 }
 
@@ -88,11 +82,8 @@ const tcu::ConstPixelBufferAccess MultisampleConstPixelBufferAccess::toSinglesam
 	DE_ASSERT(getNumSamples() == 1);
 
 	return tcu::ConstPixelBufferAccess(m_access.getFormat(),
-									   m_access.getHeight(),
-									   m_access.getDepth(),
-									   1,
-									   m_access.getSlicePitch(),
-									   m_access.getSlicePitch() * m_access.getDepth(),
+									   tcu::IVec3(m_access.getHeight(), m_access.getDepth(), 1),
+									   tcu::IVec3(m_access.getRowPitch(), m_access.getSlicePitch(), m_access.getSlicePitch() * m_access.getDepth()),
 									   m_access.getDataPtr());
 }
 
@@ -101,11 +92,8 @@ MultisampleConstPixelBufferAccess MultisampleConstPixelBufferAccess::fromSingles
 	return MultisampleConstPixelBufferAccess(
 				tcu::ConstPixelBufferAccess(
 								original.getFormat(),
-								1,
-								original.getWidth(),
-								original.getHeight(),
-								original.getFormat().getPixelSize(),
-								original.getRowPitch(),
+								tcu::IVec3(1, original.getWidth(), original.getHeight()),
+								tcu::IVec3(original.getPixelPitch(), original.getPixelPitch(), original.getRowPitch()),
 								original.getDataPtr()));
 }
 
@@ -147,6 +135,80 @@ void resolveMultisampleColorBuffer (const tcu::PixelBufferAccess& dst, const Mul
 
 			dst.setPixel(sum*numSamplesInv, x, y);
 		}
+	}
+}
+
+void resolveMultisampleDepthBuffer (const tcu::PixelBufferAccess& dst, const MultisampleConstPixelBufferAccess& src)
+{
+	DE_ASSERT(dst.getWidth() == src.raw().getHeight());
+	DE_ASSERT(dst.getHeight() == src.raw().getDepth());
+
+	const tcu::ConstPixelBufferAccess	effectiveSrc = tcu::getEffectiveDepthStencilAccess(src.raw(), tcu::Sampler::MODE_DEPTH);
+	const tcu::PixelBufferAccess		effectiveDst = tcu::getEffectiveDepthStencilAccess(dst, tcu::Sampler::MODE_DEPTH);
+
+	if (src.getNumSamples() == 1)
+	{
+		// fast-path for non-multisampled cases
+		tcu::copy(effectiveDst, MultisampleConstPixelBufferAccess::fromMultisampleAccess(effectiveSrc).toSinglesampleAccess());
+	}
+	else
+	{
+		const float numSamplesInv = 1.0f / (float)src.getNumSamples();
+
+		for (int y = 0; y < dst.getHeight(); y++)
+		for (int x = 0; x < dst.getWidth(); x++)
+		{
+			float sum = 0.0f;
+			for (int s = 0; s < src.getNumSamples(); s++)
+				sum += effectiveSrc.getPixDepth(s, x, y);
+
+			effectiveDst.setPixDepth(sum*numSamplesInv, x, y);
+		}
+	}
+}
+
+void resolveMultisampleStencilBuffer (const tcu::PixelBufferAccess& dst, const MultisampleConstPixelBufferAccess& src)
+{
+	DE_ASSERT(dst.getWidth() == src.raw().getHeight());
+	DE_ASSERT(dst.getHeight() == src.raw().getDepth());
+
+	const tcu::ConstPixelBufferAccess	effectiveSrc = tcu::getEffectiveDepthStencilAccess(src.raw(), tcu::Sampler::MODE_STENCIL);
+	const tcu::PixelBufferAccess		effectiveDst = tcu::getEffectiveDepthStencilAccess(dst, tcu::Sampler::MODE_STENCIL);
+
+	if (src.getNumSamples() == 1)
+	{
+		// fast-path for non-multisampled cases
+		tcu::copy(effectiveDst, MultisampleConstPixelBufferAccess::fromMultisampleAccess(effectiveSrc).toSinglesampleAccess());
+	}
+	else
+	{
+		// Resolve by selecting one
+		for (int y = 0; y < dst.getHeight(); y++)
+		for (int x = 0; x < dst.getWidth(); x++)
+			effectiveDst.setPixStencil(effectiveSrc.getPixStencil(0, x, y), x, y);
+	}
+}
+
+void resolveMultisampleBuffer (const tcu::PixelBufferAccess& dst, const MultisampleConstPixelBufferAccess& src)
+{
+	switch (src.raw().getFormat().order)
+	{
+		case tcu::TextureFormat::D:
+			resolveMultisampleDepthBuffer(dst, src);
+			return;
+
+		case tcu::TextureFormat::S:
+			resolveMultisampleStencilBuffer(dst, src);
+			return;
+
+		case tcu::TextureFormat::DS:
+			resolveMultisampleDepthBuffer(dst, src);
+			resolveMultisampleStencilBuffer(dst, src);
+			return;
+
+		default:
+			resolveMultisampleColorBuffer(dst, src);
+			return;
 	}
 }
 
