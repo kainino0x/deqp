@@ -38,9 +38,6 @@ dEQP-GLES3.functional.shaders.builtin_functions.precision.atan.mediump_fragment.
 dEQP-GLES3.functional.shaders.builtin_functions.precision.atan.mediump_fragment.vec3
 dEQP-GLES3.functional.shaders.builtin_functions.precision.atan.mediump_fragment.vec4
 
-# Bug 19408572
-dEQP-GLES3.functional.shaders.builtin_functions.precision.reflect.*
-
 # Bug 18323060
 dEQP-GLES3.functional.shaders.random.all_features.fragment.16
 
@@ -64,3 +61,10 @@ dEQP-GLES3.functional.shaders.texture_functions.textureoffset.isampler3d_vertex
 
 # Bug 20700212
 dEQP-GLES3.functional.shaders.texture_functions.textureprojlodoffset.usampler3d_vertex
+
+# Bug 21620051
+dEQP-GLES3.functional.shaders.texture_functions.texture.sampler2darrayshadow_vertex
+
+# Bug 21725534
+dEQP-GLES3.functional.shaders.preprocessor.pragmas.pragma_unrecognized_debug_*
+dEQP-GLES3.functional.shaders.preprocessor.pragmas.pragma_unrecognized_token_*

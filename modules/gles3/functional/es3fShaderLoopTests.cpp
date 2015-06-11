@@ -196,7 +196,7 @@ static ShaderEvalFunc getLoopEvalFunc (int numIters)
 		case 3:	return evalLoop3Iters;
 	}
 
-	DE_ASSERT(!"Invalid loop iteration count.");
+	DE_FATAL("Invalid loop iteration count.");
 	return NULL;
 }
 
@@ -362,7 +362,7 @@ static ShaderLoopCase* createGenericLoopCase (Context& context, const char* case
 	else
 	{
 		if (loopCountType == LOOPCOUNT_CONSTANT)
-			incrementStr = string("ndx += ") + de::toString(1.0f / numLoopIters);
+			incrementStr = string("ndx += ") + de::toString(1.0f / (float)numLoopIters);
 		else if (loopCountType == LOOPCOUNT_UNIFORM)
 			incrementStr = string("ndx += ") + getFloatFractionUniformName(numLoopIters);
 		else if (loopCountType == LOOPCOUNT_DYNAMIC)

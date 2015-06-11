@@ -29,6 +29,7 @@
 #include "gluTextureUtil.hpp"
 #include "gluProgramInterfaceQuery.hpp"
 #include "gluPixelTransfer.hpp"
+#include "gluStrUtil.hpp"
 #include "tcuTestLog.hpp"
 #include "glwFunctions.hpp"
 #include "glwEnums.hpp"
@@ -71,6 +72,21 @@ static void checkExtension (const glu::RenderContext& renderCtx, const std::stri
 {
 	if (!isExtensionSupported(renderCtx, extension))
 		throw tcu::NotSupportedError(extension + " is not supported");
+}
+
+static void checkLimit (const glu::RenderContext& renderCtx, deUint32 pname, int required)
+{
+	const glw::Functions&	gl					= renderCtx.getFunctions();
+	int						implementationLimit	= -1;
+	deUint32				error;
+
+	gl.getIntegerv(pname, &implementationLimit);
+	error = gl.getError();
+
+	if (error != GL_NO_ERROR)
+		throw tcu::TestError("Failed to query " + de::toString(glu::getGettableStateStr(pname)) + " - got " + de::toString(glu::getErrorStr(error)));
+	if (implementationLimit < required)
+		throw tcu::NotSupportedError("Test requires " + de::toString(glu::getGettableStateStr(pname)) + " >= " + de::toString(required) + ", got " + de::toString(implementationLimit));
 }
 
 // Shader utilities
@@ -470,7 +486,7 @@ void VertexProcessorExecutor::execute (int numValues, const void* const* inputs,
 	vector<glu::VertexArrayBinding>			vertexArrays;
 	de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
 	glu::Buffer								outputBuffer		(m_renderCtx);
-	const int								outputBufferStride	= computeTotalScalarSize(m_outputs.begin(), m_outputs.end())*sizeof(deUint32);
+	const int								outputBufferStride	= computeTotalScalarSize(m_outputs.begin(), m_outputs.end())*(int)sizeof(deUint32);
 
 	// Setup inputs.
 	for (int inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++)
@@ -490,7 +506,7 @@ void VertexProcessorExecutor::execute (int numValues, const void* const* inputs,
 		{
 			int		numRows	= glu::getDataTypeMatrixNumRows(basicType);
 			int		numCols	= glu::getDataTypeMatrixNumColumns(basicType);
-			int		stride	= numRows * numCols * sizeof(float);
+			int		stride	= numRows * numCols * (int)sizeof(float);
 
 			for (int colNdx = 0; colNdx < numCols; ++colNdx)
 				vertexArrays.push_back(glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
@@ -531,9 +547,9 @@ void VertexProcessorExecutor::execute (int numValues, const void* const* inputs,
 			const int			scalarSize	= symbol.varType.getScalarSize();
 
 			for (int ndx = 0; ndx < numValues; ndx++)
-				deMemcpy((deUint32*)dstPtr + scalarSize*ndx, (const deUint8*)srcPtr + curOffset + ndx*outputBufferStride, scalarSize*sizeof(deUint32));
+				deMemcpy((deUint32*)dstPtr + scalarSize*ndx, (const deUint8*)srcPtr + curOffset + ndx*outputBufferStride, scalarSize*(int)sizeof(deUint32));
 
-			curOffset += scalarSize*sizeof(deUint32);
+			curOffset += scalarSize*(int)sizeof(deUint32);
 		}
 
 		gl.unmapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER);
@@ -735,7 +751,7 @@ void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, 
 		{
 			int		numRows	= glu::getDataTypeMatrixNumRows(basicType);
 			int		numCols	= glu::getDataTypeMatrixNumColumns(basicType);
-			int		stride	= numRows * numCols * sizeof(float);
+			int		stride	= numRows * numCols * (int)sizeof(float);
 
 			for (int colNdx = 0; colNdx < numCols; ++colNdx)
 				vertexArrays.push_back(glu::va::Float(attribName, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
@@ -950,7 +966,7 @@ void BufferIoExecutor::computeVarLayout (const std::vector<Symbol>& symbols, std
 		if (glu::isDataTypeScalarOrVector(basicType))
 		{
 			const deUint32	alignment	= getVecStd430ByteAlignment(basicType);
-			const deUint32	size		= (deUint32)glu::getDataTypeScalarSize(basicType)*sizeof(deUint32);
+			const deUint32	size		= (deUint32)glu::getDataTypeScalarSize(basicType)*(int)sizeof(deUint32);
 
 			curOffset		= (deUint32)deAlign32((int)curOffset, (int)alignment);
 			maxAlignment	= de::max(maxAlignment, alignment);
@@ -1005,7 +1021,7 @@ void BufferIoExecutor::copyToBuffer (const glu::VarType& varType, const VarLayou
 		{
 			for (int vecNdx = 0; vecNdx < numVecs; vecNdx++)
 			{
-				const int		srcOffset		= sizeof(deUint32)*(elemNdx*scalarSize + vecNdx*numComps);
+				const int		srcOffset		= (int)sizeof(deUint32)*(elemNdx*scalarSize + vecNdx*numComps);
 				const int		dstOffset		= layout.offset + layout.stride*elemNdx + (isMatrix ? layout.matrixStride*vecNdx : 0);
 				const deUint8*	srcPtr			= (const deUint8*)srcBasePtr + srcOffset;
 				deUint8*		dstPtr			= (deUint8*)dstBasePtr + dstOffset;
@@ -1033,7 +1049,7 @@ void BufferIoExecutor::copyFromBuffer (const glu::VarType& varType, const VarLay
 			for (int vecNdx = 0; vecNdx < numVecs; vecNdx++)
 			{
 				const int		srcOffset		= layout.offset + layout.stride*elemNdx + (isMatrix ? layout.matrixStride*vecNdx : 0);
-				const int		dstOffset		= sizeof(deUint32)*(elemNdx*scalarSize + vecNdx*numComps);
+				const int		dstOffset		= (int)sizeof(deUint32)*(elemNdx*scalarSize + vecNdx*numComps);
 				const deUint8*	srcPtr			= (const deUint8*)srcBasePtr + srcOffset;
 				deUint8*		dstPtr			= (deUint8*)dstBasePtr + dstOffset;
 
@@ -1282,10 +1298,25 @@ static std::string generateVertexShaderForTess (glu::GLSLVersion version)
 class CheckTessSupport
 {
 public:
-	inline CheckTessSupport (const glu::RenderContext& renderCtx)
+	enum Stage
 	{
+		STAGE_CONTROL = 0,
+		STAGE_EVAL,
+	};
+
+	inline CheckTessSupport (const glu::RenderContext& renderCtx, Stage stage)
+	{
+		const int numBlockRequired = 2; // highest binding is always 1 (output) i.e. count == 2
+
 		if (renderCtx.getType().getAPI().getProfile() == glu::PROFILE_ES)
 			checkExtension(renderCtx, "GL_EXT_tessellation_shader");
+
+		if (stage == STAGE_CONTROL)
+			checkLimit(renderCtx, GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS, numBlockRequired);
+		else if (stage == STAGE_EVAL)
+			checkLimit(renderCtx, GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS, numBlockRequired);
+		else
+			DE_ASSERT(false);
 	}
 };
 
@@ -1356,7 +1387,7 @@ static std::string generateEmptyTessEvalShader (glu::GLSLVersion version)
 }
 
 TessControlExecutor::TessControlExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
-	: CheckTessSupport	(renderCtx)
+	: CheckTessSupport	(renderCtx, STAGE_CONTROL)
 	, BufferIoExecutor	(renderCtx, shaderSpec, glu::ProgramSources()
 							<< glu::VertexSource(generateVertexShaderForTess(shaderSpec.version))
 							<< glu::TessellationControlSource(generateTessControlShader(shaderSpec))
@@ -1459,7 +1490,7 @@ std::string TessEvaluationExecutor::generateTessEvalShader (const ShaderSpec& sh
 }
 
 TessEvaluationExecutor::TessEvaluationExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
-	: CheckTessSupport	(renderCtx)
+	: CheckTessSupport	(renderCtx, STAGE_EVAL)
 	, BufferIoExecutor	(renderCtx, shaderSpec, glu::ProgramSources()
 							<< glu::VertexSource(generateVertexShaderForTess(shaderSpec.version))
 							<< glu::TessellationControlSource(generatePassthroughTessControlShader(shaderSpec.version))

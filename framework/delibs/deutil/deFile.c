@@ -148,7 +148,7 @@ static int mapSeekPosition (deFilePosition position)
 
 deBool deFile_seek (deFile* file, deFilePosition base, deInt64 offset)
 {
-	return lseek(file->fd, offset, mapSeekPosition(base)) >= 0;
+	return lseek(file->fd, (off_t)offset, mapSeekPosition(base)) >= 0;
 }
 
 deInt64 deFile_getPosition (const deFile* file)
@@ -168,7 +168,7 @@ deInt64 deFile_getSize (const deFile* file)
 		return -1;
 
 	size = lseek(file->fd, 0, SEEK_CUR);
-	lseek(file->fd, curPos, SEEK_SET);
+	lseek(file->fd, (off_t)curPos, SEEK_SET);
 
 	return size;
 }
@@ -185,7 +185,7 @@ static deFileResult mapReadWriteResult (deInt64 numBytes)
 
 deFileResult deFile_read (deFile* file, void* buf, deInt64 bufSize, deInt64* numReadPtr)
 {
-	deInt64 numRead = read(file->fd, buf, bufSize);
+	deInt64 numRead = read(file->fd, buf, (size_t)bufSize);
 
 	if (numReadPtr)
 		*numReadPtr = numRead;
@@ -195,7 +195,7 @@ deFileResult deFile_read (deFile* file, void* buf, deInt64 bufSize, deInt64* num
 
 deFileResult deFile_write (deFile* file, const void* buf, deInt64 bufSize, deInt64* numWrittenPtr)
 {
-	deInt64 numWritten = write(file->fd, buf, bufSize);
+	deInt64 numWritten = write(file->fd, buf, (size_t)bufSize);
 
 	if (numWrittenPtr)
 		*numWrittenPtr = numWritten;

@@ -108,6 +108,7 @@ dEQP-GLES2.functional.clipping.triangle_vertex.clip_two.clip_neg_x_neg_y_pos_z_a
 dEQP-GLES2.functional.clipping.triangle_vertex.clip_two.clip_neg_x_pos_y_pos_z_and_pos_x_neg_y_neg_z
 dEQP-GLES2.functional.clipping.triangle_vertex.clip_two.clip_pos_x_neg_y_pos_z_and_neg_x_pos_y_neg_z
 dEQP-GLES2.functional.clipping.triangle_vertex.clip_two.clip_pos_x_pos_y_pos_z_and_neg_x_neg_y_neg_z
+dEQP-GLES2.functional.debug_marker.invalid
 dEQP-GLES2.functional.depth_stencil_clear.depth_scissored_masked
 dEQP-GLES2.functional.depth_stencil_clear.depth_stencil_masked
 dEQP-GLES2.functional.depth_stencil_clear.depth_stencil_scissored_masked
@@ -1940,10 +1941,10 @@ dEQP-GLES2.functional.shaders.preprocessor.operator_precedence.mul_vs_plus_fragm
 dEQP-GLES2.functional.shaders.preprocessor.operator_precedence.mul_vs_plus_vertex
 dEQP-GLES2.functional.shaders.preprocessor.operator_precedence.xor_vs_bitwise_and_fragment
 dEQP-GLES2.functional.shaders.preprocessor.operator_precedence.xor_vs_bitwise_and_vertex
-dEQP-GLES2.functional.shaders.preprocessor.pragmas.invalid_pragma_invalid_debug_fragment
-dEQP-GLES2.functional.shaders.preprocessor.pragmas.invalid_pragma_invalid_debug_vertex
-dEQP-GLES2.functional.shaders.preprocessor.pragmas.invalid_pragma_invalid_token_fragment
-dEQP-GLES2.functional.shaders.preprocessor.pragmas.invalid_pragma_invalid_token_vertex
+dEQP-GLES2.functional.shaders.preprocessor.pragmas.pragma_unrecognized_debug_fragment
+dEQP-GLES2.functional.shaders.preprocessor.pragmas.pragma_unrecognized_debug_vertex
+dEQP-GLES2.functional.shaders.preprocessor.pragmas.pragma_unrecognized_token_fragment
+dEQP-GLES2.functional.shaders.preprocessor.pragmas.pragma_unrecognized_token_vertex
 dEQP-GLES2.functional.shaders.preprocessor.pragmas.pragma_fragment
 dEQP-GLES2.functional.shaders.preprocessor.pragmas.pragma_vertex
 dEQP-GLES2.functional.shaders.preprocessor.predefined_macros.line_2_fragment
@@ -2584,9 +2585,7 @@ dEQP-GLES2.functional.texture.size.cube.15x15_rgb888
 dEQP-GLES2.functional.texture.size.cube.15x15_rgba4444
 dEQP-GLES2.functional.texture.size.cube.15x15_rgba8888
 dEQP-GLES2.functional.texture.size.cube.16x16_l8_mipmap
-dEQP-GLES2.functional.texture.size.cube.256x256_rgba4444
 dEQP-GLES2.functional.texture.size.cube.256x256_rgba4444_mipmap
-dEQP-GLES2.functional.texture.size.cube.512x512_rgba4444
 dEQP-GLES2.functional.texture.size.cube.512x512_rgba4444_mipmap
 dEQP-GLES2.functional.texture.specification.teximage2d_align.cube_l8_63_1
 dEQP-GLES2.functional.texture.specification.teximage2d_align.cube_l8_63_2

@@ -76,6 +76,7 @@ LOCAL_SRC_FILES := \
 	framework/delibs/debase/deInt32.c \
 	framework/delibs/debase/deInt32Test.c \
 	framework/delibs/debase/deMath.c \
+	framework/delibs/debase/deMathTest.c \
 	framework/delibs/debase/deMemory.c \
 	framework/delibs/debase/deRandom.c \
 	framework/delibs/debase/deString.c \
@@ -304,6 +305,7 @@ LOCAL_SRC_FILES := \
 	modules/gles2/functional/es2fBufferWriteTests.cpp \
 	modules/gles2/functional/es2fClippingTests.cpp \
 	modules/gles2/functional/es2fColorClearTest.cpp \
+	modules/gles2/functional/es2fDebugMarkerTests.cpp \
 	modules/gles2/functional/es2fDefaultVertexAttributeTests.cpp \
 	modules/gles2/functional/es2fDepthRangeTests.cpp \
 	modules/gles2/functional/es2fDepthStencilClearTests.cpp \

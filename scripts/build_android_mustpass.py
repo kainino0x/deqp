@@ -137,7 +137,7 @@ def readPatternList (filename):
 				ptrns.append(line)
 	return ptrns
 
-def applyPatterns (caseList, patterns, op):
+def applyPatterns (caseList, patterns, filename, op):
 	matched			= set()
 	errors			= []
 	curList			= copy(caseList)
@@ -173,15 +173,15 @@ def applyPatterns (caseList, patterns, op):
 		print "ERROR: %s: %s" % (reason, pattern)
 
 	if len(errors) > 0:
-		die("Found %s invalid patterns" % len(errors))
+		die("Found %s invalid patterns while processing file %s" % (len(errors), filename))
 
 	return [c for c in caseList if op(c in matched)]
 
-def applyInclude (caseList, patterns):
-	return applyPatterns(caseList, patterns, lambda b: b)
+def applyInclude (caseList, patterns, filename):
+	return applyPatterns(caseList, patterns, filename, lambda b: b)
 
-def applyExclude (caseList, patterns):
-	return applyPatterns(caseList, patterns, lambda b: not b)
+def applyExclude (caseList, patterns, filename):
+	return applyPatterns(caseList, patterns, filename, lambda b: not b)
 
 def readPatternLists (mustpass):
 	lists = {}
@@ -197,10 +197,10 @@ def applyFilters (caseList, patternLists, filters):
 	for filter in filters:
 		ptrnList = patternLists[filter.filename]
 		if filter.type == Filter.TYPE_INCLUDE:
-			res = applyInclude(res, ptrnList)
+			res = applyInclude(res, ptrnList, filter.filename)
 		else:
 			assert filter.type == Filter.TYPE_EXCLUDE
-			res = applyExclude(res, ptrnList)
+			res = applyExclude(res, ptrnList, filter.filename)
 	return res
 
 def appendToHierarchy (root, casePath):
@@ -418,7 +418,11 @@ MASTER_EGL_PKG					= Package(module = EGL_MODULE, configurations = [
 					  filters		= MASTER_EGL_COMMON_FILTERS),
 	])
 
-MASTER_GLES2_COMMON_FILTERS		= [include("gles2-master.txt"), exclude("gles2-failures.txt")]
+MASTER_GLES2_COMMON_FILTERS		= [
+		include("gles2-master.txt"),
+		exclude("gles2-test-issues.txt"),
+		exclude("gles2-failures.txt")
+	]
 MASTER_GLES2_PKG				= Package(module = GLES2_MODULE, configurations = [
 		# Master
 		Configuration(name			= "master",
@@ -431,6 +435,7 @@ MASTER_GLES2_PKG				= Package(module = GLES2_MODULE, configurations = [
 MASTER_GLES3_COMMON_FILTERS		= [
 		include("gles3-master.txt"),
 		exclude("gles3-hw-issues.txt"),
+		exclude("gles3-driver-issues.txt"),
 		exclude("gles3-test-issues.txt"),
 		exclude("gles3-spec-issues.txt")
 	]

@@ -168,7 +168,7 @@ const char* dataTypeNameOf (void)
 template <>
 const char* dataTypeNameOf<Void> (void)
 {
-	DE_ASSERT(!"Impossible");
+	DE_FATAL("Impossible");
 	return DE_NULL;
 }
 
@@ -182,7 +182,7 @@ VarType getVarTypeOf (Precision prec = glu::PRECISION_LAST)
 template <>
 VarType getVarTypeOf<Void> (Precision)
 {
-	DE_ASSERT(!"Impossible");
+	DE_FATAL("Impossible");
 	return VarType();
 }
 
@@ -340,7 +340,7 @@ struct Traits<bool> : ScalarTraits<bool>
 										 const float&		value,
 										 ostream&			os)
 	{
-		os << (value ? "true" : "false");
+		os << (value != 0.0f ? "true" : "false");
 	}
 
 	static void			doPrintIVal		(const FloatFormat&,
@@ -1302,6 +1302,31 @@ protected:
 	ArgExprs			m_args;
 };
 
+template<typename T>
+class Alternatives : public Func<Signature<T, T, T> >
+{
+public:
+	typedef typename	Alternatives::Sig		Sig;
+
+protected:
+	typedef typename	Alternatives::IRet		IRet;
+	typedef typename	Alternatives::IArgs		IArgs;
+
+	virtual string		getName				(void) const			{ return "alternatives"; }
+	virtual void		doPrintDefinition	(std::ostream&) const	{}
+	void				doGetUsedFuncs		(FuncSet&) const		{}
+
+	virtual IRet		doApply				(const EvalContext&, const IArgs& args) const
+	{
+		return unionIVal<T>(args.a, args.b);
+	}
+
+	virtual void		doPrint				(ostream& os, const BaseArgExprs& args)	const
+	{
+		os << "{" << *args[0] << " | " << *args[1] << "}";
+	}
+};
+
 template <typename Sig>
 ExprP<typename Sig::Ret> createApply (const Func<Sig>&						func,
 									  const typename Func<Sig>::ArgExprs&	args)
@@ -1346,6 +1371,13 @@ typename F::IRet call (const EvalContext&			ctx,
 					   const typename F::IArg3&		arg3 = Void())
 {
 	return instance<F>().apply(ctx, arg0, arg1, arg2, arg3);
+}
+
+template <typename T>
+ExprP<T> alternatives (const ExprP<T>& arg0,
+					   const ExprP<T>& arg1)
+{
+	return createApply<typename Alternatives<T>::Sig>(instance<Alternatives<T> >(), arg0, arg1);
 }
 
 template <typename Sig>
@@ -2058,7 +2090,7 @@ protected:
 			case glu::PRECISION_LOWP:
 				return ctx.format.ulp(ret, 2.0);
 			default:
-				DE_ASSERT(!"Impossible");
+				DE_FATAL("Impossible");
 		}
 		return 0;
 	}
@@ -2096,7 +2128,7 @@ protected:
 			case glu::PRECISION_LOWP:
 				return ctx.format.ulp(ret, 2.0);
 			default:
-				DE_ASSERT(!"Impossible");
+				DE_FATAL("Impossible");
 		}
 
 		return 0;
@@ -3023,6 +3055,8 @@ class Reflect : public DerivedFunc<
 {
 public:
 	typedef typename	Reflect::Ret		Ret;
+	typedef typename	Reflect::Arg0		Arg0;
+	typedef typename	Reflect::Arg1		Arg1;
 	typedef typename	Reflect::ArgExprs	ArgExprs;
 
 	string		getName		(void) const
@@ -3031,9 +3065,14 @@ public:
 	}
 
 protected:
-	ExprP<Ret>	doExpand	(ExpandContext&, const ArgExprs& args) const
+	ExprP<Ret>	doExpand	(ExpandContext& ctx, const ArgExprs& args) const
 	{
-		return args.a - (args.b * dot(args.b, args.a) * constant(2.0f));
+		const ExprP<Arg0>&	i		= args.a;
+		const ExprP<Arg1>&	n		= args.b;
+		const ExprP<float>	dotNI	= bindExpression("dotNI", ctx, dot(n, i));
+
+		return i - alternatives((n * dotNI) * constant(2.0f),
+								n * (dotNI * constant(2.0f)));
 	}
 };
 
@@ -3208,7 +3247,8 @@ ExprP<float> clamp(const ExprP<float>& x, const ExprP<float>& minVal, const Expr
 	return app<Clamp>(x, minVal, maxVal);
 }
 
-DEFINE_DERIVED_FLOAT3(Mix, mix, x, y, a, (x * (constant(1.0f) - a)) + y * a);
+DEFINE_DERIVED_FLOAT3(Mix, mix, x, y, a, alternatives((x * (constant(1.0f) - a)) + y * a,
+													  x + (y - x) * a));
 
 static double step (double edge, double x)
 {
@@ -3974,7 +4014,7 @@ public:
 		const int	exp		= rnd.getInt(0, getNumBits(prec)-2);
 		const int	sign	= rnd.getBool() ? -1 : 1;
 
-		return sign * rnd.getInt(0, 1L << exp);
+		return sign * rnd.getInt(0, (deInt32)1 << exp);
 	}
 
 	void	genFixeds	(const FloatFormat&, vector<int>& dst) const
@@ -4094,26 +4134,26 @@ void DefaultSampling<float>::genFixeds (const FloatFormat& format, vector<float>
 	for (int sign = -1; sign <= 1; sign += 2)
 	{
 		// Smallest subnormal
-		dst.push_back(sign * minQuantum);
+		dst.push_back((float)sign * minQuantum);
 
 		// Largest subnormal
-		dst.push_back(sign * (minNormalized - minQuantum));
+		dst.push_back((float)sign * (minNormalized - minQuantum));
 
 		// Smallest normalized
-		dst.push_back(sign * minNormalized);
+		dst.push_back((float)sign * minNormalized);
 
 		// Next smallest normalized
-		dst.push_back(sign * (minNormalized + minQuantum));
+		dst.push_back((float)sign * (minNormalized + minQuantum));
 
-		dst.push_back(sign * 0.5f);
-		dst.push_back(sign * 1.0f);
-		dst.push_back(sign * 2.0f);
+		dst.push_back((float)sign * 0.5f);
+		dst.push_back((float)sign * 1.0f);
+		dst.push_back((float)sign * 2.0f);
 
 		// Largest number
-		dst.push_back(sign * (deFloatLdExp(1.0f, maxExp) +
-							  (deFloatLdExp(1.0f, maxExp) - maxQuantum)));
+		dst.push_back((float)sign * (deFloatLdExp(1.0f, maxExp) +
+									(deFloatLdExp(1.0f, maxExp) - maxQuantum)));
 
-		dst.push_back(sign * TCU_INFINITY);
+		dst.push_back((float)sign * TCU_INFINITY);
 	}
 }
 
@@ -4904,7 +4944,7 @@ PrecisionCase* createFuncCase (const Context&	context,
 		case 1:
 			return new InOutFuncCase<Sig>(context, name, func);
 		default:
-			DE_ASSERT(!"Impossible");
+			DE_FATAL("Impossible");
 	}
 	return DE_NULL;
 }
