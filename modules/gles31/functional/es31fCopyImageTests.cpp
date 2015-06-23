@@ -657,16 +657,7 @@ void genRenderbufferImage (const glw::Functions&			gl,
 		{
 			const tcu::ConstPixelBufferAccess texelAccess (format, 1, 1, 1, &(texelBlock[0]));
 
-			if (isFloatFormat(info.getFormat()))
-			{
-				const tcu::Vec4 color = texelAccess.getPixel(0, 0, 0);
-
-				gl.clearBufferfv(GL_COLOR, 0, (const float*)&color);
-				GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to clear renderbuffer.");
-
-				tcu::clear(refAccess, (tcu::isSRGB(format) ? tcu::linearToSRGB(color) : color));
-			}
-			else if (isIntFormat(info.getFormat()))
+			if (isIntFormat(info.getFormat()))
 			{
 				const tcu::IVec4 color = texelAccess.getPixelInt(0, 0, 0);
 
@@ -688,13 +679,27 @@ void genRenderbufferImage (const glw::Functions&			gl,
 			}
 			else
 			{
-				const tcu::Vec4 color = texelAccess.getPixel(0, 0, 0);
+				const tcu::Vec4 rawColor	= texelAccess.getPixel(0, 0, 0);
+				const tcu::Vec4 linearColor	= (tcu::isSRGB(format) ? tcu::sRGBToLinear(rawColor) : rawColor);
 
-				gl.clearColor(color.x(), color.y(), color.z(), color.w());
-				gl.clear(GL_COLOR_BUFFER_BIT);
+				// rawColor bit pattern has been chosen to be "safe" in the destination format. For sRGB
+				// formats, the clear color is in linear space. Since we want the resulting bit pattern
+				// to be safe after implementation linear->sRGB transform, we must apply the inverting
+				// transform to the clear color.
+
+				if (isFloatFormat(info.getFormat()))
+				{
+					gl.clearBufferfv(GL_COLOR, 0, (const float*)&linearColor);
+				}
+				else
+				{
+					// fixed-point
+					gl.clearColor(linearColor.x(), linearColor.y(), linearColor.z(), linearColor.w());
+					gl.clear(GL_COLOR_BUFFER_BIT);
+				}
 				GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to clear renderbuffer.");
 
-				tcu::clear(refAccess, (tcu::isSRGB(format) ? tcu::linearToSRGB(color) : color));
+				tcu::clear(refAccess, rawColor);
 			}
 		}
 	}
@@ -1796,13 +1801,16 @@ struct Copy
 		  const IVec3&	dstPos_,
 		  int			dstLevel_,
 
-		  const IVec3&	size_)
+		  const IVec3&	size_,
+		  const IVec3&	dstSize_)
 		: srcPos	(srcPos_)
 		, srcLevel	(srcLevel_)
 
 		, dstPos	(dstPos_)
 		, dstLevel	(dstLevel_)
+
 		, size		(size_)
+		, dstSize	(dstSize_)
 	{
 	}
 
@@ -1811,6 +1819,7 @@ struct Copy
 	IVec3	dstPos;
 	int		dstLevel;
 	IVec3	size;
+	IVec3	dstSize;	//!< used only for logging
 };
 
 int getLastFullLevel (const ImageInfo& info)
@@ -1867,7 +1876,7 @@ void generateCopies (vector<Copy>& copies, const ImageInfo& srcInfo, const Image
 		const int	copyBlockHeight			= de::max((2 * (maxCopyBlockSize.y() / 4)) - 1, 1);
 		const int	copyBlockDepth			= de::max((2 * (maxCopyBlockSize.z() / 4)) - 1, 1);
 
-		// Copy NPOT block from (0,0,0) to other corner on dst
+		// Copy NPOT block to (0,0,0) from other corner on src
 		{
 			const IVec3	copyBlockSize	(copyBlockWidth, copyBlockHeight, copyBlockDepth);
 			const IVec3	srcBlockPos		(srcCompleteBlockSize - copyBlockSize);
@@ -1875,12 +1884,13 @@ void generateCopies (vector<Copy>& copies, const ImageInfo& srcInfo, const Image
 
 			const IVec3	srcPos			(srcBlockPos * srcBlockPixelSize);
 			const IVec3	dstPos			(dstBlockPos * dstBlockPixelSize);
-			const IVec3 copySize		(copyBlockSize * srcBlockPixelSize);
+			const IVec3 srcCopySize		(copyBlockSize * srcBlockPixelSize);
+			const IVec3 dstCopySize		(copyBlockSize * dstBlockPixelSize);
 
-			copies.push_back(Copy(srcPos, srcLevel, dstPos, dstLevel, copySize));
+			copies.push_back(Copy(srcPos, srcLevel, dstPos, dstLevel, srcCopySize, dstCopySize));
 		}
 
-		// Copy NPOT block to (0,0,0) from other corner on src
+		// Copy NPOT block from (0,0,0) to other corner on dst
 		{
 			const IVec3	copyBlockSize	(copyBlockWidth, copyBlockHeight, copyBlockDepth);
 			const IVec3	srcBlockPos		(0, 0, 0);
@@ -1888,12 +1898,13 @@ void generateCopies (vector<Copy>& copies, const ImageInfo& srcInfo, const Image
 
 			const IVec3	srcPos			(srcBlockPos * srcBlockPixelSize);
 			const IVec3	dstPos			(dstBlockPos * dstBlockPixelSize);
-			const IVec3 copySize		(copyBlockSize * srcBlockPixelSize);
+			const IVec3 srcCopySize		(copyBlockSize * srcBlockPixelSize);
+			const IVec3 dstCopySize		(copyBlockSize * dstBlockPixelSize);
 
-			copies.push_back(Copy(srcPos, srcLevel, dstPos, dstLevel, copySize));
+			copies.push_back(Copy(srcPos, srcLevel, dstPos, dstLevel, srcCopySize, dstCopySize));
 		}
 
-		// Copy NPOT block to (0,0,0) from other corner on src
+		// Copy NPOT block near the corner with high coordinates
 		{
 			const IVec3	copyBlockSize	(copyBlockWidth, copyBlockHeight, copyBlockDepth);
 			const IVec3	srcBlockPos		(tcu::max((srcCompleteBlockSize / 4) * 4 - copyBlockSize, IVec3(0)));
@@ -1901,9 +1912,10 @@ void generateCopies (vector<Copy>& copies, const ImageInfo& srcInfo, const Image
 
 			const IVec3	srcPos			(srcBlockPos * srcBlockPixelSize);
 			const IVec3	dstPos			(dstBlockPos * dstBlockPixelSize);
-			const IVec3 copySize		(copyBlockSize * srcBlockPixelSize);
+			const IVec3 srcCopySize		(copyBlockSize * srcBlockPixelSize);
+			const IVec3 dstCopySize		(copyBlockSize * dstBlockPixelSize);
 
-			copies.push_back(Copy(srcPos, srcLevel, dstPos, dstLevel, copySize));
+			copies.push_back(Copy(srcPos, srcLevel, dstPos, dstLevel, srcCopySize, dstCopySize));
 		}
 	}
 }
@@ -1925,8 +1937,12 @@ void CopyImageTest::copyImageIter (void)
 	{
 		const Copy& copy = copies[copyNdx];
 
-		log << TestLog::Message << "Copying block " << copy.size << " from source image position " << copy.srcPos << " and mipmap level " << copy.srcLevel
-								<< " to destination image position " << copy.dstPos << " and mipmap level " << copy.dstLevel << TestLog::EndMessage;
+		log	<< TestLog::Message
+			<< "Copying area with size " << copy.size
+			<< " from source image position " << copy.srcPos << " and mipmap level " << copy.srcLevel
+			<< " to destination image position " << copy.dstPos << " and mipmap level " << copy.dstLevel << ". "
+			<< "Size in destination format is " << copy.dstSize
+			<< TestLog::EndMessage;
 
 		copyImage(gl, *dstImage, dstImageLevels, m_dstImageInfo, copy.dstLevel, copy.dstPos,
 					  *srcImage, srcImageLevels, m_srcImageInfo, copy.srcLevel, copy.srcPos, copy.size);
