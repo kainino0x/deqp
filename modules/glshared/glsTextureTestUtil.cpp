@@ -213,7 +213,7 @@ SurfaceAccess::SurfaceAccess (const SurfaceAccess& parent, int x, int y, int wid
 
 // 1D lookup LOD computation.
 
-inline float computeLodFromDerivates (LodMode mode, float dudx, float dudy)
+float computeLodFromDerivates (LodMode mode, float dudx, float dudy)
 {
 	float p = 0.0f;
 	switch (mode)
@@ -244,7 +244,7 @@ static float computeNonProjectedTriLod (LodMode mode, const tcu::IVec2& dstSize,
 
 // 2D lookup LOD computation.
 
-inline float computeLodFromDerivates (LodMode mode, float dudx, float dvdx, float dudy, float dvdy)
+float computeLodFromDerivates (LodMode mode, float dudx, float dvdx, float dudy, float dvdy)
 {
 	float p = 0.0f;
 	switch (mode)
@@ -284,7 +284,7 @@ static float computeNonProjectedTriLod (LodMode mode, const tcu::IVec2& dstSize,
 
 // 3D lookup LOD computation.
 
-inline float computeLodFromDerivates (LodMode mode, float dudx, float dvdx, float dwdx, float dudy, float dvdy, float dwdy)
+float computeLodFromDerivates (LodMode mode, float dudx, float dvdx, float dwdx, float dudy, float dvdy, float dwdy)
 {
 	float p = 0.0f;
 	switch (mode)
@@ -980,13 +980,6 @@ void fetchTexture (const SurfaceAccess& dst, const tcu::ConstPixelBufferAccess& 
 			dst.setPixel(src.getPixel((int)s, 0) * colorScale + colorBias, x, y);
 		}
 	}
-}
-
-void clear (const SurfaceAccess& dst, const tcu::Vec4& color)
-{
-	for (int y = 0; y < dst.getHeight(); y++)
-		for (int x = 0; x < dst.getWidth(); x++)
-			dst.setPixel(color, x, y);
 }
 
 bool compareImages (TestLog& log, const tcu::Surface& reference, const tcu::Surface& rendered, tcu::RGBA threshold)

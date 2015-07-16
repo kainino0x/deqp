@@ -246,6 +246,7 @@ LOCAL_SRC_FILES := \
 	framework/referencerenderer/rrVertexPacket.cpp \
 	modules/egl/teglAndroidUtil.cpp \
 	modules/egl/teglApiCase.cpp \
+	modules/egl/teglBufferAgeTests.cpp \
 	modules/egl/teglChooseConfigReference.cpp \
 	modules/egl/teglChooseConfigTests.cpp \
 	modules/egl/teglClientExtensionTests.cpp \
@@ -272,6 +273,7 @@ LOCAL_SRC_FILES := \
 	modules/egl/teglNativeCoordMappingTests.cpp \
 	modules/egl/teglNegativeApiTests.cpp \
 	modules/egl/teglPreservingSwapTests.cpp \
+	modules/egl/teglPartialUpdateTests.cpp \
 	modules/egl/teglQueryConfigTests.cpp \
 	modules/egl/teglQueryContextTests.cpp \
 	modules/egl/teglQuerySurfaceTests.cpp \
@@ -713,7 +715,9 @@ deqp_compile_flags := \
 	-DDEQP_TARGET_NAME=\"android\" \
 	-DDEQP_GLES3_RUNTIME_LOAD=1 \
 	-DDEQP_GLES2_RUNTIME_LOAD=1 \
-	-DQP_SUPPORT_PNG=1
+	-DQP_SUPPORT_PNG=1 \
+	-Wconversion \
+	-Wno-sign-conversion
 
 LOCAL_SHARED_LIBRARIES := \
 		libEGL \
