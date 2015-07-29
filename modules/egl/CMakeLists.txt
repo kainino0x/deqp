@@ -43,6 +43,8 @@ set(DEQP_EGL_SRCS
 	teglNegativeApiTests.hpp
 	teglPartialUpdateTests.cpp
 	teglPartialUpdateTests.hpp
+	teglNegativePartialUpdateTests.cpp
+	teglNegativePartialUpdateTests.hpp
 	teglRenderCase.cpp
 	teglRenderCase.hpp
 	teglRenderTests.cpp
@@ -87,6 +89,8 @@ set(DEQP_EGL_SRCS
 	teglNativeCoordMappingTests.cpp
 	teglResizeTests.hpp
 	teglResizeTests.cpp
+	teglSwapBuffersWithDamageTests.hpp
+	teglSwapBuffersWithDamageTests.cpp
 	)
 
 set(DEQP_EGL_LIBS

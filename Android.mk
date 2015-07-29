@@ -272,6 +272,7 @@ LOCAL_SRC_FILES := \
 	modules/egl/teglNativeColorMappingTests.cpp \
 	modules/egl/teglNativeCoordMappingTests.cpp \
 	modules/egl/teglNegativeApiTests.cpp \
+	modules/egl/teglNegativePartialUpdateTests.cpp \
 	modules/egl/teglPreservingSwapTests.cpp \
 	modules/egl/teglPartialUpdateTests.cpp \
 	modules/egl/teglQueryConfigTests.cpp \
@@ -283,6 +284,7 @@ LOCAL_SRC_FILES := \
 	modules/egl/teglSimpleConfigCase.cpp \
 	modules/egl/teglSurfacelessContextTests.cpp \
 	modules/egl/teglSwapBuffersTests.cpp \
+	modules/egl/teglSwapBuffersWithDamageTests.cpp \
 	modules/egl/teglSyncTests.cpp \
 	modules/egl/teglTestCase.cpp \
 	modules/egl/teglTestPackage.cpp \

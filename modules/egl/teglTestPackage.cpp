@@ -58,6 +58,8 @@
 #include "teglResizeTests.hpp"
 #include "teglBufferAgeTests.hpp"
 #include "teglPartialUpdateTests.hpp"
+#include "teglNegativePartialUpdateTests.hpp"
+#include "teglSwapBuffersWithDamageTests.hpp"
 
 namespace deqp
 {
@@ -128,6 +130,8 @@ public:
 		addChild(new ResizeTests				(m_eglTestCtx));
 		addChild(new BufferAgeTests				(m_eglTestCtx));
 		addChild(new PartialUpdateTests			(m_eglTestCtx));
+		addChild(new NegativePartialUpdateTests	(m_eglTestCtx));
+		addChild(new SwapBuffersWithDamageTests	(m_eglTestCtx));
 	}
 };
 
