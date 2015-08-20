@@ -469,14 +469,16 @@ MASTER_GLES3_PKG				= Package(module = GLES3_MODULE, configurations = [
 					  glconfig		= "rgba8888d24s8ms4",
 					  rotation		= "unspecified",
 					  surfacetype	= "window",
-					  filters		= MASTER_GLES3_COMMON_FILTERS + [include("gles3-multisample.txt")]),
+					  filters		= MASTER_GLES3_COMMON_FILTERS + [include("gles3-multisample.txt"),
+																	 exclude("gles3-multisample-issues.txt")]),
 
 		# Pixel format
 		Configuration(name			= "565-no-depth-no-stencil",
 					  glconfig		= "rgb565d0s0ms0",
 					  rotation		= "unspecified",
 					  surfacetype	= "window",
-					  filters		= MASTER_GLES3_COMMON_FILTERS + [include("gles3-pixelformat.txt")]),
+					  filters		= MASTER_GLES3_COMMON_FILTERS + [include("gles3-pixelformat.txt"),
+																	 exclude("gles3-pixelformat-issues.txt")]),
 	])
 
 MASTER_GLES31_COMMON_FILTERS	= [
