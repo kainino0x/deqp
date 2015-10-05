@@ -170,6 +170,7 @@ LOCAL_SRC_FILES := \
 	framework/opengl/gluProgramInterfaceQuery.cpp \
 	framework/opengl/gluRenderConfig.cpp \
 	framework/opengl/gluRenderContext.cpp \
+	framework/opengl/gluShaderLibrary.cpp \
 	framework/opengl/gluShaderProgram.cpp \
 	framework/opengl/gluShaderUtil.cpp \
 	framework/opengl/gluStateReset.cpp \
@@ -658,6 +659,7 @@ LOCAL_SRC_FILES := \
 	modules/glshared/glsUniformBlockCase.cpp \
 	modules/glshared/glsVertexArrayTests.cpp \
 	modules/internal/ditBuildInfoTests.cpp \
+	modules/internal/ditSRGB8ConversionTest.cpp \
 	modules/internal/ditDelibsTests.cpp \
 	modules/internal/ditFrameworkTests.cpp \
 	modules/internal/ditImageCompareTests.cpp \
