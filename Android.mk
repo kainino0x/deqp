@@ -80,6 +80,7 @@ LOCAL_SRC_FILES := \
 	framework/delibs/debase/deMemory.c \
 	framework/delibs/debase/deRandom.c \
 	framework/delibs/debase/deString.c \
+	framework/delibs/debase/deSha1.c \
 	framework/delibs/decpp/deArrayBuffer.cpp \
 	framework/delibs/decpp/deArrayUtil.cpp \
 	framework/delibs/decpp/deBlockBuffer.cpp \
@@ -106,6 +107,7 @@ LOCAL_SRC_FILES := \
 	framework/delibs/decpp/deThreadLocal.cpp \
 	framework/delibs/decpp/deThreadSafeRingBuffer.cpp \
 	framework/delibs/decpp/deUniquePtr.cpp \
+	framework/delibs/decpp/deSha1.cpp \
 	framework/delibs/deimage/deImage.c \
 	framework/delibs/deimage/deTarga.c \
 	framework/delibs/depool/deMemPool.c \
@@ -668,7 +670,8 @@ LOCAL_SRC_FILES := \
 	modules/internal/ditTestLogTests.cpp \
 	modules/internal/ditTestPackage.cpp \
 	modules/internal/ditSeedBuilderTests.cpp \
-	modules/internal/ditTestPackageEntry.cpp
+	modules/internal/ditTestPackageEntry.cpp \
+	modules/internal/ditTextureFormatTests.cpp
 
 LOCAL_C_INCLUDES := \
 	frameworks/native/opengl/include \
@@ -745,4 +748,8 @@ LOCAL_MULTILIB := both
 
 include $(BUILD_SHARED_LIBRARY)
 
-include $(LOCAL_PATH)/android/package/Android.mk
+
+# Build the test APKs using their own makefiles
+# include $(call all-makefiles-under,$(LOCAL_PATH)/android)
+
+include $(LOCAL_PATH)/android/package/Android.mk $(LOCAL_PATH)/android/cts/Android.mk
