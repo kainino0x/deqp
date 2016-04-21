@@ -63,6 +63,15 @@
 // set this to true to dump even passing results
 #define GLS_LOG_ALL_RESULTS false
 
+enum
+{
+	// Computing reference intervals can take a non-trivial amount of time, especially on
+	// platforms where toggling floating-point rounding mode is slow (emulated arm on x86).
+	// As a workaround watchdog is kept happy by touching it periodically during reference
+	// interval computation.
+	TOUCH_WATCHDOG_VALUE_FREQUENCY	= 4096
+};
+
 namespace deqp
 {
 namespace gls
@@ -3064,6 +3073,33 @@ protected:
 	}
 };
 
+template<int Size, typename Ret, typename Arg0, typename Arg1>
+struct ApplyReflect
+{
+	static ExprP<Ret> apply	(ExpandContext&		ctx,
+							 const ExprP<Arg0>&	i,
+							 const ExprP<Arg1>&	n)
+	{
+		const ExprP<float>	dotNI	= bindExpression("dotNI", ctx, dot(n, i));
+
+		return i - alternatives((n * dotNI) * constant(2.0f),
+								n * (dotNI * constant(2.0f)));
+	};
+};
+
+template<typename Ret, typename Arg0, typename Arg1>
+struct ApplyReflect<1, Ret, Arg0, Arg1>
+{
+	static ExprP<Ret> apply	(ExpandContext&,
+							 const ExprP<Arg0>&	i,
+							 const ExprP<Arg1>&	n)
+	{
+		return i - alternatives(alternatives((n * (n*i)) * constant(2.0f),
+											n * ((n*i) * constant(2.0f))),
+											(n * n) * (i * constant(2.0f)));
+	};
+};
+
 template <int Size>
 class Reflect : public DerivedFunc<
 	Signature<typename ContainerOf<float, Size>::Container,
@@ -3086,11 +3122,52 @@ protected:
 	{
 		const ExprP<Arg0>&	i		= args.a;
 		const ExprP<Arg1>&	n		= args.b;
-		const ExprP<float>	dotNI	= bindExpression("dotNI", ctx, dot(n, i));
 
-		return i - alternatives((n * dotNI) * constant(2.0f),
-								n * (dotNI * constant(2.0f)));
+		return ApplyReflect<Size, Ret, Arg0, Arg1>::apply(ctx, i, n);
 	}
+};
+
+template<int Size, typename Ret, typename Arg0, typename Arg1>
+struct ApplyRefract
+{
+	static ExprP<Ret> apply	(ExpandContext&			ctx,
+							 const ExprP<Arg0>&		i,
+							 const ExprP<Arg1>&		n,
+							 const ExprP<float>&	eta)
+	{
+		const ExprP<float>	dotNI	= bindExpression("dotNI", ctx, dot(n, i));
+		const ExprP<float>	k		= bindExpression("k", ctx, constant(1.0f) - eta * eta *
+												 (constant(1.0f) - dotNI * dotNI));
+
+		return cond(k < constant(0.0f),
+					genXType<float, Size>(constant(0.0f)),
+					i * eta - n * (eta * dotNI + sqrt(k)));
+	};
+};
+
+template<typename Ret, typename Arg0, typename Arg1>
+struct ApplyRefract<1, Ret, Arg0, Arg1>
+{
+	static ExprP<Ret> apply	(ExpandContext&			ctx,
+							 const ExprP<Arg0>&		i,
+							 const ExprP<Arg1>&		n,
+							 const ExprP<float>&	eta)
+	{
+		const ExprP<float>	dotNI	= bindExpression("dotNI", ctx, dot(n, i));
+		const ExprP<float>	k1		= bindExpression("k1", ctx, constant(1.0f) - eta * eta *
+												(constant(1.0f) - dotNI * dotNI));
+
+		const ExprP<float>	k2		= bindExpression("k2", ctx,
+												(((dotNI * (-dotNI)) + constant(1.0f)) * eta)
+												* (-eta) + constant(1.0f));
+
+		return alternatives(cond(k1 < constant(0.0f),
+								genXType<float, 1>(constant(0.0f)),
+								i * eta - n * (eta * dotNI + sqrt(k1))),
+							cond(k2 < constant(0.0f),
+								genXType<float, 1>(constant(0.0f)),
+								i * eta - n * (eta * dotNI + sqrt(k2))));
+	};
 };
 
 template <int Size>
@@ -3117,13 +3194,8 @@ protected:
 		const ExprP<Arg0>&	i		= args.a;
 		const ExprP<Arg1>&	n		= args.b;
 		const ExprP<float>&	eta		= args.c;
-		const ExprP<float>	dotNI	= bindExpression("dotNI", ctx, dot(n, i));
-		const ExprP<float>	k		= bindExpression("k", ctx, constant(1.0f) - eta * eta *
-												 (constant(1.0f) - dotNI * dotNI));
 
-		return cond(k < constant(0.0f),
-					genXType<float, Size>(constant(0.0f)),
-					i * eta - n * (eta * dotNI + sqrt(k)));
+		return ApplyRefract<Size, Ret, Arg0, Arg1>::apply(ctx, i, n, eta);
 	}
 };
 
@@ -4552,6 +4624,9 @@ void PrecisionCase::testStatement (const Variables<In, Out>&	variables,
 		bool						result		= true;
 		typename Traits<Out0>::IVal	reference0;
 		typename Traits<Out1>::IVal	reference1;
+
+		if (valueNdx % (size_t)TOUCH_WATCHDOG_VALUE_FREQUENCY == 0)
+			m_testCtx.touchWatchdog();
 
 		env.lookup(*variables.in0) = convert<In0>(fmt, round(fmt, inputs.in0[valueNdx]));
 		env.lookup(*variables.in1) = convert<In1>(fmt, round(fmt, inputs.in1[valueNdx]));

@@ -206,6 +206,36 @@ DE_INLINE deBool deIsPowerOfTwo32 (int a)
 }
 
 /*--------------------------------------------------------------------*//*!
+ * \brief Check if a value is a power-of-two.
+ * \param a Input value.
+ * \return True if input is a power-of-two value, false otherwise.
+ *
+ * \note Also returns true for zero.
+ *//*--------------------------------------------------------------------*/
+DE_INLINE deBool deIsPowerOfTwo64 (deUint64 a)
+{
+	return ((a & (a - 1ull)) == 0);
+}
+
+/*--------------------------------------------------------------------*//*!
+ * \brief Check if a value is a power-of-two.
+ * \param a Input value.
+ * \return True if input is a power-of-two value, false otherwise.
+ *
+ * \note Also returns true for zero.
+ *//*--------------------------------------------------------------------*/
+DE_INLINE deBool deIsPowerOfTwoSize (size_t a)
+{
+#if (DE_PTR_SIZE == 4)
+	return deIsPowerOfTwo32(a);
+#elif (DE_PTR_SIZE == 8)
+	return deIsPowerOfTwo64(a);
+#else
+#	error "Invalid DE_PTR_SIZE"
+#endif
+}
+
+/*--------------------------------------------------------------------*//*!
  * \brief Check if an integer is aligned to given power-of-two size.
  * \param a		Input value.
  * \param align	Alignment to check for.
@@ -252,6 +282,18 @@ DE_INLINE void* deAlignPtr (void* ptr, deUintptr align)
 	deUintptr val = (deUintptr)ptr;
 	DE_ASSERT((align & (align-1)) == 0); /* power of two */
 	return (void*)((val + align - 1) & ~(align - 1));
+}
+
+/*--------------------------------------------------------------------*//*!
+ * \brief Align a size_t value to given power-of-two size.
+ * \param ptr	Input value to align.
+ * \param align	Alignment to check for (power-of-two).
+ * \return The aligned size (larger or equal to input).
+ *//*--------------------------------------------------------------------*/
+DE_INLINE size_t deAlignSize (size_t val, size_t align)
+{
+	DE_ASSERT(deIsPowerOfTwoSize(align));
+	return (val + align - 1) & ~(align - 1);
 }
 
 extern const deInt8 g_clzLUT[256];
@@ -410,6 +452,11 @@ DE_INLINE deInt32 deSafeAdd32 (deInt32 a, deInt32 b)
 	return (a + b);
 }
 
+DE_INLINE deInt32 deDivRoundUp32 (deInt32 a, deInt32 b)
+{
+	return a/b + ((a%b) ? 1 : 0);
+}
+
 /* \todo [petri] Move to deInt64.h? */
 
 DE_INLINE deInt32 deMulAsr32 (deInt32 a, deInt32 b, int shift)
@@ -519,7 +566,7 @@ DE_INLINE deInt32 deInt32ModF (deInt32 n, deInt32 d)
 
 DE_INLINE deBool deInt64InInt32Range (deInt64 x)
 {
-	return ((x >= (-1ll<<31)) && (x <= ((1ll<<31)-1)));
+	return ((x >= (((deInt64)((deInt32)(-0x7FFFFFFF - 1))))) && (x <= ((1ll<<31)-1)));
 }
 
 

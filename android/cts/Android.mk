@@ -20,20 +20,19 @@ LOCAL_MODULE := CtsDeqpTestCases
 
 LOCAL_MODULE_TAGS := optional
 
-# Tag this module as a cts_v2 test artifact
-LOCAL_COMPATIBILITY_SUITE := cts_v2
+# Tag this module as a cts test artifact
+LOCAL_COMPATIBILITY_SUITE := cts
 
 LOCAL_SDK_VERSION := 22
 
 LOCAL_SRC_FILES := $(call all-java-files-under, runner/src)
-LOCAL_JAVA_LIBRARIES := cts-tradefed_v2 compatibility-host-util tradefed-prebuilt
+LOCAL_JAVA_LIBRARIES := cts-tradefed compatibility-host-util tradefed-prebuilt
 
-DEQP_CASELISTS:=$(sort $(patsubst mnc/%,%, \
+DEQP_CASELISTS:=$(sort $(patsubst master/%,%, \
   $(shell cd $(LOCAL_PATH) ; \
-          find -L mnc -maxdepth 1 -name "*.txt") \
+          find -L master -maxdepth 1 -name "*.txt") \
   ))
-LOCAL_COMPATIBILITY_SUPPORT_FILES := $(foreach file, $(DEQP_CASELISTS), ./mnc/$(file):$(file))
-
+LOCAL_COMPATIBILITY_SUPPORT_FILES := $(foreach file, $(DEQP_CASELISTS), $(LOCAL_PATH)/master/$(file):$(file))
 
 include $(BUILD_HOST_JAVA_LIBRARY)
 

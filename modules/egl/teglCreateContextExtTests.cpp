@@ -369,7 +369,7 @@ void CreateContextExtCase::checkRequiredExtensions (void)
 {
 	bool			isOk = true;
 	set<string>		requiredExtensions;
-	vector<string>	extensions			= eglu::getClientExtensions(m_eglTestCtx.getLibrary(), m_display);
+	vector<string>	extensions			= eglu::getDisplayExtensions(m_eglTestCtx.getLibrary(), m_display);
 
 	{
 		const EGLint* iter = &(m_attribList[0]);
@@ -790,7 +790,7 @@ bool CreateContextExtCase::validateCurrentContext (const glw::Functions& gl)
 		{
 			deInt32 profileMaskGL = 0;
 
-			gl.getIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
+			gl.getIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMaskGL);
 			GLU_EXPECT_NO_ERROR(gl.getError(), "glGetIntegerv()");
 
 			if (profileMask != profileMaskGL)

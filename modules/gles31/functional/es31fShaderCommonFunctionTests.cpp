@@ -267,7 +267,6 @@ CommonFunctionCase::CommonFunctionCase (Context& context, const char* name, cons
 	, m_numValues	(100)
 	, m_executor	(DE_NULL)
 {
-	m_spec.version = glu::GLSL_VERSION_310_ES;
 }
 
 CommonFunctionCase::~CommonFunctionCase (void)
@@ -278,6 +277,8 @@ CommonFunctionCase::~CommonFunctionCase (void)
 void CommonFunctionCase::init (void)
 {
 	DE_ASSERT(!m_executor);
+
+	m_spec.version = contextSupports(m_context.getRenderContext().getType(), glu::ApiType::es(3, 2)) ? glu::GLSL_VERSION_320_ES : glu::GLSL_VERSION_310_ES;
 
 	m_executor = createExecutor(m_context.getRenderContext(), m_shaderType, m_spec);
 	m_testCtx.getLog() << m_executor;
@@ -1794,8 +1795,7 @@ public:
 		const glu::DataType		type						= m_spec.inputs[0].varType.getBasicType();
 		const glu::Precision	precision					= m_spec.inputs[0].varType.getPrecision();
 		const int				scalarSize					= glu::getDataTypeScalarSize(type);
-		const bool				transitSupportsSignedZero	= (m_shaderType != glu::SHADERTYPE_FRAGMENT); // executor cannot reliably transit negative zero to fragment stage
-		const bool				signedZero					= supportsSignedZero(precision) && transitSupportsSignedZero;
+		const bool				signedZero					= false;
 
 		const int				mantissaBits				= getMinMantissaBits(precision);
 		const deUint32			maxUlpDiff					= getMaxUlpDiffFromBits(mantissaBits);

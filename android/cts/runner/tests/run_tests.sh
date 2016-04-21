@@ -42,10 +42,10 @@ TF_CONSOLE=com.android.tradefed.command.Console
 ############### Run the cts tests ###############
 JARS="
     compatibility-host-util\
-    cts-tradefed_v2\
+    cts-tradefed\
     ddmlib-prebuilt\
     hosttestlib\
-    CtsDeqp\
+    CtsDeqpTestCases\
     CtsDeqpRunnerTests\
     tradefed-prebuilt"
 JAR_PATH=

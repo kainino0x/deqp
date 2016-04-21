@@ -115,6 +115,7 @@ static const EnumMapEntry s_resultItemMap[] =
 	{ 0x6c1415d9,	"ComputeShader",		ri::TYPE_SHADER			},
 	{ 0x72863a54,	"ShaderProgram",		ri::TYPE_SHADERPROGRAM	},
 	{ 0xb4efc08d,	"ShaderSource",			ri::TYPE_SHADERSOURCE	},
+	{ 0xaee4380a,	"SpirVAssemblySource",	ri::TYPE_SPIRVSOURCE	},
 	{ 0xff265913,	"InfoLog",				ri::TYPE_INFOLOG		},
 	{ 0x84159b73,	"EglConfig",			ri::TYPE_EGLCONFIG		},
 	{ 0xdd34391f,	"EglConfigSet",			ri::TYPE_EGLCONFIGSET	},
@@ -164,7 +165,8 @@ static const EnumMapEntry s_logVersionMap[] =
 	{ 0x0b7db0d4,	"0.3.0",		TESTLOGVERSION_0_3_0	},
 	{ 0x0b7db0d5,	"0.3.1",		TESTLOGVERSION_0_3_1	},
 	{ 0x0b7db0d6,	"0.3.2",		TESTLOGVERSION_0_3_2	},
-	{ 0x0b7db0d7,	"0.3.3",		TESTLOGVERSION_0_3_3	}
+	{ 0x0b7db0d7,	"0.3.3",		TESTLOGVERSION_0_3_3	},
+	{ 0x0b7db0d8,	"0.3.4",		TESTLOGVERSION_0_3_4	}
 };
 
 static const EnumMapEntry s_sampleValueTagMap[] =
@@ -545,7 +547,7 @@ void TestResultParser::handleElementStart (void)
 			case ri::TYPE_SHADER:
 			{
 				if (parentType != ri::TYPE_SHADERPROGRAM)
-					throw TestResultParseError("<VertexShader> outside of <ShaderProgram>");
+					throw TestResultParseError(string("<") + elemName + "> outside of <ShaderProgram>");
 
 				ri::Shader* shader = curList->allocItem<ri::Shader>();
 
@@ -553,6 +555,14 @@ void TestResultParser::handleElementStart (void)
 				shader->compileStatus	= toBool(getAttribute("CompileStatus"));
 
 				item = shader;
+				break;
+			}
+
+			case ri::TYPE_SPIRVSOURCE:
+			{
+				if (parentType != ri::TYPE_SHADERPROGRAM)
+					throw TestResultParseError(string("<") + elemName + "> outside of <ShaderProgram>");
+				item = curList->allocItem<ri::SpirVSource>();
 				break;
 			}
 
@@ -774,6 +784,10 @@ void TestResultParser::handleData (void)
 
 		case ri::TYPE_SHADERSOURCE:
 			m_xmlParser.appendDataStr(static_cast<ri::ShaderSource*>(curItem)->source);
+			break;
+
+		case ri::TYPE_SPIRVSOURCE:
+			m_xmlParser.appendDataStr(static_cast<ri::SpirVSource*>(curItem)->source);
 			break;
 
 		case ri::TYPE_INFOLOG:

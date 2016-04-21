@@ -147,7 +147,7 @@ class GitRepo (Source):
 
 		pushWorkingDir(fullDstPath)
 		try:
-			execute(["git", "fetch", self.url])
+			execute(["git", "fetch", self.url, "+refs/heads/*:refs/remotes/origin/*"])
 			execute(["git", "checkout", self.revision])
 		finally:
 			popWorkingDir()
@@ -168,6 +168,14 @@ PACKAGES = [
 		"a18233c99e1dc59a256180e6871d9305a42e91b3f98799b3ceb98e87e9ec5e31",
 		"libpng",
 		postExtract = postExtractLibpng),
+	GitRepo(
+		"https://github.com/KhronosGroup/SPIRV-Tools.git",
+		"f7e63786a919040cb2e0e572d960a0650f2c2881",
+		"spirv-tools"),
+	GitRepo(
+		"https://github.com/KhronosGroup/glslang.git",
+		"5639f3aca5b75cbe5419a623eecf5e3794fab917",
+		"glslang"),
 ]
 
 def parseArgs ():

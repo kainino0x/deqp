@@ -5509,12 +5509,21 @@ public:
 		VERTEX_IO_ARRAY_SIZE_LAST
 	};
 
-	UserDefinedIOCase (Context& context, const char* name, const char* description, TessPrimitiveType primType, IOType ioType, VertexIOArraySize vertexIOArraySize, const char* referenceImagePath)
-		: TestCase				(context, name, description)
-		, m_primitiveType		(primType)
-		, m_ioType				(ioType)
-		, m_vertexIOArraySize	(vertexIOArraySize)
-		, m_referenceImagePath	(referenceImagePath)
+	enum TessControlOutArraySize
+	{
+		TESS_CONTROL_OUT_ARRAY_SIZE_IMPLICIT = 0,
+		TESS_CONTROL_OUT_ARRAY_SIZE_LAYOUT,
+		TESS_CONTROL_OUT_ARRAY_SIZE_QUERY,
+		TESS_CONTROL_OUT_ARRAY_SIZE_SHADER_BUILTIN
+	};
+
+	UserDefinedIOCase (Context& context, const char* name, const char* description, TessPrimitiveType primType, IOType ioType, VertexIOArraySize vertexIOArraySize, TessControlOutArraySize tessControlOutArraySize, const char* referenceImagePath)
+		: TestCase					(context, name, description)
+		, m_primitiveType			(primType)
+		, m_ioType					(ioType)
+		, m_vertexIOArraySize		(vertexIOArraySize)
+		, m_tessControlOutArraySize	(tessControlOutArraySize)
+		, m_referenceImagePath		(referenceImagePath)
 	{
 	}
 
@@ -5629,6 +5638,7 @@ private:
 	const TessPrimitiveType					m_primitiveType;
 	const IOType							m_ioType;
 	const VertexIOArraySize					m_vertexIOArraySize;
+	const TessControlOutArraySize			m_tessControlOutArraySize;
 	const string							m_referenceImagePath;
 
 	vector<glu::StructType>					m_structTypes;
@@ -5999,9 +6009,11 @@ void UserDefinedIOCase::init (void)
 
 			if (isArray)
 			{
-				// \note: TCS output arrays are always implicitly-sized
-				tcsDeclarations += outMaybePatch + output.declareArray(m_ioType == IO_TYPE_PER_PATCH_ARRAY			? de::toString(int(NUM_PER_PATCH_ARRAY_ELEMS))
-																	   : m_ioType == IO_TYPE_PER_PATCH_BLOCK_ARRAY	? de::toString(int(NUM_PER_PATCH_BLOCKS))
+				tcsDeclarations += outMaybePatch + output.declareArray(m_ioType == IO_TYPE_PER_PATCH_ARRAY											? de::toString(int(NUM_PER_PATCH_ARRAY_ELEMS))
+																	   : m_ioType == IO_TYPE_PER_PATCH_BLOCK_ARRAY									? de::toString(int(NUM_PER_PATCH_BLOCKS))
+																	   : m_tessControlOutArraySize == TESS_CONTROL_OUT_ARRAY_SIZE_LAYOUT			? de::toString(int(NUM_OUTPUT_VERTICES))
+																	   : m_tessControlOutArraySize == TESS_CONTROL_OUT_ARRAY_SIZE_QUERY				? de::toString(m_context.getContextInfo().getInt(GL_MAX_PATCH_VERTICES))
+																	   : m_tessControlOutArraySize == TESS_CONTROL_OUT_ARRAY_SIZE_SHADER_BUILTIN	? "gl_MaxPatchVertices"
 																	   : "");
 			}
 			else
@@ -7216,14 +7228,14 @@ void TessellationTests::init (void)
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_evaluation_uniform_components",			"Test MAX_TESS_EVALUATION_UNIFORM_COMPONENTS",			GL_MAX_TESS_EVALUATION_UNIFORM_COMPONENTS,		1024));
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_control_texture_image_units",				"Test MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS",			GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS,		16));
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_evaluation_texture_image_units",			"Test MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS",			GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS,		16));
-		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_control_output_components",				"Test MAX_TESS_CONTROL_OUTPUT_COMPONENTS",				GL_MAX_TESS_CONTROL_OUTPUT_COMPONENTS,			128));
+		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_control_output_components",				"Test MAX_TESS_CONTROL_OUTPUT_COMPONENTS",				GL_MAX_TESS_CONTROL_OUTPUT_COMPONENTS,			64));
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_patch_components",							"Test MAX_TESS_PATCH_COMPONENTS",						GL_MAX_TESS_PATCH_COMPONENTS,					120));
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_control_total_output_components",			"Test MAX_TESS_CONTROL_TOTAL_OUTPUT_COMPONENTS",		GL_MAX_TESS_CONTROL_TOTAL_OUTPUT_COMPONENTS,	4096));
-		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_evaluation_output_components",				"Test MAX_TESS_EVALUATION_OUTPUT_COMPONENTS",			GL_MAX_TESS_EVALUATION_OUTPUT_COMPONENTS,		128));
+		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_evaluation_output_components",				"Test MAX_TESS_EVALUATION_OUTPUT_COMPONENTS",			GL_MAX_TESS_EVALUATION_OUTPUT_COMPONENTS,		64));
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_control_uniform_blocks",					"Test MAX_TESS_CONTROL_UNIFORM_BLOCKS",					GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS,				12));
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_evaluation_uniform_blocks",				"Test MAX_TESS_EVALUATION_UNIFORM_BLOCKS",				GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS,			12));
-		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_control_input_components",					"Test MAX_TESS_CONTROL_INPUT_COMPONENTS",				GL_MAX_TESS_CONTROL_INPUT_COMPONENTS,			128));
-		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_evaluation_input_components",				"Test MAX_TESS_EVALUATION_INPUT_COMPONENTS",			GL_MAX_TESS_EVALUATION_INPUT_COMPONENTS,		128));
+		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_control_input_components",					"Test MAX_TESS_CONTROL_INPUT_COMPONENTS",				GL_MAX_TESS_CONTROL_INPUT_COMPONENTS,			64));
+		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_evaluation_input_components",				"Test MAX_TESS_EVALUATION_INPUT_COMPONENTS",			GL_MAX_TESS_EVALUATION_INPUT_COMPONENTS,		64));
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_control_atomic_counter_buffers",			"Test MAX_TESS_CONTROL_ATOMIC_COUNTER_BUFFERS",			GL_MAX_TESS_CONTROL_ATOMIC_COUNTER_BUFFERS,		0));
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_evaluation_atomic_counter_buffers",		"Test MAX_TESS_EVALUATION_ATOMIC_COUNTER_BUFFERS",		GL_MAX_TESS_EVALUATION_ATOMIC_COUNTER_BUFFERS,	0));
 		queryGroup->addChild(new LimitQueryCase(m_context, "max_tess_control_atomic_counters",					"Test MAX_TESS_CONTROL_ATOMIC_COUNTERS",				GL_MAX_TESS_CONTROL_ATOMIC_COUNTERS,			0));
@@ -7566,8 +7578,19 @@ void TessellationTests::init (void)
 				for (int primitiveTypeI = 0; primitiveTypeI < TESSPRIMITIVETYPE_LAST; primitiveTypeI++)
 				{
 					const TessPrimitiveType primitiveType = (TessPrimitiveType)primitiveTypeI;
-					vertexArraySizeGroup->addChild(new UserDefinedIOCase(m_context, getTessPrimitiveTypeShaderName(primitiveType), "", primitiveType, ioCases[ndx].ioType, vertexArraySize,
+					vertexArraySizeGroup->addChild(new UserDefinedIOCase(m_context, getTessPrimitiveTypeShaderName(primitiveType), "", primitiveType, ioCases[ndx].ioType, vertexArraySize, UserDefinedIOCase::TESS_CONTROL_OUT_ARRAY_SIZE_IMPLICIT,
 																		 (string() + "data/tessellation/user_defined_io_" + getTessPrimitiveTypeShaderName(primitiveType) + "_ref.png").c_str()));
+				}
+
+				if (ioCases[ndx].ioType == UserDefinedIOCase::IO_TYPE_PER_VERTEX
+					|| ioCases[ndx].ioType == UserDefinedIOCase::IO_TYPE_PER_VERTEX_BLOCK)
+				{
+					for (int primitiveTypeI = 0; primitiveTypeI < TESSPRIMITIVETYPE_LAST; primitiveTypeI++)
+					{
+						const TessPrimitiveType primitiveType = (TessPrimitiveType)primitiveTypeI;
+						vertexArraySizeGroup->addChild(new UserDefinedIOCase(m_context, (string(getTessPrimitiveTypeShaderName(primitiveType)) + "_explicit_tcs_out_size").c_str(), "", primitiveType, ioCases[ndx].ioType, vertexArraySize, UserDefinedIOCase::TESS_CONTROL_OUT_ARRAY_SIZE_LAYOUT,
+																			 (string() + "data/tessellation/user_defined_io_" + getTessPrimitiveTypeShaderName(primitiveType) + "_ref.png").c_str()));
+					}
 				}
 			}
 		}

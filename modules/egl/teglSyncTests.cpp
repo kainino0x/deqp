@@ -38,6 +38,8 @@
 #include "glwFunctions.hpp"
 #include "glwEnums.hpp"
 
+#include "deClock.h"
+
 #include <vector>
 #include <string>
 #include <sstream>
@@ -81,7 +83,7 @@ public:
 		EXTENSION_FENCE_SYNC		= (0x1 << 1),
 		EXTENSION_REUSABLE_SYNC		= (0x1 << 2)
 	};
-									SyncTest	(EglTestContext& eglTestCtx, EGLenum syncType, Extension extensions, const char* name, const char* description);
+									SyncTest	(EglTestContext& eglTestCtx, EGLenum syncType, Extension extensions, bool useCurrentContext, const char* name, const char* description);
 									~SyncTest	(void);
 
 	void							init		(void);
@@ -90,6 +92,7 @@ public:
 protected:
 	const EGLenum					m_syncType;
 	const Extension					m_extensions;
+	const bool						m_useCurrentContext;
 
 	glw::Functions					m_gl;
 
@@ -101,15 +104,16 @@ protected:
 	EGLSyncKHR						m_sync;
 };
 
-SyncTest::SyncTest (EglTestContext& eglTestCtx, EGLenum syncType, Extension extensions, const char* name, const char* description)
-	: TestCase			(eglTestCtx, name, description)
-	, m_syncType		(syncType)
-	, m_extensions		(extensions)
-	, m_eglDisplay		(EGL_NO_DISPLAY)
-	, m_eglSurface		(EGL_NO_SURFACE)
-	, m_nativeWindow	(DE_NULL)
-	, m_eglContext		(EGL_NO_CONTEXT)
-	, m_sync			(EGL_NO_SYNC_KHR)
+SyncTest::SyncTest (EglTestContext& eglTestCtx, EGLenum syncType, Extension extensions,  bool useCurrentContext, const char* name, const char* description)
+	: TestCase				(eglTestCtx, name, description)
+	, m_syncType			(syncType)
+	, m_extensions			(extensions)
+	, m_useCurrentContext	(useCurrentContext)
+	, m_eglDisplay			(EGL_NO_DISPLAY)
+	, m_eglSurface			(EGL_NO_SURFACE)
+	, m_nativeWindow		(DE_NULL)
+	, m_eglContext			(EGL_NO_CONTEXT)
+	, m_sync				(EGL_NO_SYNC_KHR)
 {
 }
 
@@ -209,18 +213,21 @@ void SyncTest::init (void)
 		requiredEGLExtensions(egl, m_eglDisplay, (Extension)(m_extensions | syncTypeExtension));
 	}
 
-	// Create context
-	EGLU_CHECK_CALL(egl, bindAPI(EGL_OPENGL_ES_API));
-	m_eglContext = egl.createContext(m_eglDisplay, m_eglConfig, EGL_NO_CONTEXT, contextAttribList);
-	EGLU_CHECK_MSG(egl, "Failed to create GLES2 context");
+	if (m_useCurrentContext)
+	{
+		// Create context
+		EGLU_CHECK_CALL(egl, bindAPI(EGL_OPENGL_ES_API));
+		m_eglContext = egl.createContext(m_eglDisplay, m_eglConfig, EGL_NO_CONTEXT, contextAttribList);
+		EGLU_CHECK_MSG(egl, "Failed to create GLES2 context");
 
-	// Create surface
-	m_nativeWindow = windowFactory.createWindow(&m_eglTestCtx.getNativeDisplay(), m_eglDisplay, m_eglConfig, DE_NULL, eglu::WindowParams(480, 480, eglu::parseWindowVisibility(m_testCtx.getCommandLine())));
-	m_eglSurface = eglu::createWindowSurface(m_eglTestCtx.getNativeDisplay(), *m_nativeWindow, m_eglDisplay, m_eglConfig, DE_NULL);
+		// Create surface
+		m_nativeWindow = windowFactory.createWindow(&m_eglTestCtx.getNativeDisplay(), m_eglDisplay, m_eglConfig, DE_NULL, eglu::WindowParams(480, 480, eglu::parseWindowVisibility(m_testCtx.getCommandLine())));
+		m_eglSurface = eglu::createWindowSurface(m_eglTestCtx.getNativeDisplay(), *m_nativeWindow, m_eglDisplay, m_eglConfig, DE_NULL);
 
-	EGLU_CHECK_CALL(egl, makeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext));
+		EGLU_CHECK_CALL(egl, makeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext));
 
-	requiredGLESExtensions(m_gl);
+		requiredGLESExtensions(m_gl);
+	}
 }
 
 void SyncTest::deinit (void)
@@ -260,7 +267,10 @@ void SyncTest::deinit (void)
 class CreateNullAttribsTest : public SyncTest
 {
 public:
-					CreateNullAttribsTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "create_null_attribs", "create_null_attribs") {}
+					CreateNullAttribsTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "create_null_attribs", "create_null_attribs")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
@@ -279,7 +289,10 @@ public:
 class CreateEmptyAttribsTest : public SyncTest
 {
 public:
-					CreateEmptyAttribsTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "create_empty_attribs", "create_empty_attribs") {}
+					CreateEmptyAttribsTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR,  "create_empty_attribs", "create_empty_attribs")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
@@ -303,7 +316,10 @@ public:
 class CreateInvalidDisplayTest : public SyncTest
 {
 public:
-					CreateInvalidDisplayTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "create_invalid_display", "create_invalid_display") {}
+					CreateInvalidDisplayTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR,  "create_invalid_display", "create_invalid_display")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -333,7 +349,10 @@ public:
 class CreateInvalidTypeTest : public SyncTest
 {
 public:
-					CreateInvalidTypeTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "create_invalid_type", "create_invalid_type") {}
+					CreateInvalidTypeTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR,  "create_invalid_type", "create_invalid_type")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
@@ -363,7 +382,10 @@ public:
 class CreateInvalidAttribsTest : public SyncTest
 {
 public:
-					CreateInvalidAttribsTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "create_invalid_attribs", "create_invalid_attribs") {}
+					CreateInvalidAttribsTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR,  "create_invalid_attribs", "create_invalid_attribs")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -398,7 +420,10 @@ public:
 class CreateInvalidContextTest : public SyncTest
 {
 public:
-					CreateInvalidContextTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "create_invalid_context", "create_invalid_context") {}
+					CreateInvalidContextTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR,  "create_invalid_context", "create_invalid_context")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -431,18 +456,27 @@ public:
 class ClientWaitNoTimeoutTest : public SyncTest
 {
 public:
-					ClientWaitNoTimeoutTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "wait_no_timeout", "wait_no_timeout") {}
+					ClientWaitNoTimeoutTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR,  "wait_no_timeout", "wait_no_timeout")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
-		const Library&	egl		= m_eglTestCtx.getLibrary();
-		TestLog&		log		= m_testCtx.getLog();
+		const deUint64	timeoutUs	= 100;
+		const Library&	egl			= m_eglTestCtx.getLibrary();
+		TestLog&		log			= m_testCtx.getLog();
+		deUint64		beginTimeUs;
+		deUint64		endTimeUs;
 
 		m_sync = egl.createSyncKHR(m_eglDisplay, m_syncType, NULL);
 		log << TestLog::Message << m_sync << " = eglCreateSyncKHR(" << m_eglDisplay << ", " << getSyncTypeName(m_syncType) << ", NULL)" << TestLog::EndMessage;
 		EGLU_CHECK_MSG(egl, "eglCreateSyncKHR()");
 
+		beginTimeUs = deGetMicroseconds();
 		EGLint status = egl.clientWaitSyncKHR(m_eglDisplay, m_sync, 0, 0);
+		endTimeUs = deGetMicroseconds();
+
 		log << TestLog::Message << status << " = eglClientWaitSyncKHR(" << m_eglDisplay << ", " << m_sync << ", 0, 0)" << TestLog::EndMessage;
 
 		if (m_syncType == EGL_SYNC_FENCE_KHR)
@@ -451,6 +485,15 @@ public:
 			TCU_CHECK(status == EGL_TIMEOUT_EXPIRED_KHR);
 		else
 			DE_ASSERT(DE_FALSE);
+
+		log << TestLog::Message << "eglClientWaitSyncKHR() took " << (endTimeUs - beginTimeUs) << "us to finish." << TestLog::EndMessage;
+
+		if (endTimeUs - beginTimeUs > timeoutUs)
+		{
+			log << TestLog::Message << "Call without timeout should finish in less than: " << timeoutUs << "us." << TestLog::EndMessage;
+			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "eglClientWaitSyncKHR(timeout=0) didn't finish fast enough");
+			return STOP;
+		}
 
 		m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
 		return STOP;
@@ -461,7 +504,10 @@ public:
 class ClientWaitForeverTest : public SyncTest
 {
 public:
-					ClientWaitForeverTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "wait_forever", "wait_forever") {}
+					ClientWaitForeverTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+	: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "wait_forever", "wait_forever")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
@@ -500,7 +546,10 @@ public:
 class ClientWaitNoContextTest : public SyncTest
 {
 public:
-					ClientWaitNoContextTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "wait_no_context", "wait_no_Context") {}
+					ClientWaitNoContextTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "wait_no_context", "wait_no_Context")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
@@ -542,7 +591,10 @@ public:
 class ClientWaitForeverFlushTest : public SyncTest
 {
 public:
-					ClientWaitForeverFlushTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "wait_forever_flush", "wait_forever_flush") {}
+					ClientWaitForeverFlushTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "wait_forever_flush", "wait_forever_flush")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -573,7 +625,10 @@ public:
 class ClientWaitInvalidDisplayTest : public SyncTest
 {
 public:
-					ClientWaitInvalidDisplayTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "wait_invalid_display", "wait_invalid_display") {}
+					ClientWaitInvalidDisplayTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "wait_invalid_display", "wait_invalid_display")
+	{
+	}
 
 	IterateResult	iterate							(void)
 	{
@@ -607,7 +662,10 @@ public:
 class ClientWaitInvalidSyncTest : public SyncTest
 {
 public:
-					ClientWaitInvalidSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "wait_invalid_sync", "wait_invalid_sync") {}
+					ClientWaitInvalidSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "wait_invalid_sync", "wait_invalid_sync")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -637,7 +695,10 @@ public:
 class GetSyncTypeTest : public SyncTest
 {
 public:
-					GetSyncTypeTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "get_type", "get_type") {}
+					GetSyncTypeTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "get_type", "get_type")
+	{
+	}
 
 	IterateResult	iterate			(void)
 	{
@@ -662,7 +723,10 @@ public:
 class GetSyncStatusTest : public SyncTest
 {
 public:
-					GetSyncStatusTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "get_status", "get_status") {}
+					GetSyncStatusTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "get_status", "get_status")
+	{
+	}
 
 	IterateResult	iterate				(void)
 	{
@@ -690,7 +754,10 @@ public:
 class GetSyncStatusSignaledTest : public SyncTest
 {
 public:
-					GetSyncStatusSignaledTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "get_status_signaled", "get_status_signaled") {}
+					GetSyncStatusSignaledTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "get_status_signaled", "get_status_signaled")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -735,7 +802,10 @@ public:
 class GetSyncConditionTest : public SyncTest
 {
 public:
-					GetSyncConditionTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "get_condition", "get_condition") {}
+					GetSyncConditionTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "get_condition", "get_condition")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
@@ -760,7 +830,10 @@ public:
 class GetSyncInvalidDisplayTest : public SyncTest
 {
 public:
-					GetSyncInvalidDisplayTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "get_invalid_display", "get_invalid_display") {}
+					GetSyncInvalidDisplayTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE,  syncType != EGL_SYNC_REUSABLE_KHR,"get_invalid_display", "get_invalid_display")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -796,7 +869,10 @@ public:
 class GetSyncInvalidSyncTest : public SyncTest
 {
 public:
-					GetSyncInvalidSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "get_invalid_sync", "get_invalid_sync") {}
+					GetSyncInvalidSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType)\
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, syncType != EGL_SYNC_REUSABLE_KHR, "get_invalid_sync", "get_invalid_sync")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
@@ -828,7 +904,10 @@ public:
 class GetSyncInvalidAttributeTest : public SyncTest
 {
 public:
-					GetSyncInvalidAttributeTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "get_invalid_attribute", "get_invalid_attribute") {}
+					GetSyncInvalidAttributeTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE,  syncType != EGL_SYNC_REUSABLE_KHR,"get_invalid_attribute", "get_invalid_attribute")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -864,7 +943,10 @@ public:
 class GetSyncInvalidValueTest : public SyncTest
 {
 public:
-					GetSyncInvalidValueTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "get_invalid_value", "get_invalid_value") {}
+					GetSyncInvalidValueTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE,  syncType != EGL_SYNC_REUSABLE_KHR,"get_invalid_value", "get_invalid_value")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
@@ -898,7 +980,10 @@ public:
 class DestroySyncTest : public SyncTest
 {
 public:
-					DestroySyncTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "destroy", "destroy") {}
+					DestroySyncTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE,  syncType != EGL_SYNC_REUSABLE_KHR,"destroy", "destroy")
+	{
+	}
 
 	IterateResult	iterate			(void)
 	{
@@ -921,7 +1006,10 @@ public:
 class DestroySyncInvalidDislayTest : public SyncTest
 {
 public:
-					DestroySyncInvalidDislayTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "destroy_invalid_display", "destroy_invalid_display") {}
+					DestroySyncInvalidDislayTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE,  syncType != EGL_SYNC_REUSABLE_KHR,"destroy_invalid_display", "destroy_invalid_display")
+	{
+	}
 
 	IterateResult	iterate							(void)
 	{
@@ -955,7 +1043,10 @@ public:
 class DestroySyncInvalidSyncTest : public SyncTest
 {
 public:
-					DestroySyncInvalidSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_NONE, "destroy_invalid_sync", "destroy_invalid_sync") {}
+					DestroySyncInvalidSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_NONE,  syncType != EGL_SYNC_REUSABLE_KHR,"destroy_invalid_sync", "destroy_invalid_sync")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -985,7 +1076,10 @@ public:
 class WaitSyncTest : public SyncTest
 {
 public:
-					WaitSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_WAIT_SYNC, "wait_server", "wait_server") {}
+					WaitSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_WAIT_SYNC, true, "wait_server", "wait_server")
+	{
+	}
 
 	IterateResult	iterate			(void)
 	{
@@ -1012,7 +1106,10 @@ public:
 class WaitSyncInvalidDisplayTest : public SyncTest
 {
 public:
-					WaitSyncInvalidDisplayTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_WAIT_SYNC, "wait_server_invalid_display", "wait_server_invalid_display") {}
+					WaitSyncInvalidDisplayTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_WAIT_SYNC, true, "wait_server_invalid_display", "wait_server_invalid_display")
+	{
+	}
 
 	IterateResult	iterate						(void)
 	{
@@ -1046,7 +1143,10 @@ public:
 class WaitSyncInvalidSyncTest : public SyncTest
 {
 public:
-					WaitSyncInvalidSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_WAIT_SYNC, "wait_server_invalid_sync", "wait_server_invalid_sync") {}
+					WaitSyncInvalidSyncTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_WAIT_SYNC, true, "wait_server_invalid_sync", "wait_server_invalid_sync")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{
@@ -1076,7 +1176,10 @@ public:
 class WaitSyncInvalidFlagTest : public SyncTest
 {
 public:
-					WaitSyncInvalidFlagTest	(EglTestContext& eglTestCtx, EGLenum syncType) : SyncTest(eglTestCtx, syncType, SyncTest::EXTENSION_WAIT_SYNC, "wait_server_invalid_flag", "wait_server_invalid_flag") {}
+					WaitSyncInvalidFlagTest	(EglTestContext& eglTestCtx, EGLenum syncType)
+		: SyncTest	(eglTestCtx, syncType, SyncTest::EXTENSION_WAIT_SYNC, true, "wait_server_invalid_flag", "wait_server_invalid_flag")
+	{
+	}
 
 	IterateResult	iterate					(void)
 	{

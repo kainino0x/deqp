@@ -144,7 +144,7 @@ typedef struct qpKeyStringMap_s
 	char*	string;
 } qpKeyStringMap;
 
-static const char* LOG_FORMAT_VERSION = "0.3.3";
+static const char* LOG_FORMAT_VERSION = "0.3.4";
 
 /* Mapping enum to above strings... */
 static const qpKeyStringMap s_qpTestTypeMap[] =
@@ -350,7 +350,7 @@ qpTestLog* qpTestLog_createFileLog (const char* fileName, deUint32 flags)
 	}
 
 	log->flags			= flags;
-	log->writer			= qpXmlWriter_createFileWriter(log->outputFile, 0);
+	log->writer			= qpXmlWriter_createFileWriter(log->outputFile, 0, !(flags & QP_TEST_LOG_NO_FLUSH));
 	log->lock			= deMutex_create(DE_NULL);
 	log->isSessionOpen	= DE_FALSE;
 	log->isCaseOpen		= DE_FALSE;
@@ -419,7 +419,8 @@ deBool qpTestLog_startCase (qpTestLog* log, const char* testCasePath, qpTestCase
 	/* Flush XML and write out #beginTestCaseResult. */
 	qpXmlWriter_flush(log->writer);
 	fprintf(log->outputFile, "\n#beginTestCaseResult %s\n", testCasePath);
-	qpTestLog_flushFile(log);
+	if (!(log->flags & QP_TEST_LOG_NO_FLUSH))
+		qpTestLog_flushFile(log);
 
 	log->isCaseOpen = DE_TRUE;
 
@@ -473,7 +474,8 @@ deBool qpTestLog_endCase (qpTestLog* log, qpTestResult result, const char* resul
 	/* Flush XML and write #endTestCaseResult. */
 	qpXmlWriter_flush(log->writer);
 	fprintf(log->outputFile, "\n#endTestCaseResult\n");
-	qpTestLog_flushFile(log);
+	if (!(log->flags & QP_TEST_LOG_NO_FLUSH))
+		qpTestLog_flushFile(log);
 
 	log->isCaseOpen = DE_FALSE;
 
@@ -1024,6 +1026,7 @@ deBool qpTestLog_endShaderProgram (qpTestLog* log)
 deBool qpTestLog_writeShader (qpTestLog* log, qpShaderType type, const char* source, deBool compileOk, const char* infoLog)
 {
 	const char*		tagName				= QP_LOOKUP_STRING(s_qpShaderTypeMap, type);
+	const char*		sourceStr			= ((log->flags & QP_TEST_LOG_EXCLUDE_SHADER_SOURCES) == 0 || !compileOk) ? source : "";
 	int				numShaderAttribs	= 0;
 	qpXmlAttribute	shaderAttribs[4];
 
@@ -1034,7 +1037,7 @@ deBool qpTestLog_writeShader (qpTestLog* log, qpShaderType type, const char* sou
 	shaderAttribs[numShaderAttribs++]	= qpSetStringAttrib("CompileStatus", compileOk ? "OK" : "Fail");
 
 	if (!qpXmlWriter_startElement(log->writer, tagName, numShaderAttribs, shaderAttribs) ||
-		!qpXmlWriter_writeStringElement(log->writer, "ShaderSource", source) ||
+		!qpXmlWriter_writeStringElement(log->writer, "ShaderSource", sourceStr) ||
 		!qpXmlWriter_writeStringElement(log->writer, "InfoLog", infoLog) ||
 		!qpXmlWriter_endElement(log->writer, tagName))
 	{
@@ -1216,12 +1219,34 @@ deBool qpTestLog_endSection (qpTestLog* log)
  *//*--------------------------------------------------------------------*/
 deBool qpTestLog_writeKernelSource (qpTestLog* log, const char* source)
 {
+	const char*		sourceStr	= (log->flags & QP_TEST_LOG_EXCLUDE_SHADER_SOURCES) != 0 ? "" : source;
+
 	DE_ASSERT(log);
 	deMutex_lock(log->lock);
 
-	if (!qpXmlWriter_writeStringElement(log->writer, "KernelSource", source))
+	if (!qpXmlWriter_writeStringElement(log->writer, "KernelSource", sourceStr))
 	{
 		qpPrintf("qpTestLog_writeKernelSource(): Writing XML failed\n");
+		deMutex_unlock(log->lock);
+		return DE_FALSE;
+	}
+
+	deMutex_unlock(log->lock);
+	return DE_TRUE;
+}
+
+/*--------------------------------------------------------------------*//*!
+ * \brief Write a SPIR-V module assembly source into the log.
+ *//*--------------------------------------------------------------------*/
+deBool qpTestLog_writeSpirVAssemblySource (qpTestLog* log, const char* source)
+{
+	DE_ASSERT(log);
+	DE_ASSERT(ContainerStack_getTop(&log->containerStack) == CONTAINERTYPE_SHADERPROGRAM);
+	deMutex_lock(log->lock);
+
+	if (!qpXmlWriter_writeStringElement(log->writer, "SpirVAssemblySource", source))
+	{
+		qpPrintf("qpTestLog_writeSpirVAssemblySource(): Writing XML failed\n");
 		deMutex_unlock(log->lock);
 		return DE_FALSE;
 	}

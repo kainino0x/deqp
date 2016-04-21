@@ -38,6 +38,9 @@ import com.android.tradefed.testtype.IBuildReceiver;
 import com.android.tradefed.testtype.IAbiReceiver;
 import com.android.tradefed.testtype.IDeviceTest;
 import com.android.tradefed.testtype.IRemoteTest;
+import com.android.tradefed.testtype.IRuntimeHintProvider;
+import com.android.tradefed.testtype.IShardableTest;
+import com.android.tradefed.testtype.ITestCollector;
 import com.android.tradefed.testtype.ITestFilterReceiver;
 import com.android.tradefed.util.IRunUtil;
 import com.android.tradefed.util.RunInterruptedException;
@@ -72,8 +75,9 @@ import java.util.concurrent.TimeUnit;
  * Supports running drawElements Quality Program tests found under external/deqp.
  */
 @OptionClass(alias="deqp-test-runner")
-public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest, ITestFilterReceiver, IAbiReceiver {
-
+public class DeqpTestRunner implements IBuildReceiver, IDeviceTest,
+        ITestFilterReceiver, IAbiReceiver, IShardableTest, ITestCollector,
+        IRuntimeHintProvider {
     private static final String DEQP_ONDEVICE_APK = "com.drawelements.deqp.apk";
     private static final String DEQP_ONDEVICE_PKG = "com.drawelements.deqp";
     private static final String INCOMPLETE_LOG_MESSAGE = "Crash: Incomplete test log";
@@ -83,30 +87,50 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
     private static final String LOG_FILE_NAME = "/sdcard/TestLog.qpa";
     public static final String FEATURE_LANDSCAPE = "android.hardware.screen.landscape";
     public static final String FEATURE_PORTRAIT = "android.hardware.screen.portrait";
+    public static final String FEATURE_VULKAN_LEVEL = "android.hardware.vulkan.level";
 
     private static final int TESTCASE_BATCH_LIMIT = 1000;
-    private static final BatchRunConfiguration DEFAULT_CONFIG =
-        new BatchRunConfiguration("rgba8888d24s8", "unspecified", "window");
-
     private static final int UNRESPOSIVE_CMD_TIMEOUT_MS = 60000; // one minute
 
-    @Option(name="deqp-package", description="Name of the deqp module used. Determines GLES version.", importance=Option.Importance.ALWAYS)
-    private String mDeqpPackage;
-    @Option(name="deqp-gl-config-name", description="GL render target config. See deqp documentation for syntax. ", importance=Option.Importance.ALWAYS)
-    private String mConfigName;
-    @Option(name="deqp-caselist-file", description="File listing the names of the cases to be run.", importance=Option.Importance.ALWAYS)
-    private String mCaselistFile;
-    @Option(name="deqp-screen-rotation", description="Screen orientation. Defaults to 'unspecified'", importance=Option.Importance.NEVER)
-    private String mScreenRotation = "unspecified";
-    @Option(name="deqp-surface-type", description="Surface type ('window', 'pbuffer', 'fbo'). Defaults to 'window'", importance=Option.Importance.NEVER)
-    private String mSurfaceType = "window";
+    // !NOTE: There's a static method copyOptions() for copying options during split.
+    // If you add state update copyOptions() as appropriate!
 
+    @Option(name="deqp-package",
+            description="Name of the deqp module used. Determines GLES version.",
+            importance=Option.Importance.ALWAYS)
+    private String mDeqpPackage;
+    @Option(name="deqp-gl-config-name",
+            description="GL render target config. See deqp documentation for syntax. ",
+            importance=Option.Importance.NEVER)
+    private String mConfigName = "";
+    @Option(name="deqp-caselist-file",
+            description="File listing the names of the cases to be run.",
+            importance=Option.Importance.ALWAYS)
+    private String mCaselistFile;
+    @Option(name="deqp-screen-rotation",
+            description="Screen orientation. Defaults to 'unspecified'",
+            importance=Option.Importance.NEVER)
+    private String mScreenRotation = "unspecified";
+    @Option(name="deqp-surface-type",
+            description="Surface type ('window', 'pbuffer', 'fbo'). Defaults to 'window'",
+            importance=Option.Importance.NEVER)
+    private String mSurfaceType = "window";
     @Option(name = "include-filter",
             description="Test include filter. '*' is zero or more letters. '.' has no special meaning.")
     private List<String> mIncludeFilters = new ArrayList<>();
     @Option(name = "exclude-filter",
             description="Test exclude filter. '*' is zero or more letters. '.' has no special meaning.")
     private List<String> mExcludeFilters = new ArrayList<>();
+    @Option(name = "collect-tests-only",
+            description = "Only invoke the instrumentation to collect list of applicable test "
+                    + "cases. All test run callbacks will be triggered, but test execution will "
+                    + "not be actually carried out.")
+    private boolean mCollectTestsOnly = false;
+    @Option(name = "runtime-hint",
+            isTimeVal = true,
+            description="The estimated config runtime. Defaults to 200ms x num tests.")
+    private long mRuntimeHint = -1;
+
     private Collection<TestIdentifier> mRemainingTests = null;
     private Map<TestIdentifier, Set<BatchRunConfiguration>> mTestInstances = null;
     private final TestInstanceResultListener mInstanceListerner = new TestInstanceResultListener();
@@ -121,9 +145,17 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
     // When set will override the mCaselistFile for testing purposes.
     private Reader mCaselistReader = null;
 
-    private IRecovery mDeviceRecovery = new Recovery();
-    {
+    private IRecovery mDeviceRecovery = new Recovery(); {
         mDeviceRecovery.setSleepProvider(new SleepProvider());
+    }
+
+    public DeqpTestRunner() {
+    }
+
+    private DeqpTestRunner(DeqpTestRunner optionTemplate,
+                Map<TestIdentifier, Set<BatchRunConfiguration>> tests) {
+        copyOptions(this, optionTemplate);
+        mTestInstances = tests;
     }
 
     /**
@@ -139,7 +171,7 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
      */
     @Override
     public void setBuild(IBuildInfo buildInfo) {
-        setBuildHelper(new CompatibilityBuildHelper((IFolderBuildInfo)buildInfo));
+        setBuildHelper(new CompatibilityBuildHelper(buildInfo));
     }
 
     /**
@@ -1621,6 +1653,22 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
     }
 
     /**
+     * Check if device supports Vulkan.
+     */
+    private boolean isSupportedVulkan ()
+            throws DeviceNotAvailableException, CapabilityQueryFailureException {
+        final Set<String> features = getDeviceFeatures(mDevice);
+
+        for (String feature : features) {
+            if (feature.startsWith(FEATURE_VULKAN_LEVEL)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Check if device supports OpenGL ES version.
      */
     private static boolean isSupportedGles(ITestDevice device, int requiredMajorVersion,
@@ -1775,8 +1823,23 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
         if ("dEQP-GLES2".equals(mDeqpPackage) || "dEQP-GLES3".equals(mDeqpPackage) ||
                 "dEQP-GLES31".equals(mDeqpPackage)) {
             return true;
-        } else if ("dEQP-EGL".equals(mDeqpPackage)) {
+        } else if ("dEQP-EGL".equals(mDeqpPackage) ||
+                "dEQP-VK".equals(mDeqpPackage)) {
             return false;
+        } else {
+            throw new IllegalStateException("dEQP runner was created with illegal name");
+        }
+    }
+
+    /**
+     * Parse vulkan nature from package name
+     */
+    private boolean isVulkanPackage() {
+        if ("dEQP-GLES2".equals(mDeqpPackage) || "dEQP-GLES3".equals(mDeqpPackage) ||
+                "dEQP-GLES31".equals(mDeqpPackage) || "dEQP-EGL".equals(mDeqpPackage)) {
+            return false;
+        } else if ("dEQP-VK".equals(mDeqpPackage)) {
+            return true;
         } else {
             throw new IllegalStateException("dEQP runner was created with illegal name");
         }
@@ -1852,7 +1915,7 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
         List<Pattern> includes = buildPatternList(includeFilters);
         List<Pattern> excludes = buildPatternList(excludeFilters);
 
-		List<TestIdentifier> testList = new ArrayList(tests.keySet());
+        List<TestIdentifier> testList = new ArrayList(tests.keySet());
         for (TestIdentifier test : testList) {
             // Remove test if it does not match includes or matches
             // excludes.
@@ -1867,12 +1930,11 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
     }
 
     /**
-     * {@inheritDoc}
+     * Loads tests into mTestInstances based on the options. Assumes
+     * that no tests have been loaded for this instance before.
      */
-    @Override
-    public void run(ITestInvocationListener listener) throws DeviceNotAvailableException {
-        final Map<String, String> emptyMap = Collections.emptyMap();
-        final boolean isSupportedApi = !isOpenGlEsPackage() || isSupportedGles();
+    private void loadTests() {
+        if (mTestInstances != null) throw new AssertionError("Re-load of tests not supported");
 
         try {
             Reader reader = mCaselistReader;
@@ -1893,15 +1955,52 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
         catch (IOException e) {
             CLog.w("Failed to close test list reader.");
         }
-        if (!mIncludeFilters.isEmpty() || !mExcludeFilters.isEmpty()) {
-            filterTests(mTestInstances, mIncludeFilters, mExcludeFilters);
+        CLog.d("Filters");
+        for (String filter : mIncludeFilters) {
+            CLog.d("Include: %s", filter);
         }
+        for (String filter : mExcludeFilters) {
+            CLog.d("Exclude: %s", filter);
+        }
+
+        long originalTestCount = mTestInstances.size();
+        CLog.i("Num tests before filtering: %d", originalTestCount);
+        if ((!mIncludeFilters.isEmpty() || !mExcludeFilters.isEmpty()) && originalTestCount > 0) {
+            filterTests(mTestInstances, mIncludeFilters, mExcludeFilters);
+
+            // Update runtime estimation hint.
+            if (mRuntimeHint != -1) {
+                mRuntimeHint = (mRuntimeHint * mTestInstances.size()) / originalTestCount;
+            }
+        }
+        CLog.i("Num tests after filtering: %d", mTestInstances.size());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void run(ITestInvocationListener listener) throws DeviceNotAvailableException {
+        final Map<String, String> emptyMap = Collections.emptyMap();
+        // If sharded, split() will load the tests.
+        if (mTestInstances == null) {
+            loadTests();
+        }
+
         mRemainingTests = new LinkedList<>(mTestInstances.keySet());
 
         listener.testRunStarted(getId(), mRemainingTests.size());
 
         try {
-            if (isSupportedApi) {
+            final boolean isSupportedApi = (isOpenGlEsPackage() && isSupportedGles())
+                                            || (isVulkanPackage() && isSupportedVulkan())
+                                            || (!isOpenGlEsPackage() && !isVulkanPackage());
+
+            if (!isSupportedApi || mCollectTestsOnly) {
+                // Pass all tests if OpenGL ES version is not supported or we are collecting
+                // the names of the tests only
+                fakePassTests(listener);
+            } else if (!mRemainingTests.isEmpty()) {
                 // Make sure there is no pre-existing package form earlier interrupted test run.
                 uninstallTestApk();
                 installTestApk();
@@ -1911,14 +2010,12 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
                 runTests();
 
                 uninstallTestApk();
-            } else {
-                // Pass all tests if OpenGL ES version is not supported
-                fakePassTests(listener);
             }
         } catch (CapabilityQueryFailureException ex) {
             // Platform is not behaving correctly, for example crashing when trying to create
             // a window. Instead of silenty failing, signal failure by leaving the rest of the
             // test cases in "NotExecuted" state
+            CLog.e("Capability query failed - leaving tests unexecuted.");
             uninstallTestApk();
         }
 
@@ -1955,5 +2052,86 @@ public class DeqpTestRunner implements IBuildReceiver, IDeviceTest, IRemoteTest,
     @Override
     public void addAllExcludeFilters(List<String> filters) {
         mExcludeFilters.addAll(filters);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setCollectTestsOnly(boolean collectTests) {
+        mCollectTestsOnly = collectTests;
+    }
+
+    private static void copyOptions(DeqpTestRunner destination, DeqpTestRunner source) {
+        destination.mDeqpPackage = source.mDeqpPackage;
+        destination.mConfigName = source.mConfigName;
+        destination.mCaselistFile = source.mCaselistFile;
+        destination.mScreenRotation = source.mScreenRotation;
+        destination.mSurfaceType = source.mSurfaceType;
+        destination.mIncludeFilters = new ArrayList<>(source.mIncludeFilters);
+        destination.mExcludeFilters = new ArrayList<>(source.mExcludeFilters);
+        destination.mAbi = source.mAbi;
+        destination.mLogData = source.mLogData;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<IRemoteTest> split() {
+        if (mTestInstances != null) {
+            throw new AssertionError("Re-splitting or splitting running instance?");
+        }
+        // \todo [2015-11-23 kalle] If we split to batches at shard level, we could
+        // basically get rid of batching. Except that sharding is optional?
+
+        // Assume that tests have not been yet loaded.
+        loadTests();
+
+        Collection<IRemoteTest> runners = new ArrayList<>();
+        // NOTE: Use linked hash map to keep the insertion order in iteration
+        Map<TestIdentifier, Set<BatchRunConfiguration>> currentSet = new LinkedHashMap<>();
+        Map<TestIdentifier, Set<BatchRunConfiguration>> iterationSet = this.mTestInstances;
+
+        // Go through tests, split
+        for (TestIdentifier test: iterationSet.keySet()) {
+            currentSet.put(test, iterationSet.get(test));
+            if (currentSet.size() >= TESTCASE_BATCH_LIMIT) {
+                runners.add(new DeqpTestRunner(this, currentSet));
+                // NOTE: Use linked hash map to keep the insertion order in iteration
+                currentSet = new LinkedHashMap<>();
+             }
+        }
+        runners.add(new DeqpTestRunner(this, currentSet));
+
+        // Compute new runtime hints
+        long originalSize = iterationSet.size();
+        if (originalSize > 0) {
+            long fullRuntimeMs = getRuntimeHint();
+            for (IRemoteTest remote: runners) {
+                DeqpTestRunner runner = (DeqpTestRunner)remote;
+                long shardRuntime = (fullRuntimeMs * runner.mTestInstances.size()) / originalSize;
+                runner.mRuntimeHint = shardRuntime;
+            }
+        }
+
+        CLog.i("Split deqp tests into %d shards", runners.size());
+        return runners;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getRuntimeHint() {
+        if (mRuntimeHint != -1) {
+            return mRuntimeHint;
+        }
+        if (mTestInstances == null) {
+            loadTests();
+        }
+        // Tests normally take something like ~100ms. Some take a
+        // second. Let's guess 200ms per test.
+        return 200 * mTestInstances.size();
     }
 }

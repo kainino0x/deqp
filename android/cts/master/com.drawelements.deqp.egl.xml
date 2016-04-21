@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TestPackage appPackageName="com.drawelements.deqp.egl" deqp:glesVersion="131072" name="dEQP-EGL" testType="deqpTest" xmlns:deqp="http://drawelements.com/deqp">
 	<!--
-     Copyright (C) 2015 The Android Open Source Project
+     Copyright (C) 2016 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -3010,21 +3010,6 @@
 					<Test name="create_image_gles2_renderbuffer_stencil_index8">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
-					<Test name="create_image_gles2_android_native_rgb565">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="create_image_gles2_android_native_rgb8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="create_image_gles2_android_native_rgba4">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="create_image_gles2_android_native_rgb5_a1">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="create_image_gles2_android_native_rgba8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
 					<Test name="image_target_gles2_tex2d">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
@@ -3159,42 +3144,9 @@
 					<Test name="gles2_renderbuffer_stencil_stencil_buffer">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
-					<Test name="gles2_android_native_rgb565_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb565_read_pixels">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb8_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb8_read_pixels">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgba4_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgba4_read_pixels">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb5_a1_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb5_a1_read_pixels">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgba8_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgba8_read_pixels">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
 				</TestCase>
 				<TestCase name="modify">
 					<Test name="tex_rgb8_tex_subimage_rgb8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="tex_rgb8_tex_subimage_rgb565">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 					<Test name="tex_rgb8_renderbuffer_clear_color">
@@ -3212,12 +3164,6 @@
 					<Test name="tex_rgba8_tex_subimage_rgba8">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
-					<Test name="tex_rgba8_tex_subimage_rgba5_a1">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="tex_rgba8_tex_subimage_rgba4">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
 					<Test name="tex_rgba8_renderbuffer_clear_color">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
@@ -3227,16 +3173,10 @@
 					<Test name="tex_rgba5_a1_tex_subimage_rgba5_a1">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
-					<Test name="tex_rgba5_a1_tex_subimage_rgba4">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
 					<Test name="tex_rgba5_a1_renderbuffer_clear_color">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 					<Test name="tex_rgba4_tex_subimage_rgba8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="tex_rgba4_tex_subimage_rgba5_a1">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 					<Test name="tex_rgba4_tex_subimage_rgba4">
@@ -3246,9 +3186,6 @@
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 					<Test name="renderbuffer_rgba4_tex_subimage_rgba8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="renderbuffer_rgba4_tex_subimage_rgba5_a1">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 					<Test name="renderbuffer_rgba4_tex_subimage_rgba4">
@@ -3261,9 +3198,6 @@
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 					<Test name="renderbuffer_rgb5_a1_tex_subimage_rgba5_a1">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="renderbuffer_rgb5_a1_tex_subimage_rgba4">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 					<Test name="renderbuffer_rgb5_a1_renderbuffer_clear_color">
@@ -3282,60 +3216,6 @@
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 					<Test name="renderbuffer_stencil_renderbuffer_clear_stencil">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb565_tex_subimage_rgb8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb565_tex_subimage_rgb565">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb565_renderbuffer_clear_color">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb8_tex_subimage_rgb8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb8_tex_subimage_rgb565">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb8_renderbuffer_clear_color">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgba4_tex_subimage_rgba8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgba4_tex_subimage_rgba5_a1">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgba4_tex_subimage_rgba4">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgba4_renderbuffer_clear_color">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb5_a1_tex_subimage_rgba8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb5_a1_tex_subimage_rgba5_a1">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb5_a1_tex_subimage_rgba4">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgb5_a1_renderbuffer_clear_color">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgba8_tex_subimage_rgba8">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgba8_tex_subimage_rgba5_a1">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgba8_tex_subimage_rgba4">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="android_native_rgba8_renderbuffer_clear_color">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 				</TestCase>
@@ -3464,36 +3344,6 @@
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 					<Test name="gles2_renderbuffer_stencil_stencil_buffer">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb565_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb565_read_pixels">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb8_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb8_read_pixels">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgba4_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgba4_read_pixels">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb5_a1_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgb5_a1_read_pixels">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgba8_texture">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="gles2_android_native_rgba8_read_pixels">
 						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 					</Test>
 				</TestCase>
@@ -7559,9 +7409,6 @@
 				<Test name="get_configs">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
-				<Test name="get_display">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
 				<Test name="initialize">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
@@ -7696,22 +7543,10 @@
 				<Test name="pbuffer">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
-				<Test name="pixmap">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="window">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
 				<Test name="single_window">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
 				<Test name="context">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pbuffer_pixmap">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pbuffer_window">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
 				<Test name="pbuffer_single_window">
@@ -7720,46 +7555,10 @@
 				<Test name="pbuffer_context">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
-				<Test name="pixmap_window">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pixmap_single_window">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pixmap_context">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="window_context">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
 				<Test name="single_window_context">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
-				<Test name="pbuffer_pixmap_window">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pbuffer_pixmap_single_window">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pbuffer_pixmap_context">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pbuffer_window_context">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
 				<Test name="pbuffer_single_window_context">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pixmap_window_context">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pixmap_single_window_context">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pbuffer_pixmap_window_context">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="pbuffer_pixmap_single_window_context">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
 			</TestCase>
@@ -10535,178 +10334,526 @@
 				</TestCase>
 			</TestSuite>
 			<TestSuite name="buffer_age">
-				<TestCase name="preserve">
-					<Test name="odd_none_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_clear_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_clear_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_clear_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_clear_even_clear_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_clear_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_clear_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_clear_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_render_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_render_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_render_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_clear_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_clear_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_render_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-				</TestCase>
-				<TestCase name="no_preserve">
-					<Test name="odd_none_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_clear_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_none">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_clear_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_clear_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_clear_even_clear_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_clear_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_clear_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_clear_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_render_even_render_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_render_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_render_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_clear_render_even_clear_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_clear_render">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-					<Test name="odd_render_clear_even_render_clear">
-						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-					</Test>
-				</TestCase>
+				<TestSuite name="preserve">
+					<TestCase name="no_resize">
+						<Test name="odd_none_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+					</TestCase>
+					<TestCase name="resize_before_swap">
+						<Test name="odd_none_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+					</TestCase>
+					<TestCase name="resize_after_swap">
+						<Test name="odd_none_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+					</TestCase>
+				</TestSuite>
+				<TestSuite name="no_preserve">
+					<TestCase name="no_resize">
+						<Test name="odd_none_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+					</TestCase>
+					<TestCase name="resize_before_swap">
+						<Test name="odd_none_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+					</TestCase>
+					<TestCase name="resize_after_swap">
+						<Test name="odd_none_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_none">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_clear_render_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_clear_render">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+						<Test name="odd_render_clear_even_render_clear">
+							<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+						</Test>
+					</TestCase>
+				</TestSuite>
 			</TestSuite>
 			<TestCase name="partial_update">
 				<Test name="odd_clear_even_none">
@@ -10820,59 +10967,193 @@
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
 			</TestCase>
-			<TestCase name="swap_buffers_with_damage">
-				<Test name="clear">
+			<TestSuite name="swap_buffers_with_damage">
+				<TestCase name="no_resize">
+					<Test name="clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="clear_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="render_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="clear_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="render_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_clear_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_render_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_clear_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_render_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_clear_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_render_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_clear_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_render_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+				</TestCase>
+				<TestCase name="resize_before_swap">
+					<Test name="clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="clear_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="render_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="clear_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="render_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_clear_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_render_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_clear_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_render_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_clear_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_render_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_clear_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_render_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+				</TestCase>
+				<TestCase name="resize_after_swap">
+					<Test name="clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="clear_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="render_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="clear_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="render_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_clear_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_render_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_clear_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="preserve_buffer_render_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_clear_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_render_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_clear_render">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+					<Test name="buffer_age_render_clear">
+						<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
+					</Test>
+				</TestCase>
+			</TestSuite>
+			<TestCase name="multicontext">
+				<Test name="non_shared">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
-				<Test name="render">
+				<Test name="shared">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
-				<Test name="clear_clear">
+				<Test name="non_shared_make_current">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
-				<Test name="render_render">
+				<Test name="shared_make_current">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
-				<Test name="clear_render">
+				<Test name="non_shared_clear">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
-				<Test name="render_clear">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="preserve_buffer_clear">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="preserve_buffer_render">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="preserve_buffer_clear_clear">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="preserve_buffer_render_render">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="preserve_buffer_clear_render">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="preserve_buffer_render_clear">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="buffer_age_clear">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="buffer_age_render">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="buffer_age_clear_clear">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="buffer_age_render_render">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="buffer_age_clear_render">
-					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
-				</Test>
-				<Test name="buffer_age_render_clear">
+				<Test name="shared_clear">
 					<TestInstance glconfig="rgba8888d24s8ms0" rotation="unspecified" surfacetype="window"/>
 				</Test>
 			</TestCase>

@@ -718,8 +718,8 @@ static void sampleTextureNonProjected (const SurfaceAccess& dst, const tcu::Text
 	tcu::Vec3									triS[2]				= { sq.swizzle(0, 1, 2), sq.swizzle(3, 2, 1) };
 	tcu::Vec3									triT[2]				= { tq.swizzle(0, 1, 2), tq.swizzle(3, 2, 1) };
 	tcu::Vec3									triR[2]				= { rq.swizzle(0, 1, 2), rq.swizzle(3, 2, 1) };
-	float										triLod[2]			= { computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias,
-																		computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias};
+	float										triLod[2]			= { de::clamp(computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias, params.minLod, params.maxLod),
+																		de::clamp(computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias, params.minLod, params.maxLod) };
 
 	for (int y = 0; y < dst.getHeight(); y++)
 	{
@@ -1123,15 +1123,17 @@ glu::ShaderProgram* ProgramLibrary::getProgram (Program program)
 		params["FRAG_IN"]		= "varying";
 		params["FRAG_COLOR"]	= "gl_FragColor";
 	}
-	else if (m_glslVersion == glu::GLSL_VERSION_300_ES || m_glslVersion == glu::GLSL_VERSION_310_ES || m_glslVersion == glu::GLSL_VERSION_330)
+	else if (m_glslVersion == glu::GLSL_VERSION_300_ES || m_glslVersion == glu::GLSL_VERSION_310_ES || m_glslVersion == glu::GLSL_VERSION_320_ES || m_glslVersion == glu::GLSL_VERSION_330)
 	{
 		const string	version	= glu::getGLSLVersionDeclaration(m_glslVersion);
 		const char*		ext		= DE_NULL;
 
-		if (isCubeArray && glu::glslVersionIsES(m_glslVersion))
-			ext = "GL_EXT_texture_cube_map_array";
-		else if (isBuffer && glu::glslVersionIsES(m_glslVersion))
-			ext = "GL_EXT_texture_buffer";
+		if (glu::glslVersionIsES(m_glslVersion) && m_glslVersion != glu::GLSL_VERSION_320_ES) {
+			if (isCubeArray)
+				ext = "GL_EXT_texture_cube_map_array";
+			else if (isBuffer)
+				ext = "GL_EXT_texture_buffer";
+		}
 
 		params["FRAG_HEADER"]	= version + (ext ? string("\n#extension ") + ext + " : require" : string()) + "\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n";
 		params["VTX_HEADER"]	= version + "\n";
@@ -1159,7 +1161,7 @@ glu::ShaderProgram* ProgramLibrary::getProgram (Program program)
 	const char*	sampler	= DE_NULL;
 	const char*	lookup	= DE_NULL;
 
-	if (m_glslVersion == glu::GLSL_VERSION_300_ES || m_glslVersion == glu::GLSL_VERSION_310_ES || m_glslVersion == glu::GLSL_VERSION_330)
+	if (m_glslVersion == glu::GLSL_VERSION_300_ES || m_glslVersion == glu::GLSL_VERSION_310_ES || m_glslVersion == glu::GLSL_VERSION_320_ES || m_glslVersion == glu::GLSL_VERSION_330)
 	{
 		switch (program)
 		{

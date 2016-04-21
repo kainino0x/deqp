@@ -227,7 +227,7 @@ static Vector<int, Size> computeScaledSize (const Vector<int, Size>& imageSize, 
 
 		Vector<int, Size> res;
 		for (int i = 0; i < Size; i++)
-			res[i] = deRoundFloatToInt32((float)imageSize[i] / d);
+			res[i] = de::max(1, deRoundFloatToInt32((float)imageSize[i] / d));
 
 		return res;
 	}
@@ -390,6 +390,12 @@ void TestLog::endShaderProgram (void)
 void TestLog::writeShader (qpShaderType type, const char* source, bool compileOk, const char* infoLog)
 {
 	if (qpTestLog_writeShader(m_log, type, source, compileOk?DE_TRUE:DE_FALSE, infoLog) == DE_FALSE)
+		throw LogWriteFailedError();
+}
+
+void TestLog::writeSpirVAssemblySource (const char* source)
+{
+	if (qpTestLog_writeSpirVAssemblySource(m_log, source) == DE_FALSE)
 		throw LogWriteFailedError();
 }
 

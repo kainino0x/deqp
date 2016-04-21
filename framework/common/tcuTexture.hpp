@@ -83,6 +83,7 @@ public:
 		UNORM_SHORT_555,
 		UNORM_SHORT_4444,
 		UNORM_SHORT_5551,
+		UNORM_SHORT_1555,
 		UNORM_INT_101010,
 		SNORM_INT_1010102_REV,
 		UNORM_INT_1010102_REV,
@@ -181,6 +182,7 @@ public:
 		REPEAT_CL,			//! Repeat with OpenCL semantics
 		MIRRORED_REPEAT_GL,	//! Mirrored repeat with OpenGL semantics
 		MIRRORED_REPEAT_CL, //! Mirrored repeat with OpenCL semantics
+		MIRRORED_ONCE,		//! Mirrored once in negative directions
 
 		WRAPMODE_LAST
 	};
