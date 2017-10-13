@@ -76,7 +76,9 @@ endif ()
 add_subdirectory(external/glslang)
 
 # spirv-tools
-add_subdirectory(external/spirv-tools)
+if (NOT EMSCRIPTEN)
+	add_subdirectory(external/spirv-tools)
+endif()
 
 include_directories(${PNG_INCLUDE_PATH})
 
@@ -113,6 +115,14 @@ if (DEFINED DEQP_GLES32_LIBRARIES)
 endif ()
 
 if (DEFINED DEQP_EGL_LIBRARIES)
+	add_definitions(-DDEQP_EGL_DIRECT_LINK=1)
+endif ()
+
+if (EMSCRIPTEN)
+	add_definitions(-DDEQP_GLES2_DIRECT_LINK=1)
+	add_definitions(-DDEQP_GLES3_DIRECT_LINK=1)
+	add_definitions(-DDEQP_GLES31_DIRECT_LINK=1)
+	add_definitions(-DDEQP_GLES32_DIRECT_LINK=1)
 	add_definitions(-DDEQP_EGL_DIRECT_LINK=1)
 endif ()
 

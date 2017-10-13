@@ -126,6 +126,12 @@ if (NOT DEFINED TCUTIL_PLATFORM_SRCS)
 			osx/tcuOSXPlatform.hpp
 			)
 
+	elseif (EMSCRIPTEN)
+		set(TCUTIL_PLATFORM_SRCS
+			emscripten/tcuEmscriptenPlatform.cpp
+			emscripten/tcuEmscriptenPlatform.hpp
+			)
+
 	else ()
 		set(TCUTIL_PLATFORM_SRCS
 			vanilla/tcuVanillaPlatform.cpp

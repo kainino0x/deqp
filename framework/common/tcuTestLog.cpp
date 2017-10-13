@@ -194,6 +194,7 @@ TestLog::~TestLog (void)
 
 void TestLog::writeMessage (const char* msgStr)
 {
+	printf("-------------------------------- TESTLOG -> %s\n", msgStr);
 	if (qpTestLog_writeText(m_log, DE_NULL, DE_NULL, QP_KEY_TAG_LAST, msgStr) == DE_FALSE)
 		throw LogWriteFailedError();
 }
