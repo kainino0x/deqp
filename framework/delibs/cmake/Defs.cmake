@@ -78,16 +78,17 @@ if (EMSCRIPTEN)
 	set(CMAKE_C_COMPILER_ID "Emscripten")
 	set(CMAKE_CXX_COMPILER_ID "Emscripten")
 
-	set(c_cxx_flags "-s WASM=1 -s USE_WEBGL2=1 -s FULL_ES3=1")
-		#-s WASM=1
-		#-s USE_WEBGL2=1
-		#-s FULL_ES3=1
-		set(c_cxx_flags_debug "-s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s DEMANGLE_SUPPORT=1 -g3")
-		#-s ASSERTIONS=1
-		#-s DEMANGLE_SUPPORT=1
-		#-s DISABLE_EXCEPTION_CATCHING=0
-		#-g3
-		#-g4  # source maps
+	set(c_cxx_flags "-s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_WEBGL2=1 -s FULL_ES3=1")
+	set(c_cxx_flags_debug "-s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -g3")
+	# List of useful flags:
+	#   -s WASM=1
+	#   -s USE_WEBGL2=1
+	#   -s FULL_ES3=1
+	#   -s ASSERTIONS=1
+	#   -s DISABLE_EXCEPTION_CATCHING=0
+	#   -s DEMANGLE_SUPPORT=1
+	#   -g3
+	#   -g4  # source maps
 
 	set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${c_cxx_flags}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${c_cxx_flags}")
