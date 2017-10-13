@@ -29,6 +29,8 @@
 #include "eglwEnums.hpp"
 #include "deMemory.h"
 
+#include "emscripten.h"
+
 tcu::Platform* createPlatform (void)
 {
 	return new tcu::emscripten::Platform();
@@ -128,6 +130,7 @@ Window::Window (int width, int height)
 	, width(width)
 	, height(height)
 {
+	emscripten_set_canvas_size(width, height);
 	m_nativeWindow = 0;
 }
 
