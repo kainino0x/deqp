@@ -31,7 +31,7 @@
 
 #include <cstdio>
 
-#if EMSCRIPTEN
+#if __EMSCRIPTEN__
 #	include "emscripten.h"
 
 void requestAnimationFrameCallback(void* arg) {
@@ -69,7 +69,7 @@ int main (int argc, char** argv)
 		de::UniquePtr<tcu::Platform>	platform	(createPlatform());
 		de::UniquePtr<tcu::App>			app			(new tcu::App(*platform, archive, log, cmdLine));
 
-#if EMSCRIPTEN
+#if __EMSCRIPTEN__
 		// Set the main loop (requestAnimationFrame) callback.
 		emscripten_set_main_loop_arg(requestAnimationFrameCallback, app.get(), 0, false);
 		// Exit this synchronous main function to let the callbacks run.
