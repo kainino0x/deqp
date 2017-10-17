@@ -24,7 +24,7 @@ else ()
 	set(SPIRV_HEADERS_ABS_PATH "${CMAKE_SOURCE_DIR}/${SPIRV_HEADERS_SRC_PATH}")
 endif ()
 
-if (NOT EMSCRIPTEN AND
+if (DEQP_SUPPORT_VULKAN AND
 	EXISTS ${SPIRV_TOOLS_ABS_PATH}/source/opcode.cpp AND
 	EXISTS ${SPIRV_HEADERS_ABS_PATH}/include/spirv/1.0/spirv.h)
 	message(STATUS "spirv-tools found; building with DEQP_HAVE_SPIRV_TOOLS")
