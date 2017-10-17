@@ -33,6 +33,8 @@ namespace tcu
 namespace emscripten
 {
 
+#ifdef DEQP_EGL
+
 class Platform : public tcu::Platform, private eglu::Platform, private glu::Platform
 {
 public:
@@ -42,6 +44,8 @@ public:
 	virtual const glu::Platform&	getGLPlatform		(void) const { return static_cast<const glu::Platform&>	(*this);	}
 	virtual const eglu::Platform&	getEGLPlatform		(void) const { return static_cast<const eglu::Platform&>(*this);	}
 };
+
+#endif
 
 } // emscripten
 } // tcu

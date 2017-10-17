@@ -1,9 +1,18 @@
 # dEQP Modules
 add_subdirectory(glshared)
 add_subdirectory(gles2)
-add_subdirectory(gles3)
-add_subdirectory(gles31)
-add_subdirectory(egl)
+
+if (GLES3)
+	add_subdirectory(gles3)
+endif ()
+
+if (NOT EMSCRIPTEN)
+	add_subdirectory(gles31)
+endif ()
+
+if (EGL)
+	add_subdirectory(egl)
+endif ()
 
 # Misc
 add_subdirectory(internal)

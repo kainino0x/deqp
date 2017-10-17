@@ -31,6 +31,8 @@
 
 #include "emscripten.h"
 
+#ifdef DEQP_EGL
+
 tcu::Platform* createPlatform (void)
 {
 	return new tcu::emscripten::Platform();
@@ -157,3 +159,5 @@ Platform::~Platform (void)
 
 } // emscripten
 } // tcu
+
+#endif

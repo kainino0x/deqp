@@ -31,6 +31,8 @@
 namespace dit
 {
 
+#ifdef DEQP_VULKAN
+
 tcu::TestCaseGroup* createVulkanTests (tcu::TestContext& testCtx)
 {
 	de::MovePtr<tcu::TestCaseGroup>	group	(new tcu::TestCaseGroup(testCtx, "vulkan", "Vulkan Framework Tests"));
@@ -39,5 +41,7 @@ tcu::TestCaseGroup* createVulkanTests (tcu::TestContext& testCtx)
 
 	return group.release();
 }
+
+#endif
 
 } // dit

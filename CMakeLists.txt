@@ -12,6 +12,33 @@ endif ()
 
 project(dEQP-Core-${DEQP_TARGET})
 
+if (EMSCRIPTEN)
+	# TODO: Currently does not build when setting EGL OFF with Emscripten, but
+	# add support for this.
+	set(EGL_DEFAULT ON)
+	set(GLES3_DEFAULT OFF)
+	set(VULKAN_DEFAULT OFF)
+else()
+	set(EGL_DEFAULT ON)
+	set(GLES3_DEFAULT ON)
+	set(VULKAN_DEFAULT ON)
+endif ()
+
+option(VULKAN "Build tests that target Vulkan" ${VULKAN_DEFAULT})
+message(STATUS "Targeting Vulkan tests module: ${VULKAN}")
+if (VULKAN)
+	add_definitions(-DDEQP_VULKAN)
+endif ()
+
+option(EGL "Build tests that target EGL" ${EGL_DEFAULT})
+message(STATUS "Targeting EGL tests module: ${EGL}")
+if (EGL)
+	add_definitions(-DDEQP_EGL)
+endif ()
+
+option(GLES3 "Build tests that target OpenGL ES 3.0" ${GLES3_DEFAULT})
+message(STATUS "Targeting OpenGL ES 3.0 tests module: ${GLES3}")
+
 include(framework/delibs/cmake/Defs.cmake NO_POLICY_SCOPE)
 include(framework/delibs/cmake/CFlags.cmake)
 
@@ -73,12 +100,14 @@ if (NOT PNG_INCLUDE_PATH OR NOT PNG_LIBRARY)
 endif ()
 
 # glslang
-add_subdirectory(external/glslang)
+if (NOT EMSCRIPTEN)
+	add_subdirectory(external/glslang)
+endif ()
 
 # spirv-tools
 if (NOT EMSCRIPTEN)
 	add_subdirectory(external/spirv-tools)
-endif()
+endif ()
 
 include_directories(${PNG_INCLUDE_PATH})
 
@@ -157,11 +186,15 @@ add_subdirectory(framework/delibs/deutil)
 add_subdirectory(framework/delibs/decpp)
 
 # ExecServer
-add_subdirectory(execserver)
+if (NOT EMSCRIPTEN)
+	add_subdirectory(execserver)
+endif ()
 
 # Executor framework and tools
 if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/executor)
-	add_subdirectory(executor)
+	if (NOT EMSCRIPTEN)
+		add_subdirectory(executor)
+	endif ()
 endif ()
 
 # Test framework include directories
@@ -266,15 +299,21 @@ macro (add_data_file MODULE_NAME SRC_FILE DST_FILE)
 endmacro (add_data_file)
 
 add_subdirectory(framework)
-add_subdirectory(external/vulkancts/framework/vulkan)
+
+if (NOT EMSCRIPTEN)
+	add_subdirectory(external/vulkancts/framework/vulkan)
+endif ()
 
 if (DE_COMPILER_IS_MSC)
 	add_compile_options(/bigobj) # Required by glsBuiltinPrecisionTests.cpp
 endif ()
 
 add_subdirectory(modules)
-add_subdirectory(external/vulkancts/modules/vulkan)
-add_subdirectory(external/openglcts)
+
+if (NOT EMSCRIPTEN)
+	add_subdirectory(external/vulkancts/modules/vulkan)
+	add_subdirectory(external/openglcts)
+endif ()
 
 # Single-binary targets
 if (DE_OS_IS_ANDROID)

@@ -22,6 +22,8 @@
  * \brief CTS rendering configuration list utility.
  */ /*-------------------------------------------------------------------*/
 
+#ifdef DEQP_EGL
+
 #include "glcConfigListEGL.hpp"
 
 #include "deUniquePtr.hpp"
@@ -167,3 +169,5 @@ void getConfigListEGL(tcu::Platform& platform, glu::ApiType type, ConfigList& co
 }
 
 } // glcts
+
+#endif

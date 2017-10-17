@@ -83,8 +83,11 @@ set(GLCTS_COMMON_SRCS
 set(GLCTS_COMMON_LIBS
 	glutil
 	tcutil
-	eglutil
 	)
+
+if (EGL)
+	set(GLCTS_COMMON_LIBS "${GLCTS_COMMON_LIBS} eglutil")
+endif ()
 
 add_library(glcts-common STATIC ${GLCTS_COMMON_SRCS})
 target_link_libraries(glcts-common ${GLCTS_COMMON_LIBS})

@@ -32,8 +32,11 @@ set(DE_INTERNAL_TESTS_SRCS
 set(DE_INTERNAL_TESTS_LIBS
 	tcutil
 	referencerenderer
-	vkutil
 	)
+
+if (VULKAN)
+	set(DE_INTERNAL_TESTS_LIBS "${DE_INTERNAL_TESTS_LIBS} vkutil")
+endif ()
 
 add_deqp_module(de-internal-tests "${DE_INTERNAL_TESTS_SRCS}" "${DE_INTERNAL_TESTS_LIBS}" ditTestPackageEntry.cpp)
 
