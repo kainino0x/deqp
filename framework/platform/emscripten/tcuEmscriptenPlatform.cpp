@@ -29,7 +29,7 @@
 #include "eglwEnums.hpp"
 #include "deMemory.h"
 
-#include "emscripten.h"
+#include <emscripten.h>
 
 tcu::Platform* createPlatform (void)
 {

@@ -32,7 +32,7 @@
 #include <cstdio>
 
 #if __EMSCRIPTEN__
-#	include "emscripten.h"
+#	include <emscripten.h>
 
 void requestAnimationFrameCallback(void* arg) {
 	tcu::App* app = reinterpret_cast<tcu::App*>(arg);
