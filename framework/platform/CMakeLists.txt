@@ -143,15 +143,19 @@ endif ()
 add_library(tcutil-platform STATIC ${TCUTIL_PLATFORM_SRCS})
 
 # Add vkutil to the deps before tcutil so that it picks up the c++11 dependencies
-target_link_libraries(tcutil-platform vkutil)
+if (VULKAN)
+	target_link_libraries(tcutil-platform vkutil)
+endif ()
 
 target_link_libraries(tcutil-platform tcutil ${TCUTIL_PLATFORM_LIBS})
 
 # Always link to glutil as some platforms such as Win32 always support GL
 target_link_libraries(tcutil-platform glutil)
 
-# Always link to eglutil
-target_link_libraries(tcutil-platform eglutil)
+if (EGL)
+	# Always link to eglutil
+	target_link_libraries(tcutil-platform eglutil)
+endif ()
 
 # X11 libraries
 if (DEQP_USE_X11)
