@@ -290,14 +290,20 @@ macro (add_deqp_module MODULE_NAME SRCS LIBS ENTRY)
 	add_dependencies("${MODULE_NAME}${MODULE_LIB_TARGET_POSTFIX}" "${MODULE_NAME}${MODULE_DATA_TARGET_POSTFIX}")
 endmacro (add_deqp_module)
 
+# Adds a new LINK_FLAGS directive to the given target, while keeping the previous linker flags.
+macro (append_linker_flag MODULE_NAME FLAG)
+	get_property(link_flags TARGET ${MODULE_NAME} PROPERTY LINK_FLAGS)
+	set(link_flags "${link_flags} ${FLAG}")
+	set_target_properties(${MODULE_NAME} PROPERTIES LINK_FLAGS "${link_flags}")
+endmacro (append_linker_flag)
+
 # Macro for adding data dirs to module
 macro (add_data_dir MODULE_NAME SRC_DIR DST_DIR)
 	if (DE_OS_IS_WIN32 OR DE_OS_IS_UNIX OR DE_OS_IS_OSX OR DE_OS_IS_QNX)
 		add_custom_command(TARGET "${MODULE_NAME}${MODULE_DATA_TARGET_POSTFIX}" POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${DST_DIR})
 
 		if (EMSCRIPTEN)
-			set_target_properties(${MODULE_NAME} PROPERTIES
-				LINK_FLAGS "--preload-file ${CMAKE_CURRENT_BINARY_DIR}/${DST_DIR}@./${DST_DIR}")
+			append_linker_flag(${MODULE_NAME} "--preload-file ${CMAKE_CURRENT_BINARY_DIR}/${DST_DIR}@./${DST_DIR}")
 		endif ()
 
 	elseif (DE_OS_IS_ANDROID)
