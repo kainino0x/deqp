@@ -10,7 +10,7 @@ add_subdirectory(common)
 add_subdirectory(opengl)
 
 # EGL utilities
-if (EGL)
+if (DEQP_USE_EGL)
 	add_subdirectory(egl)
 endif ()
 

@@ -929,7 +929,7 @@ void FrameworkTests::init (void)
 	addChild(new ReferenceRendererTests	(m_testCtx));
 	addChild(createTextureFormatTests	(m_testCtx));
 	addChild(createAstcTests			(m_testCtx));
-#ifdef DEQP_VULKAN
+#ifdef DEQP_SUPPORT_VULKAN
 	addChild(createVulkanTests			(m_testCtx));
 #endif
 }

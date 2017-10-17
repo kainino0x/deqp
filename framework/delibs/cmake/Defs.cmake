@@ -47,7 +47,9 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELWITHASSERTS ${CMAKE_SHARED_LINKER_FLAGS_RELEASE
 
 # Os detection
 if (NOT DEFINED DE_OS)
-	if (WIN32)
+	if (EMSCRIPTEN)
+		set(DE_OS "DE_OS_UNIX")
+	elseif (WIN32)
 		set(DE_OS "DE_OS_WIN32")
 	elseif (APPLE)
 		set(DE_OS "DE_OS_OSX")
@@ -79,7 +81,7 @@ if (EMSCRIPTEN)
 	set(CMAKE_CXX_COMPILER_ID "Emscripten")
 
 	set(c_cxx_flags "-s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_WEBGL2=1 -s FULL_ES3=1")
-	set(c_cxx_flags_debug "-s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -g3")
+	set(c_cxx_flags_debug "-s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s WASM=0 -g3")
 	# List of useful flags:
 	#   -s WASM=1
 	#   -s USE_WEBGL2=1
