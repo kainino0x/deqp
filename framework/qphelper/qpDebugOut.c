@@ -169,7 +169,7 @@ static void exitProcess (void)
 #	include <signal.h>
 #endif
 
-#if EMSCRIPTEN
+#ifdef __EMSCRIPTEN__
 #	include <emscripten.h>
 #endif
 
@@ -181,7 +181,7 @@ static void exitProcess (void)
 	deSleep(5000);
 #endif
 
-#if EMSCRIPTEN
+#ifdef __EMSCRIPTEN__
 	emscripten_force_exit(-1);
 #endif
 

@@ -31,7 +31,7 @@
 
 #include <emscripten.h>
 
-#ifdef DEQP_EGL
+#ifdef DEQP_USE_EGL
 
 tcu::Platform* createPlatform (void)
 {

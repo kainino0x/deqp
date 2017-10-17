@@ -33,7 +33,7 @@ namespace tcu
 namespace emscripten
 {
 
-#ifdef DEQP_EGL
+#ifdef DEQP_USE_EGL
 
 class Platform : public tcu::Platform, private eglu::Platform, private glu::Platform
 {
