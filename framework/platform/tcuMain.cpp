@@ -31,6 +31,26 @@
 
 #include <cstdio>
 
+#ifdef __EMSCRIPTEN__
+#	include <emscripten.h>
+
+void requestAnimationFrameCallback(void* arg) {
+	tcu::App* app = reinterpret_cast<tcu::App*>(arg);
+	try
+	{
+		if (!app->iterate())
+		{
+			// Iteration is done. Return success.
+			emscripten_force_exit(0);
+		}
+	}
+	catch (const std::exception& e)
+	{
+		tcu::die("%s", e.what());
+	}
+}
+#endif
+
 // Implement this in your platform port.
 tcu::Platform* createPlatform (void);
 
@@ -49,12 +69,19 @@ int main (int argc, char** argv)
 		de::UniquePtr<tcu::Platform>	platform	(createPlatform());
 		de::UniquePtr<tcu::App>			app			(new tcu::App(*platform, archive, log, cmdLine));
 
+#ifdef __EMSCRIPTEN__
+		// Set the main loop (requestAnimationFrame) callback.
+		emscripten_set_main_loop_arg(requestAnimationFrameCallback, app.get(), 0, false);
+		// Exit this synchronous main function to let the callbacks run.
+		emscripten_exit_with_live_runtime();
+#else
 		// Main loop.
 		for (;;)
 		{
 			if (!app->iterate())
 				break;
 		}
+#endif
 	}
 	catch (const std::exception& e)
 	{

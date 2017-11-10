@@ -17,5 +17,7 @@ set(EGLWRAPPER_LIBS
 	${DEQP_EGL_LIBRARIES}
 	)
 
-add_library(eglwrapper STATIC ${EGLWRAPPER_SRCS})
-target_link_libraries(eglwrapper ${EGLWRAPPER_LIBS})
+if (DEQP_USE_EGL)
+	add_library(eglwrapper STATIC ${EGLWRAPPER_SRCS})
+	target_link_libraries(eglwrapper ${EGLWRAPPER_LIBS})
+endif ()

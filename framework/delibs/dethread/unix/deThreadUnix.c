@@ -158,7 +158,7 @@ void deYield (void)
 	sched_yield();
 }
 
-#if (DE_OS == DE_OS_UNIX) || (DE_OS == DE_OS_ANDROID)
+#if ((DE_OS == DE_OS_UNIX) || (DE_OS == DE_OS_ANDROID)) && !__EMSCRIPTEN__
 
 deUint32 deGetNumAvailableLogicalCores (void)
 {

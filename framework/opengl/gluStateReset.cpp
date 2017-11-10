@@ -144,9 +144,11 @@ void resetStateES (const RenderContext& renderCtx, const ContextInfo& ctxInfo)
 	// Texture state.
 	// \todo [2013-04-08 pyry] Reset all levels?
 	{
-		const float	borderColor[]		= { 0.0f, 0.0f, 0.0f, 0.0f };
 		int			numTexUnits			= 0;
+#ifndef __EMSCRIPTEN__
+		const float	borderColor[]		= { 0.0f, 0.0f, 0.0f, 0.0f };
 		const bool	supportsBorderClamp	= ctxInfo.isExtensionSupported("GL_EXT_texture_border_clamp") || contextSupports(type, ApiType::es(3,2));
+#endif
 
 		gl.getIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &numTexUnits);
 
@@ -156,6 +158,7 @@ void resetStateES (const RenderContext& renderCtx, const ContextInfo& ctxInfo)
 
 			// Reset 2D texture.
 			gl.bindTexture(GL_TEXTURE_2D, 0);
+#ifndef __EMSCRIPTEN__
 			gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, DE_NULL);
 			gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,		GL_NEAREST_MIPMAP_LINEAR);
 			gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,		GL_LINEAR);
@@ -181,9 +184,11 @@ void resetStateES (const RenderContext& renderCtx, const ContextInfo& ctxInfo)
 
 			if (supportsBorderClamp)
 				gl.texParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &borderColor[0]);
+#endif
 
 			// Reset cube map texture.
 			gl.bindTexture(GL_TEXTURE_CUBE_MAP, 0);
+#ifndef __EMSCRIPTEN__
 			gl.texImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, DE_NULL);
 			gl.texImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, DE_NULL);
 			gl.texImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, DE_NULL);
@@ -214,11 +219,13 @@ void resetStateES (const RenderContext& renderCtx, const ContextInfo& ctxInfo)
 
 			if (supportsBorderClamp)
 				gl.texParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, &borderColor[0]);
+#endif
 
 			if (contextSupports(type, ApiType::es(3,0)))
 			{
 				// Reset 2D array texture.
 				gl.bindTexture(GL_TEXTURE_2D_ARRAY, 0);
+#ifndef __EMSCRIPTEN__
 				gl.texImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 0, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, DE_NULL);
 				gl.texParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER,	GL_NEAREST_MIPMAP_LINEAR);
 				gl.texParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER,	GL_LINEAR);
@@ -237,15 +244,19 @@ void resetStateES (const RenderContext& renderCtx, const ContextInfo& ctxInfo)
 
 				if (supportsBorderClamp)
 					gl.texParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, &borderColor[0]);
+#endif
 			}
 
+#ifndef __EMSCRIPTEN__
 			if (contextSupports(type, ApiType::es(3,1)))
 				gl.texParameteri(GL_TEXTURE_2D_ARRAY, GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
+#endif
 
 			if (contextSupports(type, ApiType::es(3,0)))
 			{
 				// Reset 3D texture.
 				gl.bindTexture(GL_TEXTURE_3D, 0);
+#ifndef __EMSCRIPTEN__
 				gl.texImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 0, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, DE_NULL);
 				gl.texParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER,		GL_NEAREST_MIPMAP_LINEAR);
 				gl.texParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER,		GL_LINEAR);
@@ -265,38 +276,46 @@ void resetStateES (const RenderContext& renderCtx, const ContextInfo& ctxInfo)
 
 				if (supportsBorderClamp)
 					gl.texParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, &borderColor[0]);
+#endif
 			}
 
+#ifndef __EMSCRIPTEN__
 			if (contextSupports(type, ApiType::es(3,1)))
 				gl.texParameteri(GL_TEXTURE_3D, GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
+#endif
 
 			if (contextSupports(type, ApiType::es(3,1)))
 			{
 				// Reset multisample textures.
 				gl.bindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+#ifndef __EMSCRIPTEN__
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_SWIZZLE_R,	GL_RED);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_SWIZZLE_G,	GL_GREEN);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_SWIZZLE_B,	GL_BLUE);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_SWIZZLE_A,	GL_ALPHA);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_BASE_LEVEL,	0);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAX_LEVEL,	1000);
+#endif
 			}
 
 			if (ctxInfo.isExtensionSupported("GL_OES_texture_storage_multisample_2d_array"))
 			{
 				gl.bindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, 0);
+#ifndef __EMSCRIPTEN__
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, GL_TEXTURE_SWIZZLE_R,		GL_RED);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, GL_TEXTURE_SWIZZLE_G,		GL_GREEN);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, GL_TEXTURE_SWIZZLE_B,		GL_BLUE);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, GL_TEXTURE_SWIZZLE_A,		GL_ALPHA);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, GL_TEXTURE_BASE_LEVEL,	0);
 				gl.texParameteri(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, GL_TEXTURE_MAX_LEVEL,		1000);
+#endif
 			}
 
 			if (ctxInfo.isExtensionSupported("GL_EXT_texture_cube_map_array"))
 			{
 				// Reset cube array texture.
 				gl.bindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, 0);
+#ifndef __EMSCRIPTEN__
 				gl.texParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER,		GL_NEAREST_MIPMAP_LINEAR);
 				gl.texParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER,		GL_LINEAR);
 				gl.texParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S,			GL_REPEAT);
@@ -314,6 +333,7 @@ void resetStateES (const RenderContext& renderCtx, const ContextInfo& ctxInfo)
 
 				if (supportsBorderClamp)
 					gl.texParameterfv(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_BORDER_COLOR, &borderColor[0]);
+#endif
 			}
 		}
 

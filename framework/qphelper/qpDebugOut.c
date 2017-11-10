@@ -169,12 +169,20 @@ static void exitProcess (void)
 #	include <signal.h>
 #endif
 
+#ifdef __EMSCRIPTEN__
+#	include <emscripten.h>
+#endif
+
 static void exitProcess (void)
 {
 #if (DE_OS == DE_OS_IOS)
 	/* Since tests are in the same process as execserver, we want to give it
 	   a chance to stream complete log data before terminating. */
 	deSleep(5000);
+#endif
+
+#ifdef __EMSCRIPTEN__
+	emscripten_force_exit(-1);
 #endif
 
 #if defined(QP_USE_SIGNAL_HANDLER)

@@ -7,6 +7,21 @@ set(DEQP_TARGET "default" CACHE STRING "dEQP Target (default, android...)")
 
 project(dEQP-Core-${DEQP_TARGET})
 
+if (EMSCRIPTEN)
+	set(NOT_EMSCRIPTEN OFF)
+else ()
+	set(NOT_EMSCRIPTEN ON)
+endif ()
+
+option(DEQP_ENABLE_GLES2	"Build OpenGL ES 2.0 tests" ON)
+option(DEQP_ENABLE_GLES3	"Build OpenGL ES 3.0 tests" ON)
+option(DEQP_ENABLE_GLES31	"Build OpenGL ES 3.1 tests" ON)
+option(DEQP_ENABLE_VULKAN	"Build Vulkan tests" ${NOT_EMSCRIPTEN})
+option(DEQP_TEST_EGL		"Build EGL tests" ${NOT_EMSCRIPTEN})
+# TODO: Remove EGL dependency from Emscripten build.
+# Then, this can be changed to ${NOT_EMSCRIPTEN}.
+option(DEQP_USE_EGL			"Build with EGL support" ON)
+
 include(framework/delibs/cmake/Defs.cmake NO_POLICY_SCOPE)
 include(framework/delibs/cmake/CFlags.cmake)
 
@@ -15,8 +30,13 @@ add_definitions(-DDE_ASSERT_FAILURE_CALLBACK)
 # dEQP-specific configuration. Target file should override these.
 set(DEQP_TARGET_NAME		"UNKNOWN")		# Target name
 
+
+set(DEQP_SUPPORT_GLES2		${DEQP_ENABLE_GLES2})
 set(DEQP_GLES2_LIBRARIES	)				# GLESv2 libraries. If empty, run-time linking is used
+set(DEQP_SUPPORT_GLES3		${DEQP_ENABLE_GLES3})
 set(DEQP_GLES3_LIBRARIES	)				# GLESv3 libraries. If empty, run-time linking is used
+set(DEQP_SUPPORT_GLES31		${DEQP_ENABLE_GLES31})
+set(DEQP_SUPPORT_VULKAN		${DEQP_ENABLE_VULKAN})
 set(DEQP_EGL_LIBRARIES		)				# EGL libraries
 
 # Legacy APIs that don't use run-time loading
@@ -73,20 +93,30 @@ if (NOT PNG_INCLUDE_PATH OR NOT PNG_LIBRARY)
 endif ()
 
 # glslang
-add_subdirectory(external/glslang)
+if (DEQP_SUPPORT_VULKAN)
+	add_subdirectory(external/glslang)
+endif ()
 
 # spirv-tools
-add_subdirectory(external/spirv-tools)
+if (DEQP_SUPPORT_VULKAN)
+	add_subdirectory(external/spirv-tools)
+endif ()
 
 include_directories(${PNG_INCLUDE_PATH})
 
 message(STATUS "DEQP_TARGET_NAME        = ${DEQP_TARGET_NAME}")
 message(STATUS "DEQP_SUPPORT_GLES1      = ${DEQP_SUPPORT_GLES1}")
+message(STATUS "DEQP_SUPPORT_GLES2      = ${DEQP_SUPPORT_GLES2}")
+message(STATUS "DEQP_SUPPORT_GLES3      = ${DEQP_SUPPORT_GLES3}")
+message(STATUS "DEQP_SUPPORT_GLES31     = ${DEQP_SUPPORT_GLES31}")
+message(STATUS "DEQP_SUPPORT_VULKAN     = ${DEQP_SUPPORT_VULKAN}")
 message(STATUS "DEQP_GLES1_LIBRARIES    = ${DEQP_GLES1_LIBRARIES}")
 message(STATUS "DEQP_GLES2_LIBRARIES    = ${DEQP_GLES2_LIBRARIES}")
 message(STATUS "DEQP_GLES3_LIBRARIES    = ${DEQP_GLES3_LIBRARIES}")
 message(STATUS "DEQP_SUPPORT_VG         = ${DEQP_SUPPORT_VG}")
 message(STATUS "DEQP_VG_LIBRARIES       = ${DEQP_VG_LIBRARIES}")
+message(STATUS "DEQP_USE_EGL            = ${DEQP_USE_EGL}")
+message(STATUS "DEQP_TEST_EGL           = ${DEQP_TEST_EGL}")
 message(STATUS "DEQP_EGL_LIBRARIES      = ${DEQP_EGL_LIBRARIES}")
 message(STATUS "DEQP_PLATFORM_LIBRARIES = ${DEQP_PLATFORM_LIBRARIES}")
 
@@ -102,28 +132,54 @@ if (DEQP_SUPPORT_VG)
 endif ()
 
 # Entry points loaded on run-time?
-if (NOT DEFINED DEQP_GLES2_LIBRARIES)
-	add_definitions(-DDEQP_GLES2_RUNTIME_LOAD=1)
-endif ()
+if (NOT EMSCRIPTEN)
+	if (NOT DEFINED DEQP_GLES2_LIBRARIES)
+		add_definitions(-DDEQP_GLES2_RUNTIME_LOAD=1)
+	endif ()
 
-if (NOT DEFINED DEQP_GLES3_LIBRARIES)
-	add_definitions(-DDEQP_GLES3_RUNTIME_LOAD=1)
-endif ()
+	if (NOT DEFINED DEQP_GLES3_LIBRARIES)
+		add_definitions(-DDEQP_GLES3_RUNTIME_LOAD=1)
+	endif ()
 
-if (NOT DEFINED DEQP_EGL_LIBRARIES)
-	add_definitions(-DDEQP_EGL_RUNTIME_LOAD=1)
-endif ()
+	if (NOT DEFINED DEQP_EGL_LIBRARIES)
+		add_definitions(-DDEQP_EGL_RUNTIME_LOAD=1)
+	endif ()
 
-# OpenGL entry points are always loaded on run-time
-add_definitions(-DDEQP_OPENGL_RUNTIME_LOAD=1)
+	# OpenGL entry points are always loaded on run-time
+	add_definitions(-DDEQP_OPENGL_RUNTIME_LOAD=1)
+endif ()
 
 # Legacy APIs that don't support run-time loading
 if (DEQP_SUPPORT_GLES1 AND NOT DEFINED DEQP_GLES1_LIBRARIES)
 	message(FATAL_ERROR "Run-time loading of GLES1 is not supported (DEQP_GLES1_LIBRARIES is not set)")
 endif ()
 
+if (DEQP_SUPPORT_GLES2)
+	add_definitions(-DDEQP_SUPPORT_GLES2=1)
+endif ()
+
+if (DEQP_SUPPORT_GLES3)
+	add_definitions(-DDEQP_SUPPORT_GLES3=1)
+endif ()
+
+if (DEQP_SUPPORT_GLES31)
+	add_definitions(-DDEQP_SUPPORT_GLES31=1)
+endif ()
+
+if (DEQP_SUPPORT_VULKAN)
+	add_definitions(-DDEQP_SUPPORT_VULKAN=1)
+endif ()
+
 if (DEQP_SUPPORT_VG AND NOT DEFINED DEQP_VG_LIBRARIES)
 	message(FATAL_ERROR "Run-time loading of VG is not supported (DEQP_VG_LIBRARIES is not set)")
+endif ()
+
+if (DEQP_USE_EGL)
+	add_definitions(-DDEQP_USE_EGL=1)
+endif ()
+
+if (DEQP_TEST_EGL)
+	add_definitions(-DDEQP_TEST_EGL=1)
 endif ()
 
 if (DE_COMPILER_IS_MSC)
@@ -140,11 +196,15 @@ add_subdirectory(framework/delibs/deutil)
 add_subdirectory(framework/delibs/decpp)
 
 # ExecServer
-add_subdirectory(execserver)
+if (NOT EMSCRIPTEN)
+	add_subdirectory(execserver)
+endif ()
 
 # Executor framework and tools
 if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/executor)
-	add_subdirectory(executor)
+	if (NOT EMSCRIPTEN)
+		add_subdirectory(executor)
+	endif ()
 endif ()
 
 # Test framework include directories
@@ -214,10 +274,21 @@ macro (add_deqp_module MODULE_NAME SRCS LIBS ENTRY)
 	add_dependencies(${MODULE_NAME} ${MODULE_NAME}-data)
 endmacro (add_deqp_module)
 
+# Adds a new LINK_FLAGS directive to the given target, while keeping the previous linker flags.
+macro (append_linker_flag MODULE_NAME FLAG)
+	get_property(link_flags TARGET ${MODULE_NAME} PROPERTY LINK_FLAGS)
+	set(link_flags "${link_flags} ${FLAG}")
+	set_target_properties(${MODULE_NAME} PROPERTIES LINK_FLAGS "${link_flags}")
+endmacro (append_linker_flag)
+
 # Macro for adding data dirs to module
 macro (add_data_dir MODULE_NAME SRC_DIR DST_DIR)
 	if (DE_OS_IS_WIN32 OR DE_OS_IS_UNIX OR DE_OS_IS_OSX)
 		add_custom_command(TARGET ${MODULE_NAME}-data POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${DST_DIR})
+
+		if (EMSCRIPTEN)
+			append_linker_flag(${MODULE_NAME} "--preload-file ${CMAKE_CURRENT_BINARY_DIR}/${DST_DIR}@./${DST_DIR}")
+		endif ()
 
 	elseif (DE_OS_IS_ANDROID)
 		add_custom_command(TARGET ${MODULE_NAME}-data POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR} ${CMAKE_BINARY_DIR}/assets/${DST_DIR})
@@ -241,14 +312,20 @@ macro (add_data_file MODULE_NAME SRC_FILE DST_FILE)
 endmacro (add_data_file)
 
 add_subdirectory(framework)
-add_subdirectory(external/vulkancts/framework/vulkan)
+
+if (DEQP_SUPPORT_VULKAN)
+	add_subdirectory(external/vulkancts/framework/vulkan)
+endif ()
 
 if (DE_COMPILER_IS_MSC)
 	add_compile_options(/bigobj) # Required by glsBuiltinPrecisionTests.cpp
 endif ()
 
 add_subdirectory(modules)
-add_subdirectory(external/vulkancts/modules/vulkan)
+
+if (DEQP_SUPPORT_VULKAN)
+	add_subdirectory(external/vulkancts/modules/vulkan)
+endif ()
 
 # Single-binary targets
 if (DE_OS_IS_ANDROID)

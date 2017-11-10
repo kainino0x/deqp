@@ -47,7 +47,9 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELWITHASSERTS ${CMAKE_SHARED_LINKER_FLAGS_RELEASE
 
 # Os detection
 if (NOT DEFINED DE_OS)
-	if (WIN32)
+	if (EMSCRIPTEN)
+		set(DE_OS "DE_OS_UNIX")
+	elseif (WIN32)
 		set(DE_OS "DE_OS_WIN32")
 	elseif (APPLE)
 		set(DE_OS "DE_OS_OSX")
@@ -74,6 +76,34 @@ elseif (NOT ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang") EQUAL ("${CMAKE_CXX_COMPI
 	message(FATAL_ERROR "CMake C and CXX compilers do not match. Both or neither must be Clang.")
 endif ()
 
+if (EMSCRIPTEN)
+	set(CMAKE_C_COMPILER_ID "Emscripten")
+	set(CMAKE_CXX_COMPILER_ID "Emscripten")
+
+	set(c_cxx_flags "-s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_WEBGL2=1 -s FULL_ES3=1")
+	set(c_cxx_flags_debug "-s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s WASM=0 -g3")
+	# List of useful flags:
+	#   -s WASM=1
+	#   -s USE_WEBGL2=1
+	#   -s FULL_ES3=1
+	#   -s ASSERTIONS=1
+	#   -s DISABLE_EXCEPTION_CATCHING=0
+	#   -s DEMANGLE_SUPPORT=1
+	#   -g3
+	#   -g4  # source maps
+
+	set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${c_cxx_flags}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${c_cxx_flags}")
+	set(CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS_DEBUG}   ${c_cxx_flags_debug}")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${c_cxx_flags_debug}")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELWITHDEBINFO}   ${c_cxx_flags_debug}")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${c_cxx_flags_debug}")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --emrun")
+
+	add_definitions(-D_XOPEN_SOURCE=600)
+	set(CMAKE_EXECUTABLE_SUFFIX ".html")
+endif ()
+
 # Compiler detection
 if (NOT DEFINED DE_COMPILER)
 	# \note " x" postfix is to work around bug in CMake that causes
@@ -82,7 +112,8 @@ if (NOT DEFINED DE_COMPILER)
 		set(DE_COMPILER "DE_COMPILER_MSC")
 	elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "GNU")
 		set(DE_COMPILER "DE_COMPILER_GCC")
-	elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+	elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR
+		"${CMAKE_C_COMPILER_ID}" MATCHES "Emscripten")
 		set(DE_COMPILER "DE_COMPILER_CLANG")
 
 	# Guess based on OS
