@@ -218,8 +218,7 @@ void TestSessionExecutor::leaveTestCase (TestCase* testCase)
 	catch (const tcu::Exception& e)
 	{
 		log << e << TestLog::Message << "Error in test case deinit, test program will terminate." << TestLog::EndMessage;
-		// XXX: an error in the first deinit prevents tests from continuing, so ignore that and continue anyway
-		//m_testCtx.setTerminateAfter(true);
+		m_testCtx.setTerminateAfter(true);
 	}
 
 	{

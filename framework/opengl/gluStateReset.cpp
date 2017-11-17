@@ -144,9 +144,11 @@ void resetStateES (const RenderContext& renderCtx, const ContextInfo& ctxInfo)
 	// Texture state.
 	// \todo [2013-04-08 pyry] Reset all levels?
 	{
-		int			numTexUnits			= 0;
 #ifndef __EMSCRIPTEN__
 		const float	borderColor[]		= { 0.0f, 0.0f, 0.0f, 0.0f };
+#endif
+		int			numTexUnits			= 0;
+#ifndef __EMSCRIPTEN__
 		const bool	supportsBorderClamp	= ctxInfo.isExtensionSupported("GL_EXT_texture_border_clamp") || contextSupports(type, ApiType::es(3,2));
 #endif
 

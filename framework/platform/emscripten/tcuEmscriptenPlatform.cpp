@@ -21,6 +21,9 @@
  * \brief Emscripten platform.
  *//*--------------------------------------------------------------------*/
 
+// TODO(kainino@chromium.org): It should be possible to significantly reduce
+//   this file. We shouldn't actually need to do anything with EGL, for example.
+
 #include "tcuEmscriptenPlatform.hpp"
 #include "egluNativeDisplay.hpp"
 #include "egluNativeWindow.hpp"
@@ -160,4 +163,4 @@ Platform::~Platform (void)
 } // emscripten
 } // tcu
 
-#endif
+#endif // DEQP_USE_EGL

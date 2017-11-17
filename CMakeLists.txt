@@ -18,7 +18,7 @@ option(DEQP_ENABLE_GLES3	"Build OpenGL ES 3.0 tests" ON)
 option(DEQP_ENABLE_GLES31	"Build OpenGL ES 3.1 tests" ON)
 option(DEQP_ENABLE_VULKAN	"Build Vulkan tests" ${NOT_EMSCRIPTEN})
 option(DEQP_TEST_EGL		"Build EGL tests" ${NOT_EMSCRIPTEN})
-# TODO: Remove EGL dependency from Emscripten build.
+# TODO(kainino@chromium.org): Remove EGL dependency from Emscripten build.
 # Then, this can be changed to ${NOT_EMSCRIPTEN}.
 option(DEQP_USE_EGL			"Build with EGL support" ON)
 
