@@ -98,10 +98,8 @@ if (EMSCRIPTEN)
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${c_cxx_flags_debug}")
 	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELWITHDEBINFO}   ${c_cxx_flags_debug}")
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${c_cxx_flags_debug}")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --emrun")
 
 	add_definitions(-D_XOPEN_SOURCE=600)
-	set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif ()
 
 # Compiler detection

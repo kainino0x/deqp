@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>dEQP test suite</title>
+  </head>
+  <body>
+    <div>
+      <input disabled type="text" size=100 id="args" name="args" value="--deqp-case=dEQP-GLES2.info.*"></input>
+      <input type="button" id="clearbtn" value="Clear"></input>
+      <input disabled type="button" id="btn" value="Loading..."></input>
+    </div>
+    <textarea readonly class="emscripten" id="stdout" rows="28" style="font-family: monospace; width: 100%;"></textarea>
+    <textarea readonly class="emscripten" id="stderr" rows="28" style="font-family: monospace; width: 100%; background: #fee;"></textarea>
+    <canvas class="emscripten" id="canvas"></canvas>
+    <script>
+      var load_t0 = performance.now();
+    </script>
+    <script type='text/javascript'>
+      var stdout = document.getElementById('stdout');
+      var stderr = document.getElementById('stderr');
+      function log(target, text) {
+        target.value += text + "\n";
+        target.scrollTop = target.scrollHeight; // automatically scroll text to bottom of the text box
+      }
+      var Module = {
+        print: function(text) {
+          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+          console.log(text);
+          log(stdout, text);
+        },
+        printErr: function(text) {
+          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+          console.error(text);
+          log(stderr, text);
+        },
+        canvas: document.getElementById('canvas')
+      };
+    </script>
+    <script src="deqp.js"></script>
+    <script>
+      var deqp = null;
+      {
+        let args = document.getElementById("args");
+        let btn = document.getElementById("btn");
+        let clearbtn = document.getElementById("clearbtn");
+        clearbtn.onclick = () => {
+          stdout.value = '';
+          stderr.value = '';
+        };
+
+        let moduleLoad = new Promise(resolve => {
+          function waitForLoad() {
+            if (Module.dEQPJS) {
+              console.log("Loaded: ~" + (performance.now() - load_t0) + " ms");
+              resolve();
+            } else {
+              setTimeout(waitForLoad, 100);
+            }
+          }
+
+          waitForLoad();
+        });
+
+        moduleLoad.then(() => {
+          args.disabled = false;
+          btn.disabled = false;
+          btn.value = "Run";
+          btn.onclick = () => {
+            if (deqp) {
+              stop()
+            } else {
+              start(args.value);
+            }
+            setTimeout(iterate, 0);
+          };
+        });
+      }
+
+      function start(args) {
+        stop();
+        deqp = new Module.dEQPJS(args);
+        btn.value = "Stop";
+        clearbtn.disabled = true;
+      }
+      function stop() {
+        if (deqp) {
+          deqp.delete();
+          deqp = null;
+          btn.value = "Run";
+          clearbtn.disabled = false;
+        }
+      }
+      function iterate() {
+        if (deqp && deqp.iterate()) {
+          setTimeout(iterate, 0);
+        } else {
+          stop();
+        }
+      }
+    </script>
+  </body>
+</html>

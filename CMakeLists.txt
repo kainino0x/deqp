@@ -248,9 +248,16 @@ macro (target_copy_files target dep_name files)
 	endif ()
 endmacro (target_copy_files)
 
+# Adds a new LINK_FLAGS directive to the given target, while keeping the previous linker flags.
+macro (append_linker_flag MODULE_NAME FLAG)
+	get_property(link_flags TARGET ${MODULE_NAME} PROPERTY LINK_FLAGS)
+	set(link_flags "${link_flags} ${FLAG}")
+	set_target_properties(${MODULE_NAME} PROPERTIES LINK_FLAGS "${link_flags}")
+endmacro (append_linker_flag)
+
 # Macro for adding dEQP module
 macro (add_deqp_module MODULE_NAME SRCS LIBS ENTRY)
-	if (DE_OS_IS_ANDROID OR DE_OS_IS_IOS)
+	if (DE_OS_IS_ANDROID OR DE_OS_IS_IOS OR EMSCRIPTEN)
 		# Single-binary targets
 		add_library(${MODULE_NAME} STATIC ${SRCS})
 		target_link_libraries(${MODULE_NAME} ${LIBS})
@@ -273,13 +280,6 @@ macro (add_deqp_module MODULE_NAME SRCS LIBS ENTRY)
 	add_custom_target(${MODULE_NAME}-data)
 	add_dependencies(${MODULE_NAME} ${MODULE_NAME}-data)
 endmacro (add_deqp_module)
-
-# Adds a new LINK_FLAGS directive to the given target, while keeping the previous linker flags.
-macro (append_linker_flag MODULE_NAME FLAG)
-	get_property(link_flags TARGET ${MODULE_NAME} PROPERTY LINK_FLAGS)
-	set(link_flags "${link_flags} ${FLAG}")
-	set_target_properties(${MODULE_NAME} PROPERTIES LINK_FLAGS "${link_flags}")
-endmacro (append_linker_flag)
 
 # Macro for adding data dirs to module
 macro (add_data_dir MODULE_NAME SRC_DIR DST_DIR)
@@ -357,4 +357,8 @@ elseif (DE_OS_IS_IOS)
 	target_link_libraries(deqp tcutil-platform xscore ${DEQP_MODULE_LIBRARIES})
 	set_target_properties(deqp PROPERTIES XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
 	set_target_properties(deqp PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer: ${DEQP_IOS_CODE_SIGN_IDENTITY}")
+endif ()
+
+if (EMSCRIPTEN)
+	add_subdirectory(emscripten)
 endif ()

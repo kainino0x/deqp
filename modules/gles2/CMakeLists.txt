@@ -43,7 +43,3 @@ add_deqp_module(deqp-gles2 "${DEQP_GLES2_SRCS}" "${DEQP_GLES2_LIBS}" tes2TestPac
 # Data directories
 add_data_dir(deqp-gles2 ../../data/gles2/data		gles2/data)
 add_data_dir(deqp-gles2 ../../data/gles2/shaders	gles2/shaders)
-
-if (EMSCRIPTEN)
-	append_linker_flag(deqp-gles2 "--shell-file ${CMAKE_SOURCE_DIR}/emscripten/shell.html")
-endif()
