@@ -42,9 +42,9 @@ namespace {
 		explicit dEQPJS(const std::string& args)
 			: m_archive(".")
 			, m_platform(createPlatform())
-			, m_cmdLine("dummy_arg_0 " + args)
-			, m_log("/dev/stdout") {
-			m_app = std::unique_ptr<tcu::App>(new tcu::App(*m_platform, m_archive, m_log, m_cmdLine));
+			, m_cmdLine("dummy_arg_0 " + args) {
+			m_log = std::unique_ptr<tcu::TestLog>(new tcu::TestLog(m_cmdLine.getLogFileName(), m_cmdLine.getLogFlags()));
+			m_app = std::unique_ptr<tcu::App>(new tcu::App(*m_platform, m_archive, *m_log, m_cmdLine));
 		}
 
 		bool iterate() {
@@ -55,7 +55,7 @@ namespace {
 		tcu::DirArchive m_archive;
 		std::unique_ptr<tcu::Platform> m_platform;
 		tcu::CommandLine m_cmdLine;
-		tcu::TestLog m_log;
+		std::unique_ptr<tcu::TestLog> m_log;
 		std::unique_ptr<tcu::App> m_app;
 	};
 }

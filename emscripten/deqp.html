@@ -4,36 +4,93 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>dEQP test suite</title>
+    <style>
+      canvas {
+        border: 1px solid black;
+      }
+    </style>
   </head>
   <body>
     <div>
       <input disabled type="text" size=100 id="args" name="args" value="--deqp-case=dEQP-GLES2.info.*"></input>
-      <input type="button" id="clearbtn" value="Clear"></input>
       <input disabled type="button" id="btn" value="Loading..."></input>
     </div>
-    <textarea readonly class="emscripten" id="stdout" rows="28" style="font-family: monospace; width: 100%;"></textarea>
-    <textarea readonly class="emscripten" id="stderr" rows="28" style="font-family: monospace; width: 100%; background: #fee;"></textarea>
-    <canvas class="emscripten" id="canvas"></canvas>
+    <div>
+      <input type="button" id="viewoutput" value="View 10000c"></input>
+      <input type="button" id="dloutput" value="Download"></input>
+      Output
+    </div>
+    <div>
+      <input type="button" id="viewresults" value="View 10000c"></input>
+      <input type="button" id="dlresults" value="Download"></input>
+      TestResults.qpa
+    </div>
+    <div>
+      <input type="button" id="clearview" value="Clear"></input>
+    </div>
+    <textarea id="output" rows=28 style="width: 100%; font-family: monospace" readonly></textarea>
+    <canvas class="emscripten" id="canvas" width=400 height=300></canvas>
     <script>
       var load_t0 = performance.now();
     </script>
     <script type='text/javascript'>
-      var stdout = document.getElementById('stdout');
-      var stderr = document.getElementById('stderr');
-      function log(target, text) {
-        target.value += text + "\n";
-        target.scrollTop = target.scrollHeight; // automatically scroll text to bottom of the text box
+      var output = document.getElementById("output");
+      var stdoutValue = "";
+
+      function downloadString(text, fileType, fileName) {
+        var blob = new Blob([text], { type: fileType });
+
+        var a = document.createElement('a');
+        a.download = fileName;
+        a.href = URL.createObjectURL(blob);
+        a.dataset.downloadurl = [fileType, a.download, a.href].join(':');
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(a.href); }, 1500);
       }
+
+      function tail(text, len) {
+        return text.substring(text.length - len);
+      }
+
+      document.getElementById("dloutput").onclick = () => {
+        downloadString(stdoutValue, "text/plain", "stdout.txt");
+      };
+      document.getElementById("dlresults").onclick = () => {
+        downloadString(getResult(), "text/plain", "TestResults.qpa");
+      };
+      document.getElementById("viewoutput").onclick = () => {
+        output.value = tail(stdoutValue, 10000);
+        output.scrollTop = output.scrollHeight;
+      };
+      document.getElementById("viewresults").onclick = () => {
+        output.value = tail(getResult(), 10000);
+        output.scrollTop = output.scrollHeight;
+      };
+      document.getElementById("clearview").onclick = () => {
+        output.value = "";
+      }
+
+      function getResult() {
+        return FS.readFile("/TestResults.qpa", {encoding: "utf8"})
+      }
+
+      function log(text) {
+        stdoutValue += text + "\n";
+      }
+
       var Module = {
         print: function(text) {
           if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
           console.log(text);
-          log(stdout, text);
+          stdoutValue += text + "\n";
         },
         printErr: function(text) {
           if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
           console.error(text);
-          log(stderr, text);
+          stdoutValue += text + "\n";
         },
         canvas: document.getElementById('canvas')
       };
@@ -44,11 +101,6 @@
       {
         let args = document.getElementById("args");
         let btn = document.getElementById("btn");
-        let clearbtn = document.getElementById("clearbtn");
-        clearbtn.onclick = () => {
-          stdout.value = '';
-          stderr.value = '';
-        };
 
         let moduleLoad = new Promise(resolve => {
           function waitForLoad() {
@@ -82,14 +134,12 @@
         stop();
         deqp = new Module.dEQPJS(args);
         btn.value = "Stop";
-        clearbtn.disabled = true;
       }
       function stop() {
         if (deqp) {
           deqp.delete();
           deqp = null;
           btn.value = "Run";
-          clearbtn.disabled = false;
         }
       }
       function iterate() {

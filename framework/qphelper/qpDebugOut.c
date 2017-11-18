@@ -106,11 +106,7 @@ static FILE* getOutFile (MessageType type)
 	if (type == MESSAGETYPE_ERROR)
 		return stderr;
 	else
-#ifdef __EMSCRIPTEN__
-		return stderr;
-#else
 		return stdout;
-#endif
 }
 
 void printRaw (MessageType type, const char* message)
