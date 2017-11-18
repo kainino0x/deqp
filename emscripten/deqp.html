@@ -12,7 +12,7 @@
   </head>
   <body>
     <div>
-      <input disabled type="text" size=100 id="args" name="args" value="--deqp-case=dEQP-GLES2.info.*"></input>
+      <input type="text" size=100 id="args" name="args" value="--deqp-case=dEQP-GLES2.info.*"></input>
       <input disabled type="button" id="btn" value="Loading..."></input>
     </div>
     <div>
@@ -116,7 +116,6 @@
         });
 
         moduleLoad.then(() => {
-          args.disabled = false;
           btn.disabled = false;
           btn.value = "Run";
           btn.onclick = () => {
@@ -134,6 +133,7 @@
         stop();
         deqp = new Module.dEQPJS(args);
         btn.value = "Stop";
+        stdoutValue = "";
       }
       function stop() {
         if (deqp) {
