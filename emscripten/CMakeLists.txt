@@ -11,10 +11,3 @@ add_data_dir(deqp.js ../data/gles2/data gles2/data)
 add_data_dir(deqp.js ../data/gles2/shaders gles2/shaders)
 add_data_dir(deqp.js ../data/gles3/data gles3/data)
 add_data_dir(deqp.js ../data/gles3/shaders gles3/shaders)
-
-add_custom_command(
-	TARGET deqp.js
-	POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy
-		${CMAKE_CURRENT_SOURCE_DIR}/deqp.html
-		${CMAKE_CURRENT_BINARY_DIR}/deqp.html)
