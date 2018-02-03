@@ -38,32 +38,6 @@ tcu::Platform* createPlatform (void);
 using namespace emscripten;
 
 namespace {
-	class TestLog : public tcu::TestLog
-	{
-	public:
-		TestLog(const char* fileName, deUint32 flags)
-			: tcu::TestLog(fileName, flags)
-		{
-		}
-
-		void startCase(const char* testCasePath, qpTestCaseType testCaseType)
-		{
-			tcu::TestLog::startCase(testCasePath, testCaseType);
-			lastTestCasePath = testCasePath;
-		}
-
-		void endCase(qpTestResult result, const char* description)
-		{
-			tcu::TestLog::endCase(result, description);
-			lastTestResult = result;
-			lastTestResultDesc = description;
-		}
-
-		std::string lastTestCasePath;
-		qpTestResult lastTestResult = QP_TEST_RESULT_PASS;
-		std::string lastTestResultDesc;
-	};
-
 	class dEQPJS
 	{
 	public:
@@ -72,7 +46,7 @@ namespace {
 			, m_platform(createPlatform())
 			, m_cmdLine("dummy_arg_0 " + args)
 		{
-			m_log = std::unique_ptr<TestLog>(new TestLog(m_cmdLine.getLogFileName(), m_cmdLine.getLogFlags()));
+			m_log = std::unique_ptr<tcu::TestLog>(new tcu::TestLog(m_cmdLine.getLogFileName(), m_cmdLine.getLogFlags()));
 			m_app = std::unique_ptr<tcu::App>(new tcu::App(*m_platform, m_archive, *m_log, m_cmdLine));
 		}
 
@@ -98,7 +72,7 @@ namespace {
 		tcu::DirArchive m_archive;
 		std::unique_ptr<tcu::Platform> m_platform;
 		tcu::CommandLine m_cmdLine;
-		std::unique_ptr<TestLog> m_log;
+		std::unique_ptr<tcu::TestLog> m_log;
 		std::unique_ptr<tcu::App> m_app;
 	};
 }

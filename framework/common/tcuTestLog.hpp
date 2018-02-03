@@ -157,8 +157,8 @@ public:
 	void				writeEglConfig			(const qpEglConfigInfo* config);
 	void				endEglConfigSet			(void);
 
-	virtual void		startCase				(const char* testCasePath, qpTestCaseType testCaseType);
-	virtual void		endCase					(qpTestResult result, const char* description);
+	void				startCase				(const char* testCasePath, qpTestCaseType testCaseType);
+	void				endCase					(qpTestResult result, const char* description);
 	void				terminateCase			(qpTestResult result);
 
 	void				startSampleList			(const std::string& name, const std::string& description);
@@ -170,6 +170,11 @@ public:
 	void				writeSampleValue		(deInt64 value);
 	void				endSample				(void);
 	void				endSampleList			(void);
+
+	std::string lastStartedTestCasePath;
+	std::string lastTestCasePath;
+	qpTestResult lastTestResult = QP_TEST_RESULT_FAIL;
+	std::string lastTestResultDesc;
 
 private:
 						TestLog					(const TestLog& other); // Not allowed!

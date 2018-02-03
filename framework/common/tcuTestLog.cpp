@@ -443,12 +443,16 @@ void TestLog::endEglConfigSet (void)
 
 void TestLog::startCase (const char* testCasePath, qpTestCaseType testCaseType)
 {
+	lastStartedTestCasePath = testCasePath;
 	if (qpTestLog_startCase(m_log, testCasePath, testCaseType) == DE_FALSE)
 		throw LogWriteFailedError();
 }
 
 void TestLog::endCase (qpTestResult result, const char* description)
 {
+	lastTestCasePath = lastStartedTestCasePath;
+	lastTestResult = result;
+	lastTestResultDesc = description;
 	if (qpTestLog_endCase(m_log, result, description) == DE_FALSE)
 		throw LogWriteFailedError();
 }

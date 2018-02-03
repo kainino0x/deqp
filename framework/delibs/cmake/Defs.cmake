@@ -80,7 +80,7 @@ if (EMSCRIPTEN)
 	set(CMAKE_C_COMPILER_ID "Emscripten")
 	set(CMAKE_CXX_COMPILER_ID "Emscripten")
 
-	set(c_cxx_flags "-s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_WEBGL2=1")
+	set(c_cxx_flags "-s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_WEBGL2=1 -s TOTAL_MEMORY=268435456")
 	set(c_cxx_flags_debug "-s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s WASM=0 -g3")
 	# Partial list of useful flags:
 	#   -s WASM=1
@@ -90,9 +90,10 @@ if (EMSCRIPTEN)
 	#   -s ASSERTIONS=1
 	#   -s DISABLE_EXCEPTION_CATCHING=0
 	#   -s ALLOW_MEMORY_GROWTH=1  # doesn't seem to do anything
+	#   -s TOTAL_MEMORY=268435456  # 256MB
 	#   -s DEMANGLE_SUPPORT=1
 	#   -g3
-	#   -g4  # source maps
+	#   -g4  # source maps (asm.js only)
 
 	set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${c_cxx_flags}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${c_cxx_flags}")
