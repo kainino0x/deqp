@@ -2313,10 +2313,13 @@ private:
 template<typename Object>
 tcu::TestStatus multithreadedCreateSharedResourcesTest (Context& context, typename Object::Parameters params)
 {
+	TestLog&							log			= context.getTestContext().getLog();
 	const deUint32						numThreads	= getDefaultTestThreadCount();
 	const Environment					env			(context, numThreads);
 	const typename Object::Resources	res			(env, params);
 	ThreadGroup							threads;
+
+	log << TestLog::Message << "numThreads = " << numThreads << TestLog::EndMessage;
 
 	for (deUint32 ndx = 0; ndx < numThreads; ndx++)
 		threads.add(MovePtr<ThreadGroupThread>(new CreateThread<Object>(env, res, params)));
@@ -2329,10 +2332,13 @@ tcu::TestStatus multithreadedCreatePerThreadResourcesTest (Context& context, typ
 {
 	typedef SharedPtr<typename Object::Resources>	ResPtr;
 
+	TestLog&			log			= context.getTestContext().getLog();
 	const deUint32		numThreads	= getDefaultTestThreadCount();
 	const Environment	env			(context, 1u);
 	vector<ResPtr>		resources	(numThreads);
 	ThreadGroup			threads;
+
+	log << TestLog::Message << "numThreads = " << numThreads << TestLog::EndMessage;
 
 	for (deUint32 ndx = 0; ndx < numThreads; ndx++)
 	{
@@ -2371,12 +2377,15 @@ tcu::TestStatus multithreadedCreatePerThreadDeviceTest (Context& context, typena
 	typedef SharedPtr<EnvClone>						EnvPtr;
 	typedef SharedPtr<typename Object::Resources>	ResPtr;
 
+	TestLog&					log				= context.getTestContext().getLog();
 	const deUint32				numThreads		= getDefaultTestThreadCount();
 	const Device::Parameters	deviceParams	= getDefaulDeviceParameters(context);
 	const Environment			sharedEnv		(context, numThreads);			// For creating Device's
 	vector<EnvPtr>				perThreadEnv	(numThreads);
 	vector<ResPtr>				resources		(numThreads);
 	ThreadGroup					threads;
+
+	log << TestLog::Message << "numThreads = " << numThreads << TestLog::EndMessage;
 
 	for (deUint32 ndx = 0; ndx < numThreads; ndx++)
 	{
@@ -2732,12 +2741,12 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 
 	const DescriptorSetLayout::Parameters	singleUboDescLayout	= DescriptorSetLayout::Parameters::single(0u, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1u, VK_SHADER_STAGE_VERTEX_BIT);
 
-	static NamedParameters<Instance>				s_instanceCases[]			=
+	static const NamedParameters<Instance>					s_instanceCases[]				=
 	{
 		{ "instance",					Instance::Parameters() },
 	};
 	// \note Device index may change - must not be static
-	const NamedParameters<Device>					s_deviceCases[]				=
+	const NamedParameters<Device>				s_deviceCases[]					=
 	{
 		{ "device",						Device::Parameters(testCtx.getCommandLine().getVKDeviceId()-1u, VK_QUEUE_GRAPHICS_BIT)	},
 	};
@@ -2848,7 +2857,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 		{ "command_buffer_secondary",	CommandBuffer::Parameters(CommandPool::Parameters((VkCommandPoolCreateFlags)0u), VK_COMMAND_BUFFER_LEVEL_SECONDARY)	}
 	};
 
-	static const CaseDescriptions	s_createSingleGroup	=
+	const CaseDescriptions	s_createSingleGroup	=
 	{
 		CASE_DESC(createSingleTest	<Instance>,					s_instanceCases),
 		CASE_DESC(createSingleTest	<Device>,					s_deviceCases),
@@ -2877,7 +2886,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 	};
 	objectMgmtTests->addChild(createGroup(testCtx, "single", "Create single object", s_createSingleGroup));
 
-	static const CaseDescriptions	s_createMultipleUniqueResourcesGroup	=
+	const CaseDescriptions	s_createMultipleUniqueResourcesGroup	=
 	{
 		CASE_DESC(createMultipleUniqueResourcesTest	<Instance>,					s_instanceCases),
 		CASE_DESC(createMultipleUniqueResourcesTest	<Device>,					s_deviceCases),
@@ -2906,7 +2915,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 	};
 	objectMgmtTests->addChild(createGroup(testCtx, "multiple_unique_resources", "Multiple objects with per-object unique resources", s_createMultipleUniqueResourcesGroup));
 
-	static const CaseDescriptions	s_createMultipleSharedResourcesGroup	=
+	const CaseDescriptions	s_createMultipleSharedResourcesGroup	=
 	{
 		EMPTY_CASE_DESC(Instance), // No resources used
 		CASE_DESC(createMultipleSharedResourcesTest	<Device>,					s_deviceCases),
@@ -2935,7 +2944,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 	};
 	objectMgmtTests->addChild(createGroup(testCtx, "multiple_shared_resources", "Multiple objects with shared resources", s_createMultipleSharedResourcesGroup));
 
-	static const CaseDescriptions	s_createMaxConcurrentGroup	=
+	const CaseDescriptions	s_createMaxConcurrentGroup	=
 	{
 		CASE_DESC(createMaxConcurrentTest	<Instance>,					s_instanceCases),
 		CASE_DESC(createMaxConcurrentTest	<Device>,					s_deviceCases),
@@ -2964,7 +2973,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 	};
 	objectMgmtTests->addChild(createGroup(testCtx, "max_concurrent", "Maximum number of concurrently live objects", s_createMaxConcurrentGroup));
 
-	static const CaseDescriptions	s_multithreadedCreatePerThreadDeviceGroup	=
+	const CaseDescriptions	s_multithreadedCreatePerThreadDeviceGroup	=
 	{
 		EMPTY_CASE_DESC(Instance),	// Does not make sense
 		EMPTY_CASE_DESC(Device),	// Does not make sense
@@ -2993,7 +3002,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 	};
 	objectMgmtTests->addChild(createGroup(testCtx, "multithreaded_per_thread_device", "Multithreaded object construction with per-thread device ", s_multithreadedCreatePerThreadDeviceGroup));
 
-	static const CaseDescriptions	s_multithreadedCreatePerThreadResourcesGroup	=
+	const CaseDescriptions	s_multithreadedCreatePerThreadResourcesGroup	=
 	{
 		CASE_DESC(multithreadedCreatePerThreadResourcesTest	<Instance>,					s_instanceCases),
 		CASE_DESC(multithreadedCreatePerThreadResourcesTest	<Device>,					s_deviceCases),
@@ -3022,7 +3031,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 	};
 	objectMgmtTests->addChild(createGroup(testCtx, "multithreaded_per_thread_resources", "Multithreaded object construction with per-thread resources", s_multithreadedCreatePerThreadResourcesGroup));
 
-	static const CaseDescriptions	s_multithreadedCreateSharedResourcesGroup	=
+	const CaseDescriptions	s_multithreadedCreateSharedResourcesGroup	=
 	{
 		EMPTY_CASE_DESC(Instance),
 		CASE_DESC(multithreadedCreateSharedResourcesTest	<Device>,					s_deviceCases),
@@ -3051,7 +3060,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 	};
 	objectMgmtTests->addChild(createGroup(testCtx, "multithreaded_shared_resources", "Multithreaded object construction with shared resources", s_multithreadedCreateSharedResourcesGroup));
 
-	static const CaseDescriptions	s_createSingleAllocCallbacksGroup	=
+	const CaseDescriptions	s_createSingleAllocCallbacksGroup	=
 	{
 		CASE_DESC(createSingleAllocCallbacksTest	<Instance>,					s_instanceCases),
 		CASE_DESC(createSingleAllocCallbacksTest	<Device>,					s_deviceCases),
@@ -3081,7 +3090,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 	objectMgmtTests->addChild(createGroup(testCtx, "single_alloc_callbacks", "Create single object", s_createSingleAllocCallbacksGroup));
 
 	// \note Skip pooled objects in this test group. They are properly handled by the "multiple" group farther down below.
-	static const CaseDescriptions	s_allocCallbackFailGroup	=
+	const CaseDescriptions	s_allocCallbackFailGroup	=
 	{
 		CASE_DESC(allocCallbackFailTest	<Instance>,					s_instanceCases),
 		CASE_DESC(allocCallbackFailTest	<Device>,					s_deviceCases),
@@ -3111,7 +3120,7 @@ tcu::TestCaseGroup* createObjectManagementTests (tcu::TestContext& testCtx)
 	objectMgmtTests->addChild(createGroup(testCtx, "alloc_callback_fail", "Allocation callback failure", s_allocCallbackFailGroup));
 
 	// \note Test objects that can be created in bulk
-	static const CaseDescriptions	s_allocCallbackFailMultipleObjectsGroup	=
+	const CaseDescriptions	s_allocCallbackFailMultipleObjectsGroup	=
 	{
 		EMPTY_CASE_DESC(Instance),			// most objects can be created one at a time only
 		EMPTY_CASE_DESC(Device),

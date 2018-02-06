@@ -15,10 +15,13 @@ set(DEQP_VK_WSI_SRCS
 	vktWsiDisplayTimingTests.hpp
 	vktWsiSharedPresentableImageTests.cpp
 	vktWsiSharedPresentableImageTests.hpp
+	vktWsiDisplayTests.hpp
+	vktWsiDisplayTests.cpp
+	vktWsiColorSpaceTests.cpp
+	vktWsiColorSpaceTests.hpp
 	)
 
 set(DEQP_VK_WSI_LIBS
-	deqp-vk-common
 	tcutil
 	vkutil
 	)

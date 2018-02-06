@@ -104,6 +104,18 @@ bool validateFeatureLimits(VkPhysicalDeviceProperties* properties, VkPhysicalDev
 {
 	bool						limitsOk	= true;
 	VkPhysicalDeviceLimits*		limits		= &properties->limits;
+	deUint32					shaderStages = 3;
+
+	if (features->tessellationShader)
+	{
+		shaderStages += 2;
+	}
+
+	if (features->geometryShader)
+	{
+		shaderStages++;
+	}
+
 	struct FeatureLimitTable
 	{
 		deUint32		offset;
@@ -139,13 +151,13 @@ bool validateFeatureLimits(VkPhysicalDeviceProperties* properties, VkPhysicalDev
 		{ LIMIT(maxPerStageDescriptorStorageImages),				4, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN , -1 },
 		{ LIMIT(maxPerStageDescriptorInputAttachments),				4, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN , -1 },
 		{ LIMIT(maxPerStageResources),								0, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_NONE , -1 },
-		{ LIMIT(maxDescriptorSetSamplers),							96, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN, -1 },
-		{ LIMIT(maxDescriptorSetUniformBuffers),					72, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN , -1 },
+		{ LIMIT(maxDescriptorSetSamplers),							shaderStages * 16, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN, -1 },
+		{ LIMIT(maxDescriptorSetUniformBuffers),					shaderStages * 12, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN, -1 },
 		{ LIMIT(maxDescriptorSetUniformBuffersDynamic),				8, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN, -1 },
-		{ LIMIT(maxDescriptorSetStorageBuffers),					24, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN , -1 },
+		{ LIMIT(maxDescriptorSetStorageBuffers),					shaderStages * 4, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN, -1 },
 		{ LIMIT(maxDescriptorSetStorageBuffersDynamic),				4, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN  , -1 },
-		{ LIMIT(maxDescriptorSetSampledImages),						96, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN  , -1 },
-		{ LIMIT(maxDescriptorSetStorageImages),						24, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN  , -1 },
+		{ LIMIT(maxDescriptorSetSampledImages),						shaderStages * 16, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN, -1 },
+		{ LIMIT(maxDescriptorSetStorageImages),						shaderStages * 4, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN, -1 },
 		{ LIMIT(maxDescriptorSetInputAttachments),					0, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_NONE  , -1 },
 		{ LIMIT(maxVertexInputAttributes),							16, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN  , -1 },
 		{ LIMIT(maxVertexInputBindings),							16, 0, 0, 0.0f, LIMIT_FORMAT_UNSIGNED_INT, LIMIT_TYPE_MIN  , -1 },
@@ -462,14 +474,14 @@ bool validateFeatureLimits(VkPhysicalDeviceProperties* properties, VkPhysicalDev
 		}
 	}
 
-	for (deUint32 ndx = 0; ndx < DE_LENGTH_OF_ARRAY(limits->maxViewportDimensions); ndx++)
+	if (limits->maxFramebufferWidth > limits->maxViewportDimensions[0] ||
+	    limits->maxFramebufferHeight > limits->maxViewportDimensions[1])
 	{
-		if (limits->maxImageDimension2D > limits->maxViewportDimensions[ndx])
-		{
-			log << TestLog::Message << "limit validation failed, maxImageDimension2D of " << limits->maxImageDimension2D
-				<< "is larger than maxViewportDimension[" << ndx << "] of " << limits->maxViewportDimensions[ndx] << TestLog::EndMessage;
-			limitsOk = false;
-		}
+		log << TestLog::Message << "limit validation failed, maxFramebufferDimension of "
+			<< "[" << limits->maxFramebufferWidth << ", " << limits->maxFramebufferHeight << "] "
+			<< "is larger than maxViewportDimension of "
+			<< "[" << limits->maxViewportDimensions[0] << ", " << limits->maxViewportDimensions[1] << "]" << TestLog::EndMessage;
+		limitsOk = false;
 	}
 
 	if (limits->viewportBoundsRange[0] > float(-2 * limits->maxViewportDimensions[0]))
@@ -660,7 +672,6 @@ void checkInstanceExtensions (tcu::ResultCollector& results, const vector<string
 		"VK_KHR_external_memory_capabilities",
 		"VK_KHR_external_semaphore_capabilities",
 		"VK_KHR_external_fence_capabilities",
-		"VK_KHR_sampler_ycbcr_conversion"
 	};
 
 	checkKhrExtensions(results, extensions, DE_LENGTH_OF_ARRAY(s_allowedInstanceKhrExtensions), s_allowedInstanceKhrExtensions);
@@ -1449,6 +1460,64 @@ VkFormatFeatureFlags getRequiredOptimalTilingFeatures (VkFormat format)
 	return flags;
 }
 
+VkFormatFeatureFlags getRequiredOptimalExtendedTilingFeatures (Context& context, VkFormat format, VkFormatFeatureFlags queriedFlags)
+{
+	VkFormatFeatureFlags	flags	= (VkFormatFeatureFlags)0;
+
+	// VK_EXT_sampler_filter_minmax:
+	//	If filterMinmaxSingleComponentFormats is VK_TRUE, the following formats must
+	//	support the VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT_EXT feature with
+	//	VK_IMAGE_TILING_OPTIMAL, if they support VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT.
+
+	static const VkFormat s_requiredSampledImageFilterMinMaxFormats[] =
+	{
+		VK_FORMAT_R8_UNORM,
+		VK_FORMAT_R8_SNORM,
+		VK_FORMAT_R16_UNORM,
+		VK_FORMAT_R16_SNORM,
+		VK_FORMAT_R16_SFLOAT,
+		VK_FORMAT_R32_SFLOAT,
+		VK_FORMAT_D16_UNORM,
+		VK_FORMAT_X8_D24_UNORM_PACK32,
+		VK_FORMAT_D32_SFLOAT,
+		VK_FORMAT_D16_UNORM_S8_UINT,
+		VK_FORMAT_D24_UNORM_S8_UINT,
+		VK_FORMAT_D32_SFLOAT_S8_UINT,
+	};
+
+	if ((queriedFlags & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) != 0)
+	{
+		if (de::contains(context.getDeviceExtensions().begin(), context.getDeviceExtensions().end(), "VK_EXT_sampler_filter_minmax"))
+		{
+			if (de::contains(DE_ARRAY_BEGIN(s_requiredSampledImageFilterMinMaxFormats), DE_ARRAY_END(s_requiredSampledImageFilterMinMaxFormats), format))
+			{
+				VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT	physicalDeviceSamplerMinMaxProperties =
+				{
+					VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES_EXT,
+					DE_NULL,
+					DE_FALSE,
+					DE_FALSE
+				};
+
+				{
+					VkPhysicalDeviceProperties2KHR	physicalDeviceProperties;
+					physicalDeviceProperties.sType	= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
+					physicalDeviceProperties.pNext	= &physicalDeviceSamplerMinMaxProperties;
+
+					const InstanceInterface&		vk = context.getInstanceInterface();
+					vk.getPhysicalDeviceProperties2KHR(context.getPhysicalDevice(), &physicalDeviceProperties);
+				}
+
+				if (physicalDeviceSamplerMinMaxProperties.filterMinmaxImageComponentMapping)
+				{
+					flags |= VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT_EXT;
+				}
+			}
+		}
+	}
+	return flags;
+}
+
 VkFormatFeatureFlags getRequiredBufferFeatures (VkFormat format)
 {
 	static const VkFormat s_requiredVertexBufferFormats[] =
@@ -1592,8 +1661,8 @@ tcu::TestStatus formatProperties (Context& context, VkFormat format)
 	const VkFormatProperties	properties			= getPhysicalDeviceFormatProperties(context.getInstanceInterface(), context.getPhysicalDevice(), format);
 	bool						allOk				= true;
 
-	// \todo [2017-05-16 pyry] This should be extended to cover for example COLOR_ATTACHMENT for depth formats etc.
-	// \todo [2017-05-18 pyry] Any other color conversion related features that can't be supported by regular formats?
+	const VkFormatFeatureFlags	extOptimalFeatures	= getRequiredOptimalExtendedTilingFeatures(context, format, properties.optimalTilingFeatures);
+
 	const VkFormatFeatureFlags	notAllowedFeatures	= VK_FORMAT_FEATURE_DISJOINT_BIT_KHR;
 
 
@@ -1604,9 +1673,9 @@ tcu::TestStatus formatProperties (Context& context, VkFormat format)
 		VkFormatFeatureFlags						requiredFeatures;
 	} fields[] =
 	{
-		{ &VkFormatProperties::linearTilingFeatures,	"linearTilingFeatures",		(VkFormatFeatureFlags)0						},
-		{ &VkFormatProperties::optimalTilingFeatures,	"optimalTilingFeatures",	getRequiredOptimalTilingFeatures(format)	},
-		{ &VkFormatProperties::bufferFeatures,			"bufferFeatures",			getRequiredBufferFeatures(format)			}
+		{ &VkFormatProperties::linearTilingFeatures,	"linearTilingFeatures",		(VkFormatFeatureFlags)0											},
+		{ &VkFormatProperties::optimalTilingFeatures,	"optimalTilingFeatures",	getRequiredOptimalTilingFeatures(format) | extOptimalFeatures	},
+		{ &VkFormatProperties::bufferFeatures,			"bufferFeatures",			getRequiredBufferFeatures(format)								}
 	};
 
 	log << TestLog::Message << properties << TestLog::EndMessage;
@@ -1768,7 +1837,7 @@ tcu::TestStatus ycbcrFormatProperties (Context& context, VkFormat format)
 		if ((supported & ~allowed) != 0)
 		{
 			log << TestLog::Message << "ERROR in " << fieldName << ":\n"
-								    << "  has: " << getFormatFeatureFlagsStr(supported & ~allowed)
+									<< "  has: " << getFormatFeatureFlagsStr(supported & ~allowed)
 				<< TestLog::EndMessage;
 			allOk = false;
 		}

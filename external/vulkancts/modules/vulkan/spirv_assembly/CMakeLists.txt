@@ -5,6 +5,14 @@ include_directories(..)
 set(DEQP_VK_SPIRV_ASSEMBLY_SRCS
 	vktSpvAsm16bitStorageTests.cpp
 	vktSpvAsm16bitStorageTests.hpp
+	vktSpvAsmUboMatrixPaddingTests.cpp
+	vktSpvAsmUboMatrixPaddingTests.hpp
+	vktSpvAsmConditionalBranchTests.cpp
+	vktSpvAsmConditionalBranchTests.hpp
+	vktSpvAsmIndexingTests.cpp
+	vktSpvAsmIndexingTests.hpp
+	vktSpvAsmImageSamplerTests.cpp
+	vktSpvAsmImageSamplerTests.hpp
 	vktSpvAsmComputeShaderCase.cpp
 	vktSpvAsmComputeShaderCase.hpp
 	vktSpvAsmComputeShaderTestUtil.cpp
@@ -22,7 +30,6 @@ set(DEQP_VK_SPIRV_ASSEMBLY_SRCS
 	)
 
 set(DEQP_VK_SPIRV_ASSEMBLY_LIBS
-	deqp-vk-common
 	tcutil
 	vkutil
 	)

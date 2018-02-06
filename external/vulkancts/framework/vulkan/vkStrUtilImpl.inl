@@ -225,6 +225,8 @@ const char* getStructureTypeName (VkStructureType value)
 		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_KHR:							return "VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_KHR";
 		case VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR:						return "VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR";
 		case VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR:						return "VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR";
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES_EXT:		return "VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES_EXT";
+		case VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO_EXT:						return "VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO_EXT";
 		case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR:							return "VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR";
 		case VK_STRUCTURE_TYPE_IMAGE_SPARSE_MEMORY_REQUIREMENTS_INFO_2_KHR:					return "VK_STRUCTURE_TYPE_IMAGE_SPARSE_MEMORY_REQUIREMENTS_INFO_2_KHR";
 		case VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR:									return "VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR";
@@ -932,21 +934,22 @@ const char* getColorSpaceKHRName (VkColorSpaceKHR value)
 {
 	switch (value)
 	{
-		case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR:			return "VK_COLOR_SPACE_SRGB_NONLINEAR_KHR";
-		case VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT:	return "VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT";
-		case VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT:	return "VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT";
-		case VK_COLOR_SPACE_DCI_P3_LINEAR_EXT:			return "VK_COLOR_SPACE_DCI_P3_LINEAR_EXT";
-		case VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT:		return "VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT";
-		case VK_COLOR_SPACE_BT709_LINEAR_EXT:			return "VK_COLOR_SPACE_BT709_LINEAR_EXT";
-		case VK_COLOR_SPACE_BT709_NONLINEAR_EXT:		return "VK_COLOR_SPACE_BT709_NONLINEAR_EXT";
-		case VK_COLOR_SPACE_BT2020_LINEAR_EXT:			return "VK_COLOR_SPACE_BT2020_LINEAR_EXT";
-		case VK_COLOR_SPACE_HDR10_ST2084_EXT:			return "VK_COLOR_SPACE_HDR10_ST2084_EXT";
-		case VK_COLOR_SPACE_DOLBYVISION_EXT:			return "VK_COLOR_SPACE_DOLBYVISION_EXT";
-		case VK_COLOR_SPACE_HDR10_HLG_EXT:				return "VK_COLOR_SPACE_HDR10_HLG_EXT";
-		case VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT:		return "VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT";
-		case VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT:		return "VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT";
-		case VK_COLOR_SPACE_PASS_THROUGH_EXT:			return "VK_COLOR_SPACE_PASS_THROUGH_EXT";
-		default:										return DE_NULL;
+		case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR:				return "VK_COLOR_SPACE_SRGB_NONLINEAR_KHR";
+		case VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT:		return "VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT";
+		case VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT:		return "VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT";
+		case VK_COLOR_SPACE_DCI_P3_LINEAR_EXT:				return "VK_COLOR_SPACE_DCI_P3_LINEAR_EXT";
+		case VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT:			return "VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT";
+		case VK_COLOR_SPACE_BT709_LINEAR_EXT:				return "VK_COLOR_SPACE_BT709_LINEAR_EXT";
+		case VK_COLOR_SPACE_BT709_NONLINEAR_EXT:			return "VK_COLOR_SPACE_BT709_NONLINEAR_EXT";
+		case VK_COLOR_SPACE_BT2020_LINEAR_EXT:				return "VK_COLOR_SPACE_BT2020_LINEAR_EXT";
+		case VK_COLOR_SPACE_HDR10_ST2084_EXT:				return "VK_COLOR_SPACE_HDR10_ST2084_EXT";
+		case VK_COLOR_SPACE_DOLBYVISION_EXT:				return "VK_COLOR_SPACE_DOLBYVISION_EXT";
+		case VK_COLOR_SPACE_HDR10_HLG_EXT:					return "VK_COLOR_SPACE_HDR10_HLG_EXT";
+		case VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT:			return "VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT";
+		case VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT:			return "VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT";
+		case VK_COLOR_SPACE_PASS_THROUGH_EXT:				return "VK_COLOR_SPACE_PASS_THROUGH_EXT";
+		case VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT:	return "VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT";
+		default:											return DE_NULL;
 	}
 }
 
@@ -1078,6 +1081,17 @@ const char* getDebugReportErrorEXTName (VkDebugReportErrorEXT value)
 	}
 }
 
+const char* getSamplerReductionModeEXTName (VkSamplerReductionModeEXT value)
+{
+	switch (value)
+	{
+		case VK_SAMPLER_REDUCTION_MODE_WEIGHTED_AVERAGE_EXT:	return "VK_SAMPLER_REDUCTION_MODE_WEIGHTED_AVERAGE_EXT";
+		case VK_SAMPLER_REDUCTION_MODE_MIN_EXT:					return "VK_SAMPLER_REDUCTION_MODE_MIN_EXT";
+		case VK_SAMPLER_REDUCTION_MODE_MAX_EXT:					return "VK_SAMPLER_REDUCTION_MODE_MAX_EXT";
+		default:												return DE_NULL;
+	}
+}
+
 tcu::Format::Bitfield<32> getFormatFeatureFlagsStr (VkFormatFeatureFlags value)
 {
 	static const tcu::Format::BitDesc s_desc[] =
@@ -1105,6 +1119,7 @@ tcu::Format::Bitfield<32> getFormatFeatureFlagsStr (VkFormatFeatureFlags value)
 		tcu::Format::BitDesc(VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT_KHR,	"VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT_KHR"),
 		tcu::Format::BitDesc(VK_FORMAT_FEATURE_DISJOINT_BIT_KHR,																"VK_FORMAT_FEATURE_DISJOINT_BIT_KHR"),
 		tcu::Format::BitDesc(VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT_KHR,													"VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT_KHR"),
+		tcu::Format::BitDesc(VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT_EXT,												"VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT_EXT"),
 	};
 	return tcu::Format::Bitfield<32>(value, DE_ARRAY_BEGIN(s_desc), DE_ARRAY_END(s_desc));
 }
@@ -4502,6 +4517,27 @@ std::ostream& operator<< (std::ostream& s, const VkBindImageMemoryInfoKHR& value
 	s << "\timage = " << value.image << '\n';
 	s << "\tmemory = " << value.memory << '\n';
 	s << "\tmemoryOffset = " << value.memoryOffset << '\n';
+	s << '}';
+	return s;
+}
+
+std::ostream& operator<< (std::ostream& s, const VkSamplerReductionModeCreateInfoEXT& value)
+{
+	s << "VkSamplerReductionModeCreateInfoEXT = {\n";
+	s << "\tsType = " << value.sType << '\n';
+	s << "\tpNext = " << value.pNext << '\n';
+	s << "\treductionMode = " << value.reductionMode << '\n';
+	s << '}';
+	return s;
+}
+
+std::ostream& operator<< (std::ostream& s, const VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT& value)
+{
+	s << "VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT = {\n";
+	s << "\tsType = " << value.sType << '\n';
+	s << "\tpNext = " << value.pNext << '\n';
+	s << "\tfilterMinmaxSingleComponentFormats = " << value.filterMinmaxSingleComponentFormats << '\n';
+	s << "\tfilterMinmaxImageComponentMapping = " << value.filterMinmaxImageComponentMapping << '\n';
 	s << '}';
 	return s;
 }

@@ -710,7 +710,7 @@ Move<VkPipeline> GraphicsPipelineBuilder::build (const DeviceInterface&	vk,
 	};
 
 	std::vector<VkDynamicState> dynamicStates;
-	if (!haveRenderSize)
+	if (!haveRenderSize && !isRasterizationDisabled)
 	{
 		dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
 		dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
@@ -740,7 +740,7 @@ Move<VkPipeline> GraphicsPipelineBuilder::build (const DeviceInterface&	vk,
 		(isRasterizationDisabled ? DE_NULL : &pipelineMultisampleStateInfo),	// const VkPipelineMultisampleStateCreateInfo*		pMultisampleState;
 		(isRasterizationDisabled ? DE_NULL : &pipelineDepthStencilStateInfo),	// const VkPipelineDepthStencilStateCreateInfo*		pDepthStencilState;
 		(isRasterizationDisabled ? DE_NULL : &pipelineColorBlendStateInfo),		// const VkPipelineColorBlendStateCreateInfo*		pColorBlendState;
-		&pipelineDynamicStateInfo,												// const VkPipelineDynamicStateCreateInfo*			pDynamicState;
+		(dynamicStates.empty() ? DE_NULL : &pipelineDynamicStateInfo),			// const VkPipelineDynamicStateCreateInfo*			pDynamicState;
 		pipelineLayout,															// VkPipelineLayout									layout;
 		renderPass,																// VkRenderPass										renderPass;
 		0u,																		// deUint32											subpass;

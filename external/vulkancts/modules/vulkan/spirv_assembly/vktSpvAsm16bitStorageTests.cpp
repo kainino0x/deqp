@@ -147,9 +147,12 @@ bool graphicsCheck16BitFloats (const std::vector<Resource>&	originalFloats,
 
 	for (deUint32 outputNdx = 0; outputNdx < outputAllocs.size(); ++outputNdx)
 	{
+		vector<deUint8>	originalBytes;
+		originalFloats[outputNdx].second->getBytes(originalBytes);
+
 		const deUint16*	returned	= static_cast<const deUint16*>(outputAllocs[outputNdx]->getHostPtr());
-		const float*	original	= static_cast<const float*>(originalFloats[outputNdx].second->data());
-		const deUint32	count		= static_cast<deUint32>(originalFloats[outputNdx].second->getNumBytes() / sizeof(float));
+		const float*	original	= reinterpret_cast<const float*>(&originalBytes.front());
+		const deUint32	count		= static_cast<deUint32>(originalBytes.size() / sizeof(float));
 
 		for (deUint32 numNdx = 0; numNdx < count; ++numNdx)
 			if (!compare16BitFloat(original[numNdx], returned[numNdx], RoundingMode, log))
@@ -170,9 +173,12 @@ bool computeCheck16BitFloats (const std::vector<BufferSp>&	originalFloats,
 
 	for (deUint32 outputNdx = 0; outputNdx < outputAllocs.size(); ++outputNdx)
 	{
+		vector<deUint8>	originalBytes;
+		originalFloats[outputNdx]->getBytes(originalBytes);
+
 		const deUint16*	returned	= static_cast<const deUint16*>(outputAllocs[outputNdx]->getHostPtr());
-		const float*	original	= static_cast<const float*>(originalFloats[outputNdx]->data());
-		const deUint32	count		= static_cast<deUint32>(originalFloats[outputNdx]->getNumBytes() / sizeof(float));
+		const float*	original	= reinterpret_cast<const float*>(&originalBytes.front());
+		const deUint32	count		= static_cast<deUint32>(originalBytes.size() / sizeof(float));
 
 		for (deUint32 numNdx = 0; numNdx < count; ++numNdx)
 			if (!compare16BitFloat(original[numNdx], returned[numNdx], RoundingMode, log))
@@ -197,9 +203,12 @@ bool check32BitFloats (const std::vector<Resource>&		/* originalFloats */,
 
 	for (deUint32 outputNdx = 0; outputNdx < outputAllocs.size(); ++outputNdx)
 	{
+		vector<deUint8>	expectedBytes;
+		expectedOutputs[outputNdx].second->getBytes(expectedBytes);
+
 		const float*	returnedAsFloat	= static_cast<const float*>(outputAllocs[outputNdx]->getHostPtr());
-		const float*	expectedAsFloat	= static_cast<const float*>(expectedOutputs[outputNdx].second->data());
-		const deUint32	count			= static_cast<deUint32>(expectedOutputs[outputNdx].second->getNumBytes() / sizeof(float));
+		const float*	expectedAsFloat	= reinterpret_cast<const float*>(&expectedBytes.front());
+		const deUint32	count			= static_cast<deUint32>(expectedBytes.size() / sizeof(float));
 
 		for (deUint32 numNdx = 0; numNdx < count; ++numNdx)
 			if (!compare32BitFloat(expectedAsFloat[numNdx], returnedAsFloat[numNdx], log))
@@ -220,9 +229,12 @@ bool check32BitFloats (const std::vector<BufferSp>&		/* originalFloats */,
 
 	for (deUint32 outputNdx = 0; outputNdx < outputAllocs.size(); ++outputNdx)
 	{
+		vector<deUint8>	expectedBytes;
+		expectedOutputs[outputNdx]->getBytes(expectedBytes);
+
 		const float*	returnedAsFloat	= static_cast<const float*>(outputAllocs[outputNdx]->getHostPtr());
-		const float*	expectedAsFloat	= static_cast<const float*>(expectedOutputs[outputNdx]->data());
-		const deUint32	count			= static_cast<deUint32>(expectedOutputs[outputNdx]->getNumBytes() / sizeof(float));
+		const float*	expectedAsFloat	= reinterpret_cast<const float*>(&expectedBytes.front());
+		const deUint32	count			= static_cast<deUint32>(expectedBytes.size() / sizeof(float));
 
 		for (deUint32 numNdx = 0; numNdx < count; ++numNdx)
 			if (!compare32BitFloat(expectedAsFloat[numNdx], returnedAsFloat[numNdx], log))
@@ -1067,11 +1079,10 @@ void addGraphics16BitStorageUniformInt32To16Group (tcu::TestCaseGroup* testGroup
 	const StringTemplate	vecPreMain(
 			"${itype16} = OpTypeInt 16 ${signed}\n"
 			" %c_i32_64 = OpConstant %i32 64\n"
-			"%v4itype32 = OpTypeVector ${itype32} 4\n"
 			"%v4itype16 = OpTypeVector ${itype16} 4\n"
-			" %up_v4i32 = OpTypePointer Uniform %v4itype32\n"
+			" %up_v4i32 = OpTypePointer Uniform ${v4itype32}\n"
 			" %up_v4i16 = OpTypePointer Uniform %v4itype16\n"
-			" %ra_v4i32 = OpTypeArray %v4itype32 %c_i32_64\n"
+			" %ra_v4i32 = OpTypeArray ${v4itype32} %c_i32_64\n"
 			" %ra_v4i16 = OpTypeArray %v4itype16 %c_i32_64\n"
 			"   %SSBO32 = OpTypeStruct %ra_v4i32\n"
 			"   %SSBO16 = OpTypeStruct %ra_v4i16\n"
@@ -1110,7 +1121,7 @@ void addGraphics16BitStorageUniformInt32To16Group (tcu::TestCaseGroup* testGroup
 			"%write = OpLabel\n"
 			"   %30 = OpLoad %i32 %i\n"
 			"  %src = OpAccessChain %up_v4i32 %ssbo32 %c_i32_0 %30\n"
-			"%val32 = OpLoad %v4itype32 %src\n"
+			"%val32 = OpLoad ${v4itype32} %src\n"
 			"%val16 = ${convert} %v4itype16 %val32\n"
 			"  %dst = OpAccessChain %up_v4i16 %ssbo16 %c_i32_0 %30\n"
 			"         OpStore %dst %val16\n"
@@ -1151,6 +1162,7 @@ void addGraphics16BitStorageUniformInt32To16Group (tcu::TestCaseGroup* testGroup
 				specs["cap"]					= CAPABILITIES[capIdx].cap;
 				specs["indecor"]				= CAPABILITIES[capIdx].decor;
 				specs["itype32"]				= intFacts[factIdx].type32;
+				specs["v4itype32"]				= "%v4" + string(intFacts[factIdx].type32).substr(1);
 				specs["itype16"]				= intFacts[factIdx].type16;
 				specs["signed"]					= intFacts[factIdx].isSigned;
 				specs["convert"]				= intFacts[factIdx].opcode;
@@ -2780,10 +2792,9 @@ void addGraphics16BitStorageUniformInt16To32Group (tcu::TestCaseGroup* testGroup
 			"${itype16} = OpTypeInt 16 ${signed}\n"
 			"%c_i32_128 = OpConstant %i32 128\n"
 			"%v2itype16 = OpTypeVector ${itype16} 2\n"
-			"%v2itype32 = OpTypeVector ${itype32} 2\n"
-			" %up_v2i32 = OpTypePointer Uniform %v2itype32\n"
+			" %up_v2i32 = OpTypePointer Uniform ${v2itype32}\n"
 			" %up_v2i16 = OpTypePointer Uniform %v2itype16\n"
-			" %ra_v2i32 = OpTypeArray %v2itype32 %c_i32_128\n"
+			" %ra_v2i32 = OpTypeArray ${v2itype32} %c_i32_128\n"
 			" %ra_v2i16 = OpTypeArray %v2itype16 %c_i32_128\n"
 			"   %SSBO32 = OpTypeStruct %ra_v2i32\n"
 			"   %SSBO16 = OpTypeStruct %ra_v2i16\n"
@@ -2823,7 +2834,7 @@ void addGraphics16BitStorageUniformInt16To32Group (tcu::TestCaseGroup* testGroup
 			"   %30 = OpLoad %i32 %i\n"
 			"  %src = OpAccessChain %up_v2i16 %ssbo16 %c_i32_0 %30\n"
 			"%val16 = OpLoad %v2itype16 %src\n"
-			"%val32 = ${convert} %v2itype32 %val16\n"
+			"%val32 = ${convert} ${v2itype32} %val16\n"
 			"  %dst = OpAccessChain %up_v2i32 %ssbo32 %c_i32_0 %30\n"
 			"         OpStore %dst %val32\n"
 			"         OpBranch %inc\n"
@@ -2862,6 +2873,7 @@ void addGraphics16BitStorageUniformInt16To32Group (tcu::TestCaseGroup* testGroup
 				specs["cap"]					= CAPABILITIES[capIdx].cap;
 				specs["indecor"]				= CAPABILITIES[capIdx].decor;
 				specs["itype32"]				= intFacts[factIdx].type32;
+				specs["v2itype32"]				= "%v2" + string(intFacts[factIdx].type32).substr(1);
 				specs["itype16"]				= intFacts[factIdx].type16;
 				if (intFacts[factIdx].isSigned)
 					specs["signed"]				= "1";

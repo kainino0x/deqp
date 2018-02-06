@@ -135,6 +135,8 @@ Window::Window (int width, int height)
 	, width(width)
 	, height(height)
 {
+	// TODO(kainino): This is deprecated. Use emscripten_set_canvas_element_size?
+	// (Requires somehow getting the canvas ID here.)
 	emscripten_set_canvas_size(width, height);
 	m_nativeWindow = 0;
 }

@@ -121,23 +121,23 @@ rr::PrimitiveType mapVkPrimitiveTopology (vk::VkPrimitiveTopology primitiveTopol
 }
 
 template<typename T>
-de::SharedPtr<Buffer> createAndUploadBuffer(const std::vector<T> data, const vk::DeviceInterface& vk, const Context& context)
+de::SharedPtr<Buffer> createAndUploadBuffer(const std::vector<T> data, const vk::DeviceInterface& vk, const Context& context, vk::VkBufferUsageFlags usage)
 {
 	const vk::VkDeviceSize dataSize = data.size() * sizeof(T);
-	de::SharedPtr<Buffer> vertexBuffer = Buffer::createAndAlloc(vk, context.getDevice(),
-																BufferCreateInfo(dataSize, vk::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
-																context.getDefaultAllocator(),
-																vk::MemoryRequirement::HostVisible);
+	de::SharedPtr<Buffer> buffer = Buffer::createAndAlloc(vk, context.getDevice(),
+														  BufferCreateInfo(dataSize, usage),
+														  context.getDefaultAllocator(),
+														  vk::MemoryRequirement::HostVisible);
 
-	deUint8* ptr = reinterpret_cast<deUint8*>(vertexBuffer->getBoundMemory().getHostPtr());
+	deUint8* ptr = reinterpret_cast<deUint8*>(buffer->getBoundMemory().getHostPtr());
 
 	deMemcpy(ptr, &data[0], static_cast<size_t>(dataSize));
 
 	vk::flushMappedMemoryRange(vk, context.getDevice(),
-							   vertexBuffer->getBoundMemory().getMemory(),
-							   vertexBuffer->getBoundMemory().getOffset(),
+							   buffer->getBoundMemory().getMemory(),
+							   buffer->getBoundMemory().getOffset(),
 							   VK_WHOLE_SIZE);
-	return vertexBuffer;
+	return buffer;
 }
 
 class TestVertShader : public rr::VertexShader
@@ -311,7 +311,7 @@ InstancedDrawInstance::InstancedDrawInstance(Context &context, TestParams params
 	const ImageCreateInfo targetImageCreateInfo(vk::VK_IMAGE_TYPE_2D, m_colorAttachmentFormat, targetImageExtent, 1, 1, vk::VK_SAMPLE_COUNT_1_BIT,
 		vk::VK_IMAGE_TILING_OPTIMAL, vk::VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | vk::VK_IMAGE_USAGE_TRANSFER_SRC_BIT | vk::VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
-	m_colorTargetImage						= Image::createAndAlloc(m_vk, device, targetImageCreateInfo, m_context.getDefaultAllocator());
+	m_colorTargetImage						= Image::createAndAlloc(m_vk, device, targetImageCreateInfo, m_context.getDefaultAllocator(), m_context.getUniversalQueueFamilyIndex());
 
 	const ImageViewCreateInfo colorTargetViewInfo(m_colorTargetImage->object(), vk::VK_IMAGE_VIEW_TYPE_2D, m_colorAttachmentFormat);
 	m_colorTargetView						= vk::createImageView(m_vk, device, &colorTargetViewInfo);
@@ -434,7 +434,7 @@ InstancedDrawInstance::InstancedDrawInstance(Context &context, TestParams params
 tcu::TestStatus InstancedDrawInstance::iterate()
 {
 	const vk::VkQueue		queue					= m_context.getUniversalQueue();
-	static const deUint32	instanceCounts[]		= { 1, 2, 4, 20 };
+	static const deUint32	instanceCounts[]		= { 0, 1, 2, 4, 20 };
 	static const deUint32	firstInstanceIndices[]	= { 0, 1, 3, 4, 20 };
 
 	qpTestResult			res						= QP_TEST_RESULT_PASS;
@@ -452,16 +452,19 @@ tcu::TestStatus InstancedDrawInstance::iterate()
 		const deUint32 instanceCount = instanceCounts[instanceCountNdx];
 		for (int firstInstanceIndexNdx = 0; firstInstanceIndexNdx < firstInstanceIndicesCount; firstInstanceIndexNdx++)
 		{
-			const deUint32 firstInstance = firstInstanceIndices[firstInstanceIndexNdx];
+			// Prepare vertex data for at least one instance
+			const deUint32				prepareCount			= de::max(instanceCount, 1u);
+			const deUint32				firstInstance			= firstInstanceIndices[firstInstanceIndexNdx];
 
-			prepareVertexData(instanceCount, firstInstance);
-			const de::SharedPtr<Buffer>	vertexBuffer			= createAndUploadBuffer(m_data, m_vk, m_context);
-			const de::SharedPtr<Buffer>	instancedVertexBuffer	= createAndUploadBuffer(m_instancedColor, m_vk, m_context);
+			prepareVertexData(prepareCount, firstInstance);
+			const de::SharedPtr<Buffer>	vertexBuffer			= createAndUploadBuffer(m_data, m_vk, m_context, vk::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+			const de::SharedPtr<Buffer>	instancedVertexBuffer	= createAndUploadBuffer(m_instancedColor, m_vk, m_context, vk::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 			de::SharedPtr<Buffer>		indexBuffer;
 			de::SharedPtr<Buffer>		indirectBuffer;
 			m_vk.beginCommandBuffer(*m_cmdBuffer, &beginInfo);
 
-			initialTransitionColor2DImage(m_vk, *m_cmdBuffer, m_colorTargetImage->object(), vk::VK_IMAGE_LAYOUT_GENERAL);
+			initialTransitionColor2DImage(m_vk, *m_cmdBuffer, m_colorTargetImage->object(), vk::VK_IMAGE_LAYOUT_GENERAL,
+										  vk::VK_ACCESS_TRANSFER_WRITE_BIT, vk::VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 			const ImageSubresourceRange subresourceRange(vk::VK_IMAGE_ASPECT_COLOR_BIT);
 			m_vk.cmdClearColorImage(*m_cmdBuffer, m_colorTargetImage->object(),
@@ -486,7 +489,7 @@ tcu::TestStatus InstancedDrawInstance::iterate()
 
 			if (m_params.function == TestParams::FUNCTION_DRAW_INDEXED || m_params.function == TestParams::FUNCTION_DRAW_INDEXED_INDIRECT)
 			{
-				indexBuffer = createAndUploadBuffer(m_indexes, m_vk, m_context);
+				indexBuffer = createAndUploadBuffer(m_indexes, m_vk, m_context, vk::VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 				m_vk.cmdBindIndexBuffer(*m_cmdBuffer, indexBuffer->object(), 0, vk::VK_INDEX_TYPE_UINT32);
 			}
 
@@ -530,7 +533,7 @@ tcu::TestStatus InstancedDrawInstance::iterate()
 					};
 					std::vector<vk::VkDrawIndirectCommand> drawCommands;
 					drawCommands.push_back(drawCommand);
-					indirectBuffer = createAndUploadBuffer(drawCommands, m_vk, m_context);
+					indirectBuffer = createAndUploadBuffer(drawCommands, m_vk, m_context, vk::VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
 
 					m_vk.cmdDrawIndirect(*m_cmdBuffer, indirectBuffer->object(), 0, 1u, 0u);
 					break;
@@ -547,7 +550,7 @@ tcu::TestStatus InstancedDrawInstance::iterate()
 					};
 					std::vector<vk::VkDrawIndexedIndirectCommand> drawCommands;
 					drawCommands.push_back(drawCommand);
-					indirectBuffer = createAndUploadBuffer(drawCommands, m_vk, m_context);
+					indirectBuffer = createAndUploadBuffer(drawCommands, m_vk, m_context, vk::VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
 
 					m_vk.cmdDrawIndexedIndirect(*m_cmdBuffer, indirectBuffer->object(), 0, 1u, 0u);
 					break;

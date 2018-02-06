@@ -37,9 +37,17 @@ const char* getComputeAsmShaderPreamble (void)
 		"OpExecutionMode %main LocalSize 1 1 1\n";
 }
 
-const char* getComputeAsmCommonTypes (void)
+const char* getComputeAsmShaderPreambleWithoutLocalSize (void)
 {
 	return
+		"OpCapability Shader\n"
+		"OpMemoryModel Logical GLSL450\n"
+		"OpEntryPoint GLCompute %main \"main\" %id\n";
+}
+
+std::string getComputeAsmCommonTypes (std::string blockStorageClass)
+{
+	return std::string(
 		"%bool      = OpTypeBool\n"
 		"%void      = OpTypeVoid\n"
 		"%voidf     = OpTypeFunction %void\n"
@@ -48,11 +56,19 @@ const char* getComputeAsmCommonTypes (void)
 		"%f32       = OpTypeFloat 32\n"
 		"%uvec3     = OpTypeVector %u32 3\n"
 		"%fvec3     = OpTypeVector %f32 3\n"
-		"%uvec3ptr  = OpTypePointer Input %uvec3\n"
-		"%i32ptr    = OpTypePointer Uniform %i32\n"
-		"%f32ptr    = OpTypePointer Uniform %f32\n"
+		"%uvec3ptr  = OpTypePointer Input %uvec3\n") +
+		"%i32ptr    = OpTypePointer " + blockStorageClass + " %i32\n"
+		"%f32ptr    = OpTypePointer " + blockStorageClass + " %f32\n"
 		"%i32arr    = OpTypeRuntimeArray %i32\n"
 		"%f32arr    = OpTypeRuntimeArray %f32\n";
+}
+
+const char* getComputeAsmCommonInt64Types (void)
+{
+	return
+		"%i64       = OpTypeInt 64 1\n"
+		"%i64ptr    = OpTypePointer Uniform %i64\n"
+		"%i64arr    = OpTypeRuntimeArray %i64\n";
 }
 
 const char* getComputeAsmInputOutputBuffer (void)

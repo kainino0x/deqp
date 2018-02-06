@@ -22,6 +22,7 @@
  *//*--------------------------------------------------------------------*/
 
 #include "vktImageMutableTests.hpp"
+#include "vktImageLoadStoreUtil.hpp"
 #include "vktTestCaseUtil.hpp"
 #include "vktImageTexture.hpp"
 
@@ -108,7 +109,7 @@ static const deUint32 COLOR_TABLE_SIZE = 4;
 static const Vec4	COLOR_TABLE_FLOAT[COLOR_TABLE_SIZE]	=
 {
 	Vec4(0.00f, 0.40f, 0.80f, 0.10f),
-	Vec4(0.10f, 0.50f, 0.90f, 0.20f),
+	Vec4(0.50f, 0.10f, 0.90f, 0.20f),
 	Vec4(0.20f, 0.60f, 1.00f, 0.30f),
 	Vec4(0.30f, 0.70f, 0.00f, 0.40f),
 };
@@ -1144,7 +1145,7 @@ void UploadDownloadExecutor::uploadClear(Context& context)
 		subresourceRange								// VkImageSubresourceRange	subresourceRange;
 	};
 
-	m_vk.cmdPipelineBarrier(*m_cmdBuffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0u,
+	m_vk.cmdPipelineBarrier(*m_cmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0u,
 		0u, DE_NULL, 0u, DE_NULL, 1u, &imageInitBarrier);
 
 	for (deUint32 layer = 0; layer < m_caseDef.numLayers; layer++)
@@ -1262,8 +1263,8 @@ void UploadDownloadExecutor::uploadCopy(Context& context)
 	{
 		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,				// VkStructureType			sType;
 		DE_NULL,											// const void*				pNext;
-		0u,													// VkAccessFlags			outputMask;
-		VK_ACCESS_TRANSFER_WRITE_BIT,						// VkAccessFlags			inputMask;
+		0u,													// VkAccessFlags			srcAccessMask;
+		VK_ACCESS_TRANSFER_WRITE_BIT,						// VkAccessFlags			dstAccessMask;
 		VK_IMAGE_LAYOUT_UNDEFINED,							// VkImageLayout			oldLayout;
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,				// VkImageLayout			newLayout;
 		VK_QUEUE_FAMILY_IGNORED,							// deUint32					srcQueueFamilyIndex;
@@ -1300,8 +1301,8 @@ void UploadDownloadExecutor::uploadCopy(Context& context)
 	{
 		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,				// VkStructureType			sType;
 		DE_NULL,											// const void*				pNext;
-		VK_ACCESS_TRANSFER_WRITE_BIT,						// VkAccessFlags			outputMask;
-		VK_ACCESS_TRANSFER_READ_BIT,						// VkAccessFlags			inputMask;
+		VK_ACCESS_TRANSFER_WRITE_BIT,						// VkAccessFlags			srcAccessMask;
+		VK_ACCESS_TRANSFER_READ_BIT,						// VkAccessFlags			dstAccessMask;
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,				// VkImageLayout			oldLayout;
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,				// VkImageLayout			newLayout;
 		VK_QUEUE_FAMILY_IGNORED,							// deUint32					srcQueueFamilyIndex;
@@ -1310,7 +1311,7 @@ void UploadDownloadExecutor::uploadCopy(Context& context)
 		makeColorSubresourceRange(0, m_caseDef.numLayers)	// VkImageSubresourceRange	subresourceRange;
 	};
 
-	m_vk.cmdPipelineBarrier(*m_cmdBuffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0u,
+	m_vk.cmdPipelineBarrier(*m_cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0u,
 		0u, DE_NULL, 0u, DE_NULL, 1u, &imagePostInitBarrier);
 
 	m_imageLayoutAfterUpload	= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -1581,8 +1582,8 @@ void UploadDownloadExecutor::copyImageToBuffer(VkImage				sourceImage,
 	{
 		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,		// VkStructureType			sType;
 		DE_NULL,									// const void*				pNext;
-		srcAccessMask,								// VkAccessFlags			outputMask;
-		VK_ACCESS_TRANSFER_READ_BIT,				// VkAccessFlags			inputMask;
+		srcAccessMask,								// VkAccessFlags			srcAccessMask;
+		VK_ACCESS_TRANSFER_READ_BIT,				// VkAccessFlags			dstAccessMask;
 		oldLayout,									// VkImageLayout			oldLayout;
 		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,		// VkImageLayout			newLayout;
 		VK_QUEUE_FAMILY_IGNORED,					// deUint32					srcQueueFamilyIndex;
@@ -1629,40 +1630,6 @@ void UploadDownloadExecutor::copyImageToBuffer(VkImage				sourceImage,
 
 	m_vk.cmdPipelineBarrier(*m_cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT, 0u,
 		0u, DE_NULL, 1u, &bufferBarrier, 0u, DE_NULL);
-}
-
-bool isStorageImageExtendedFormat (const VkFormat format)
-{
-	switch (format)
-	{
-		case VK_FORMAT_R32G32_SFLOAT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-		case VK_FORMAT_R16G16B16A16_SNORM:
-		case VK_FORMAT_R16G16_SFLOAT:
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16_SNORM:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16_SFLOAT:
-		case VK_FORMAT_R16_UNORM:
-		case VK_FORMAT_R16_SNORM:
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R8_UINT:
-			return true;
-
-		default:
-			return false;
-	}
 }
 
 tcu::TestStatus testMutable (Context& context, const CaseDef caseDef)

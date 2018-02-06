@@ -437,13 +437,29 @@ public:
 		IMAGE_BACKING_MODE_SPARSE,
 	};
 
+	// Default wertex and fragment grid sizes are used by a large collection of tests
+	// to generate input sets. Some tests might change their behavior if the
+	// default grid size values are altered, so care should be taken to confirm that
+	// any changes to default values do not produce regressions.
+	// If a particular tests needs to use a different grid size value, rather than
+	// modifying the default grid size values for all tests, it is recommended that
+	// the test specifies the required grid size using the gridSize parameter in the
+	// ShaderRenderCaseInstance constuctor instead.
+	enum
+	{
+		GRID_SIZE_DEFAULTS			= 0,
+		GRID_SIZE_DEFAULT_VERTEX	= 90,
+		GRID_SIZE_DEFAULT_FRAGMENT	= 4,
+	};
+
 														ShaderRenderCaseInstance	(Context&					context);
 														ShaderRenderCaseInstance	(Context&					context,
 																					const bool					isVertexCase,
 																					const ShaderEvaluator&		evaluator,
 																					const UniformSetup&			uniformSetup,
 																					const AttributeSetupFunc	attribFunc,
-																					const ImageBackingMode		imageBackingMode = IMAGE_BACKING_MODE_REGULAR);
+																					const ImageBackingMode		imageBackingMode = IMAGE_BACKING_MODE_REGULAR,
+																					const deUint32				gridSize = static_cast<deUint32>(GRID_SIZE_DEFAULTS));
 
 	virtual												~ShaderRenderCaseInstance	(void);
 	virtual tcu::TestStatus								iterate						(void);
@@ -479,7 +495,8 @@ protected:
 																					 const ShaderEvaluator*		evaluator,
 																					 const UniformSetup*		uniformSetup,
 																					 const AttributeSetupFunc	attribFunc,
-																					 const ImageBackingMode		imageBackingMode = IMAGE_BACKING_MODE_REGULAR);
+																					 const ImageBackingMode		imageBackingMode = IMAGE_BACKING_MODE_REGULAR,
+																					 const deUint32				gridSize = static_cast<deUint32>(GRID_SIZE_DEFAULTS));
 
 	virtual void										setup						(void);
 	virtual void										setupUniforms				(const tcu::Vec4& constCoords);
@@ -505,25 +522,9 @@ protected:
 	bool												isMultiSampling				(void) const;
 
 	ImageBackingMode									m_imageBackingMode;
-private:
 
-	struct SparseContext
-	{
-											SparseContext	(vkt::Context& context);
+	deUint32											m_quadGridSize;
 
-		vkt::Context&						m_context;
-		const deUint32						m_queueFamilyIndex;
-		vk::Unique<vk::VkDevice>			m_device;
-		vk::DeviceDriver					m_deviceInterface;
-		const vk::VkQueue					m_queue;
-		const de::UniquePtr<vk::Allocator>	m_allocator;
-	private:
-		vk::Move<vk::VkDevice>				createDevice	(void) const;
-		vk::Allocator*						createAllocator	(void) const;
-
-	};
-
-	de::UniquePtr<SparseContext>						m_sparseContext;
 protected:
 	vk::Allocator&										m_memAlloc;
 	const tcu::Vec4										m_clearColor;
@@ -553,7 +554,7 @@ private:
 																					 deUint32						arrayLayers,
 																					 vk::VkImage					destImage);
 
-	void												checkSparseSupport			(const vk::VkImageType imageType) const;
+	void												checkSparseSupport			(const vk::VkImageCreateInfo&	imageInfo) const;
 
 	void												uploadSparseImage			(const tcu::TextureFormat&		texFormat,
 																					 const TextureData&				textureData,
@@ -655,14 +656,14 @@ private:
 	vk::VkSampleCountFlagBits							m_sampleCount;
 	std::vector<vk::VkPushConstantRange>				m_pushConstantRanges;
 
-	// Wrapper functions around m_context calls to support sparse cases.
 	vk::VkDevice										getDevice						(void) const;
 	deUint32											getUniversalQueueFamilyIndex	(void) const;
+	deUint32											getSparseQueueFamilyIndex		(void) const;
 	const vk::DeviceInterface&							getDeviceInterface				(void) const;
 	vk::VkQueue											getUniversalQueue				(void) const;
+	vk::VkQueue											getSparseQueue					(void) const;
 	vk::VkPhysicalDevice								getPhysicalDevice				(void) const;
 	const vk::InstanceInterface&						getInstanceInterface			(void) const;
-	SparseContext*										createSparseContext				(void) const;
 	vk::Allocator&										getAllocator					(void) const;
 };
 
