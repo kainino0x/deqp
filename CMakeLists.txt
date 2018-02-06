@@ -24,6 +24,7 @@ endif ()
 option(DEQP_ENABLE_GLES2	"Build OpenGL ES 2.0 tests" ON)
 option(DEQP_ENABLE_GLES3	"Build OpenGL ES 3.0 tests" ON)
 option(DEQP_ENABLE_GLES31	"Build OpenGL ES 3.1 tests" ON)
+option(DEQP_ENABLE_OPENGL	"Build OpenGL (desktop) CTS" ${NOT_EMSCRIPTEN})
 option(DEQP_ENABLE_VULKAN	"Build Vulkan tests" ${NOT_EMSCRIPTEN})
 option(DEQP_TEST_EGL		"Build EGL tests" ${NOT_EMSCRIPTEN})
 # TODO(kainino@chromium.org): Remove EGL dependency from Emscripten build.
@@ -44,6 +45,7 @@ set(DEQP_GLES2_LIBRARIES	)				# GLESv2 libraries. If empty, run-time linking is 
 set(DEQP_SUPPORT_GLES3		${DEQP_ENABLE_GLES3})
 set(DEQP_GLES3_LIBRARIES	)				# GLESv3 libraries. If empty, run-time linking is used
 set(DEQP_SUPPORT_GLES31		${DEQP_ENABLE_GLES31})
+set(DEQP_SUPPORT_OPENGL		${DEQP_ENABLE_OPENGL})
 set(DEQP_SUPPORT_VULKAN		${DEQP_ENABLE_VULKAN})
 set(DEQP_EGL_LIBRARIES		)				# EGL libraries
 
@@ -118,6 +120,7 @@ message(STATUS "DEQP_SUPPORT_GLES1      = ${DEQP_SUPPORT_GLES1}")
 message(STATUS "DEQP_SUPPORT_GLES2      = ${DEQP_SUPPORT_GLES2}")
 message(STATUS "DEQP_SUPPORT_GLES3      = ${DEQP_SUPPORT_GLES3}")
 message(STATUS "DEQP_SUPPORT_GLES31     = ${DEQP_SUPPORT_GLES31}")
+message(STATUS "DEQP_SUPPORT_OPENGL     = ${DEQP_SUPPORT_OPENGL}")
 message(STATUS "DEQP_SUPPORT_VULKAN     = ${DEQP_SUPPORT_VULKAN}")
 message(STATUS "DEQP_GLES1_LIBRARIES    = ${DEQP_GLES1_LIBRARIES}")
 message(STATUS "DEQP_GLES2_LIBRARIES    = ${DEQP_GLES2_LIBRARIES}")
@@ -301,7 +304,10 @@ endmacro (add_deqp_module)
 
 # Macro for adding data dirs to module
 macro (add_data_dir MODULE_NAME SRC_DIR DST_DIR)
-	if (DE_OS_IS_WIN32 OR DE_OS_IS_UNIX OR DE_OS_IS_OSX OR DE_OS_IS_QNX)
+	if (EMSCRIPTEN)
+		set(DEQP_EMSCRIPTEN_PRELOADS "${DEQP_EMSCRIPTEN_PRELOADS} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR}@./${DST_DIR}")
+		set(DEQP_EMSCRIPTEN_PRELOADS ${DEQP_EMSCRIPTEN_PRELOADS} PARENT_SCOPE)
+	elseif (DE_OS_IS_WIN32 OR DE_OS_IS_UNIX OR DE_OS_IS_OSX OR DE_OS_IS_QNX)
 		add_custom_command(TARGET "${MODULE_NAME}${MODULE_DATA_TARGET_POSTFIX}" POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${DST_DIR})
 
 	elseif (DE_OS_IS_ANDROID)
@@ -341,7 +347,7 @@ if (DEQP_SUPPORT_VULKAN)
 	add_subdirectory(external/vulkancts/modules/vulkan)
 endif ()
 
-if (NOT EMSCRIPTEN)
+if (DEQP_SUPPORT_OPENGL)
 	add_subdirectory(external/openglcts)
 endif ()
 
