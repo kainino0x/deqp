@@ -32,50 +32,128 @@
 #include "tcuApp.hpp"
 #include "qpTestLog.h"
 
+#include <list>
+
 // Implement this in your platform port.
 tcu::Platform* createPlatform (void);
 
 using namespace emscripten;
 
-namespace {
-	class dEQPJS
+struct CaseResult
+{
+	std::string path;
+	qpTestResult result = QP_TEST_RESULT_INTERNAL_ERROR;
+	std::string description = "description not initialized";
+};
+
+class TestLog : public tcu::TestLog
+{
+public:
+	TestLog(const char* fileName, deUint32 flags)
+		: tcu::TestLog(fileName, flags)
 	{
-	public:
-		explicit dEQPJS(const std::string& args)
-			: m_archive(".")
-			, m_platform(createPlatform())
-			, m_cmdLine("dummy_arg_0 " + args)
-		{
-			m_log = std::unique_ptr<tcu::TestLog>(new tcu::TestLog(m_cmdLine.getLogFileName(), m_cmdLine.getLogFlags()));
-			m_app = std::unique_ptr<tcu::App>(new tcu::App(*m_platform, m_archive, *m_log, m_cmdLine));
-		}
+	}
 
-		bool iterate()
-		{
-			return m_app->iterate();
-		}
+	void startCase(const char* testCasePath, qpTestCaseType testCaseType) override
+	{
+		tcu::TestLog::startCase(testCasePath, testCaseType);
+		currentResult = CaseResult {};
+		currentResult.path = testCasePath;
+	}
 
-		std::string getTestCasePath() {
-			return m_log->lastTestCasePath;
-		}
-		qpTestResult getTestResult() {
-			return m_log->lastTestResult;
-		}
-		std::string getTestResultName() {
-			return std::string(qpGetTestResultName(m_log->lastTestResult));
-		}
-		std::string getTestResultDesc() {
-			return m_log->lastTestResultDesc;
-		}
+	void endCase(qpTestResult result, const char* description) override
+	{
+		tcu::TestLog::endCase(result, description);
+		currentResult.result = result;
+		currentResult.description = description;
+		results.push_back(currentResult);
+	}
 
-	private:
-		tcu::DirArchive m_archive;
-		std::unique_ptr<tcu::Platform> m_platform;
-		tcu::CommandLine m_cmdLine;
-		std::unique_ptr<tcu::TestLog> m_log;
-		std::unique_ptr<tcu::App> m_app;
-	};
-}
+	void terminateCase(qpTestResult result) override
+	{
+		tcu::TestLog::terminateCase(result);
+		currentResult.result = result;
+		currentResult.description = "";
+		results.push_back(currentResult);
+	}
+
+public:
+	bool peekNextExists()
+	{
+		return !results.empty();
+	}
+
+	std::string peekNextPath()
+	{
+		if (results.empty()) {
+			return "";
+		}
+		return results.front().path;
+	}
+
+	qpTestResult peekNextResult()
+	{
+		if (results.empty()) {
+			return QP_TEST_RESULT_INTERNAL_ERROR;
+		}
+		return results.front().result;
+	}
+
+	std::string peekNextResultName()
+	{
+		return std::string(qpGetTestResultName(peekNextResult()));
+	}
+
+	std::string peekNextDescription()
+	{
+		if (results.empty()) {
+			return "no results left in the queue";
+		}
+		return results.front().description;
+	}
+
+	void pop()
+	{
+		if (results.empty()) {
+			return;
+		}
+		results.pop_front();
+	}
+
+private:
+	std::list<CaseResult> results;
+	CaseResult currentResult;
+};
+
+class dEQPJS
+{
+public:
+	explicit dEQPJS(const std::string& args)
+		: m_archive(".")
+		, m_platform(createPlatform())
+		, m_cmdLine("dummy_arg_0 " + args)
+	{
+		m_log = std::unique_ptr<TestLog>(new TestLog(m_cmdLine.getLogFileName(), m_cmdLine.getLogFlags()));
+		m_app = std::unique_ptr<tcu::App>(new tcu::App(*m_platform, m_archive, *m_log, m_cmdLine));
+	}
+
+	bool iterate()
+	{
+		return m_app->iterate();
+	}
+
+	TestLog* getTestLog()
+	{
+		return m_log.get();
+	}
+
+private:
+	tcu::DirArchive m_archive;
+	std::unique_ptr<tcu::Platform> m_platform;
+	tcu::CommandLine m_cmdLine;
+	std::unique_ptr<TestLog> m_log;
+	std::unique_ptr<tcu::App> m_app;
+};
 
 EMSCRIPTEN_BINDINGS(deqp) {
 	enum_<qpTestResult>("qpTestResult")
@@ -85,9 +163,14 @@ EMSCRIPTEN_BINDINGS(deqp) {
 	class_<dEQPJS>("dEQPJS")
 		.constructor<const std::string&>()
 		.function("iterate", &dEQPJS::iterate)
-		.function("getTestCasePath", &dEQPJS::getTestCasePath)
-		.function("getTestResult", &dEQPJS::getTestResult)
-		.function("getTestResultName", &dEQPJS::getTestResultName)
-		.function("getTestResultDesc", &dEQPJS::getTestResultDesc)
+		.function("getTestLog", &dEQPJS::getTestLog, allow_raw_pointers())
+		;
+	class_<TestLog>("TestLog")
+		.function("peekNextExists", &TestLog::peekNextExists)
+		.function("peekNextPath", &TestLog::peekNextPath)
+		.function("peekNextResult", &TestLog::peekNextResult)
+		.function("peekNextResultName", &TestLog::peekNextResultName)
+		.function("peekNextDescription", &TestLog::peekNextDescription)
+		.function("pop", &TestLog::pop)
 		;
 }
