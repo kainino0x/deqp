@@ -144,11 +144,12 @@ void resetStateES (const RenderContext& renderCtx, const ContextInfo& ctxInfo)
 	// Texture state.
 	// \todo [2013-04-08 pyry] Reset all levels?
 	{
-#ifndef __EMSCRIPTEN__
-		const float	borderColor[]		= { 0.0f, 0.0f, 0.0f, 0.0f };
-#endif
+		// The `#ifndef __EMSCRIPTEN__`s in this block are needed because WebGL
+		// does not have a default texture object.
+
 		int			numTexUnits			= 0;
 #ifndef __EMSCRIPTEN__
+		const float	borderColor[]		= { 0.0f, 0.0f, 0.0f, 0.0f };
 		const bool	supportsBorderClamp	= ctxInfo.isExtensionSupported("GL_EXT_texture_border_clamp") || contextSupports(type, ApiType::es(3,2));
 #endif
 
