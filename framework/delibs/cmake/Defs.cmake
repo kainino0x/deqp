@@ -80,9 +80,10 @@ if (EMSCRIPTEN)
 	set(CMAKE_C_COMPILER_ID "Emscripten")
 	set(CMAKE_CXX_COMPILER_ID "Emscripten")
 
-	set(c_cxx_flags "-s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_WEBGL2=1 -s FULL_ES2=1 -s FULL_ES3=1 -s TOTAL_MEMORY=268435456")
-	set(c_cxx_flags_debug "-s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s WASM=0 -g3")
-	# Partial list of useful flags:
+	set(link_flags "-s WASM=1 -s USE_WEBGL2=1 -s FULL_ES2=1 -s FULL_ES3=1 -s \"BINARYEN_TRAP_MODE='clamp'\" -s TOTAL_MEMORY=268435456 -s DISABLE_EXCEPTION_CATCHING=0")
+	set(link_flags_relwithdebinfo "-s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -g")
+	set(link_flags_debug "-s WASM=0 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -g3")
+	# Partial list of useful link flags:
 	#   -s WASM=1
 	#   -s USE_WEBGL2=1
 	#   -s FULL_ES2=1
@@ -92,15 +93,27 @@ if (EMSCRIPTEN)
 	#   -s ALLOW_MEMORY_GROWTH=1  # doesn't seem to do anything
 	#   -s TOTAL_MEMORY=268435456  # 256MB
 	#   -s DEMANGLE_SUPPORT=1
+	#   -s \"BINARYEN_TRAP_MODE='clamp'\"
 	#   -g3
 	#   -g4  # source maps (asm.js only)
 
+	set(CMAKE_EXE_LINKER_FLAGS
+		"${CMAKE_EXE_LINKER_FLAGS} ${link_flags}")
+	set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
+		"${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} ${link_flags_relwithdebinfo}")
+	set(CMAKE_EXE_LINKER_FLAGS_DEBUG
+		"${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${link_flags_debug}")
+
+
+	set(c_cxx_flags "")
+	set(c_cxx_flags_debug "-g")
+
 	set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${c_cxx_flags}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${c_cxx_flags}")
-	set(CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS_DEBUG}   ${c_cxx_flags_debug}")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${c_cxx_flags_debug}")
 	set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELWITHDEBINFO}   ${c_cxx_flags_debug}")
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${c_cxx_flags_debug}")
+	set(CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS_DEBUG}   ${c_cxx_flags_debug}")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${c_cxx_flags_debug}")
 
 	add_definitions(-D_XOPEN_SOURCE=600)
 endif ()
