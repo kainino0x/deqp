@@ -47,7 +47,9 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELWITHASSERTS ${CMAKE_SHARED_LINKER_FLAGS_RELEASE
 
 # Os detection
 if (NOT DEFINED DE_OS)
-	if (WIN32)
+	if (EMSCRIPTEN)
+		set(DE_OS "DE_OS_UNIX")
+	elseif (WIN32)
 		set(DE_OS "DE_OS_WIN32")
 	elseif (APPLE)
 		set(DE_OS "DE_OS_OSX")
@@ -74,13 +76,35 @@ elseif (NOT (CMAKE_C_COMPILER_ID MATCHES "Clang") EQUAL (CMAKE_CXX_COMPILER_ID M
 	message(FATAL_ERROR "CMake C and CXX compilers do not match. Both or neither must be Clang.")
 endif ()
 
+if (EMSCRIPTEN)
+	set(CMAKE_C_COMPILER_ID "Emscripten")
+	set(CMAKE_CXX_COMPILER_ID "Emscripten")
+
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s WASM=1 -s USE_WEBGL2=1 -s FULL_ES2=1 -s FULL_ES3=1 -s \"BINARYEN_TRAP_MODE='clamp'\" -s TOTAL_MEMORY=268435456 -s DISABLE_EXCEPTION_CATCHING=0")
+	set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "-O2 -g2 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1")
+
+	set(c_cxx_flags "-g2")
+	set(c_cxx_flags_release "-O3")
+	set(c_cxx_flags_relwithdebinfo "-O2")
+
+	set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${c_cxx_flags}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${c_cxx_flags}")
+	set(CMAKE_C_FLAGS_RELEASE              "${c_cxx_flags_release}")
+	set(CMAKE_CXX_FLAGS_RELEASE            "${c_cxx_flags_release}")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO       "${c_cxx_flags_relwithdebinfo}")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO     "${c_cxx_flags_relwithdebinfo}")
+
+	add_definitions(-D_XOPEN_SOURCE=600)
+endif ()
+
 # Compiler detection
 if (NOT DEFINED DE_COMPILER)
 	if ((CMAKE_C_COMPILER_ID MATCHES "MSVC") OR MSVC)
 		set(DE_COMPILER "DE_COMPILER_MSC")
 	elseif (CMAKE_C_COMPILER_ID MATCHES "GNU")
 		set(DE_COMPILER "DE_COMPILER_GCC")
-	elseif (CMAKE_C_COMPILER_ID MATCHES "Clang")
+	elseif (CMAKE_C_COMPILER_ID MATCHES "Clang" OR
+			CMAKE_C_COMPILER_ID MATCHES "Emscripten")
 		set(DE_COMPILER "DE_COMPILER_CLANG")
 
 	# Guess based on OS

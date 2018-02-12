@@ -15,6 +15,19 @@ endif ()
 
 project(dEQP-Core-${DEQP_TARGET})
 
+if (EMSCRIPTEN)
+	set(NOT_EMSCRIPTEN OFF)
+else ()
+	set(NOT_EMSCRIPTEN ON)
+endif ()
+
+option(DEQP_SUPPORT_GLES2	"Build OpenGL ES 2.0 tests"		ON)
+option(DEQP_SUPPORT_GLES3	"Build OpenGL ES 3.0 tests"		ON)
+option(DEQP_SUPPORT_GLES31	"Build OpenGL ES 3.1 tests"		ON)
+option(DEQP_SUPPORT_OPENGL	"Build OpenGL (desktop) CTS"	${NOT_EMSCRIPTEN})
+option(DEQP_SUPPORT_VULKAN	"Build Vulkan tests"			${NOT_EMSCRIPTEN})
+option(DEQP_SUPPORT_EGL		"Build with EGL support"		${NOT_EMSCRIPTEN})
+
 include(framework/delibs/cmake/Defs.cmake NO_POLICY_SCOPE)
 include(framework/delibs/cmake/CFlags.cmake)
 
@@ -82,15 +95,24 @@ if (NOT PNG_INCLUDE_PATH OR NOT PNG_LIBRARY)
 endif ()
 
 # glslang
-add_subdirectory(external/glslang)
+if (DEQP_SUPPORT_VULKAN)
+	add_subdirectory(external/glslang)
+endif ()
 
 # spirv-tools
-add_subdirectory(external/spirv-tools)
+if (DEQP_SUPPORT_VULKAN)
+	add_subdirectory(external/spirv-tools)
+endif ()
 
 include_directories(${PNG_INCLUDE_PATH})
 
 message(STATUS "DEQP_TARGET_NAME        = ${DEQP_TARGET_NAME}")
 message(STATUS "DEQP_SUPPORT_GLES1      = ${DEQP_SUPPORT_GLES1}")
+message(STATUS "DEQP_SUPPORT_GLES2      = ${DEQP_SUPPORT_GLES2}")
+message(STATUS "DEQP_SUPPORT_GLES3      = ${DEQP_SUPPORT_GLES3}")
+message(STATUS "DEQP_SUPPORT_GLES31     = ${DEQP_SUPPORT_GLES31}")
+message(STATUS "DEQP_SUPPORT_OPENGL     = ${DEQP_SUPPORT_OPENGL}")
+message(STATUS "DEQP_SUPPORT_VULKAN     = ${DEQP_SUPPORT_VULKAN}")
 message(STATUS "DEQP_GLES1_LIBRARIES    = ${DEQP_GLES1_LIBRARIES}")
 message(STATUS "DEQP_GLES2_LIBRARIES    = ${DEQP_GLES2_LIBRARIES}")
 message(STATUS "DEQP_GLES3_LIBRARIES    = ${DEQP_GLES3_LIBRARIES}")
@@ -98,6 +120,7 @@ message(STATUS "DEQP_GLES31_LIBRARIES   = ${DEQP_GLES31_LIBRARIES}")
 message(STATUS "DEQP_GLES32_LIBRARIES   = ${DEQP_GLES32_LIBRARIES}")
 message(STATUS "DEQP_SUPPORT_VG         = ${DEQP_SUPPORT_VG}")
 message(STATUS "DEQP_VG_LIBRARIES       = ${DEQP_VG_LIBRARIES}")
+message(STATUS "DEQP_SUPPORT_EGL        = ${DEQP_SUPPORT_EGL}")
 message(STATUS "DEQP_EGL_LIBRARIES      = ${DEQP_EGL_LIBRARIES}")
 message(STATUS "DEQP_PLATFORM_LIBRARIES = ${DEQP_PLATFORM_LIBRARIES}")
 
@@ -125,6 +148,14 @@ if (DEFINED DEQP_EGL_LIBRARIES)
 	add_definitions(-DDEQP_EGL_DIRECT_LINK=1)
 endif ()
 
+if (EMSCRIPTEN)
+	add_definitions(-DDEQP_GLES2_DIRECT_LINK=1)
+	add_definitions(-DDEQP_GLES3_DIRECT_LINK=1)
+	add_definitions(-DDEQP_GLES31_DIRECT_LINK=1)
+	add_definitions(-DDEQP_GLES32_DIRECT_LINK=1)
+	add_definitions(-DDEQP_EGL_DIRECT_LINK=1)
+endif ()
+
 # Legacy APIs that don't support run-time loading
 if (DEQP_SUPPORT_GLES1)
 	add_definitions(-DDEQP_SUPPORT_GLES1=1)
@@ -134,12 +165,32 @@ if (DEQP_SUPPORT_GLES1)
 	endif ()
 endif ()
 
+if (DEQP_SUPPORT_GLES2)
+	add_definitions(-DDEQP_SUPPORT_GLES2=1)
+endif ()
+
+if (DEQP_SUPPORT_GLES3)
+	add_definitions(-DDEQP_SUPPORT_GLES3=1)
+endif ()
+
+if (DEQP_SUPPORT_GLES31)
+	add_definitions(-DDEQP_SUPPORT_GLES31=1)
+endif ()
+
+if (DEQP_SUPPORT_VULKAN)
+	add_definitions(-DDEQP_SUPPORT_VULKAN=1)
+endif ()
+
 if (DEQP_SUPPORT_VG)
 	add_definitions(-DDEQP_SUPPORT_VG=1)
 
 	if (NOT DEFINED DEQP_VG_LIBRARIES)
 		message(FATAL_ERROR "Run-time loading of VG is not supported (DEQP_VG_LIBRARIES is not set)")
 	endif ()
+endif ()
+
+if (DEQP_SUPPORT_EGL)
+	add_definitions(-DDEQP_SUPPORT_EGL=1)
 endif ()
 
 if (DE_COMPILER_IS_MSC)
@@ -156,11 +207,15 @@ add_subdirectory(framework/delibs/deutil)
 add_subdirectory(framework/delibs/decpp)
 
 # ExecServer
-add_subdirectory(execserver)
+if (NOT EMSCRIPTEN)
+	add_subdirectory(execserver)
+endif ()
 
 # Executor framework and tools
 if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/executor)
-	add_subdirectory(executor)
+	if (NOT EMSCRIPTEN)
+		add_subdirectory(executor)
+	endif ()
 endif ()
 
 # Test framework include directories
@@ -221,7 +276,7 @@ macro (add_deqp_module MODULE_NAME SRCS LIBS ENTRY)
 	set(DEQP_MODULE_LIBRARIES		${DEQP_MODULE_LIBRARIES} PARENT_SCOPE)
 	set(DEQP_MODULE_ENTRY_POINTS	${DEQP_MODULE_ENTRY_POINTS} PARENT_SCOPE)
 
-	if (NOT DE_OS_IS_ANDROID AND NOT DE_OS_IS_IOS)
+	if (NOT DE_OS_IS_ANDROID AND NOT DE_OS_IS_IOS AND NOT EMSCRIPTEN)
 		# Executable target
 		add_executable(${MODULE_NAME} ${PROJECT_SOURCE_DIR}/framework/platform/tcuMain.cpp ${ENTRY})
 		target_link_libraries(${MODULE_NAME} tcutil-platform "${MODULE_NAME}${MODULE_LIB_TARGET_POSTFIX}")
@@ -235,7 +290,10 @@ endmacro (add_deqp_module)
 
 # Macro for adding data dirs to module
 macro (add_data_dir MODULE_NAME SRC_DIR DST_DIR)
-	if (DE_OS_IS_WIN32 OR DE_OS_IS_UNIX OR DE_OS_IS_OSX OR DE_OS_IS_QNX)
+	if (EMSCRIPTEN)
+		set(DEQP_EMSCRIPTEN_PRELOADS "${DEQP_EMSCRIPTEN_PRELOADS} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR}@./${DST_DIR}")
+		set(DEQP_EMSCRIPTEN_PRELOADS ${DEQP_EMSCRIPTEN_PRELOADS} PARENT_SCOPE)
+	elseif (DE_OS_IS_WIN32 OR DE_OS_IS_UNIX OR DE_OS_IS_OSX OR DE_OS_IS_QNX)
 		add_custom_command(TARGET "${MODULE_NAME}${MODULE_DATA_TARGET_POSTFIX}" POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${DST_DIR})
 
 	elseif (DE_OS_IS_ANDROID)
@@ -260,15 +318,24 @@ macro (add_data_file MODULE_NAME SRC_FILE DST_FILE)
 endmacro (add_data_file)
 
 add_subdirectory(framework)
-add_subdirectory(external/vulkancts/framework/vulkan)
+
+if (DEQP_SUPPORT_VULKAN)
+	add_subdirectory(external/vulkancts/framework/vulkan)
+endif ()
 
 if (DE_COMPILER_IS_MSC)
 	add_compile_options(/bigobj) # Required by glsBuiltinPrecisionTests.cpp
 endif ()
 
 add_subdirectory(modules)
-add_subdirectory(external/vulkancts/modules/vulkan)
-add_subdirectory(external/openglcts)
+
+if (DEQP_SUPPORT_VULKAN)
+	add_subdirectory(external/vulkancts/modules/vulkan)
+endif ()
+
+if (DEQP_SUPPORT_OPENGL)
+	add_subdirectory(external/openglcts)
+endif ()
 
 # Single-binary targets
 if (DE_OS_IS_ANDROID)
@@ -318,4 +385,8 @@ elseif (DE_OS_IS_IOS)
 	target_link_libraries(deqp tcutil-platform xscore ${DEQP_MODULE_LIBRARIES})
 	set_target_properties(deqp PROPERTIES XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
 	set_target_properties(deqp PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer: ${DEQP_IOS_CODE_SIGN_IDENTITY}")
+endif ()
+
+if (EMSCRIPTEN)
+	add_subdirectory(emscripten)
 endif ()

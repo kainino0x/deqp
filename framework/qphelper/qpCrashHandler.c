@@ -33,7 +33,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#if (DE_OS == DE_OS_UNIX)
+#if (DE_OS == DE_OS_UNIX) && !defined(__EMSCRIPTEN__)
 #	include <unistd.h>
 #	include <execinfo.h>
 #	include <errno.h>
@@ -535,7 +535,7 @@ void qpCrashHandler_writeCrashInfo (qpCrashHandler* crashHandler, qpWriteCrashIn
 {
 	qpCrashInfo_write(&crashHandler->crashInfo, writeInfo, userPtr);
 
-#if (DE_OS == DE_OS_UNIX)
+#if (DE_OS == DE_OS_UNIX) && !defined(__EMSCRIPTEN__)
 	{
 		char	tmpFileName[]	= "backtrace-XXXXXX";
 		int		tmpFile			= mkstemp(tmpFileName);

@@ -415,6 +415,7 @@ static void setVertexAttribPointer (const glw::Functions& gl, const VertexAttrib
 	if (isIntType && va.convert == VTX_COMP_CONVERT_NONE)
 		gl.vertexAttribIPointer(va.location, va.numComponents, compTypeGL, va.stride, va.pointer);
 	else
+		// TODO(kainino@chromium.org): Client side arrays are not allowed in WebGL. Emulate in Emscripten?
 		gl.vertexAttribPointer(va.location, va.numComponents, compTypeGL, va.convert == VTX_COMP_CONVERT_NORMALIZE_TO_FLOAT ? GL_TRUE : GL_FALSE, va.stride, va.pointer);
 }
 
