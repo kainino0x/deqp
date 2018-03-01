@@ -58,6 +58,21 @@ if (DE_COMPILER_IS_GCC OR DE_COMPILER_IS_CLANG)
 	# Any static libraries build are linked into the standalone executable binaries.
 	set(CMAKE_C_FLAGS			"${CMAKE_C_FLAGS} -fvisibility=hidden")
 	set(CMAKE_CXX_FLAGS			"${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
+
+	if (EMSCRIPTEN)
+		# "Linker" flags needed for Emscripten builds to run
+		# (these apply to wasm codegen and js output).
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s WASM=1 -s USE_WEBGL2=1 -s FULL_ES2=1 -s FULL_ES3=1 -s \"BINARYEN_TRAP_MODE='clamp'\" -s TOTAL_MEMORY=268435456 -s DISABLE_EXCEPTION_CATCHING=0")
+
+		# Override default RelWithDebInfo flags.
+		# RelWithDebInfo is the primary build type for Emscripten.
+		set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO	"-g2 -O2 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1")
+		set(CMAKE_C_FLAGS_RELWITHDEBINFO			"-g2 -O2")
+		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO			"-g2 -O2")
+
+		# Needed for POSIX APIs to build.
+		add_definitions(-D_XOPEN_SOURCE=600)
+	endif ()
 elseif (DE_COMPILER_IS_MSC)
 	# Compiler flags for msc
 

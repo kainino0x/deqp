@@ -56,6 +56,11 @@ if (NOT DEFINED DE_OS)
 	else ()
 		set(DE_OS "DE_OS_VANILLA")
 	endif ()
+
+	# Emscripten is always Unix-like, regardless of OS we're building on.
+	if (EMSCRIPTEN)
+		set(DE_OS "DE_OS_UNIX")
+	endif ()
 endif ()
 
 # DE_OS_IS_{PLATFORM} definitions

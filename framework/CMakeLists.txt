@@ -10,7 +10,9 @@ add_subdirectory(common)
 add_subdirectory(opengl)
 
 # EGL utilities
-add_subdirectory(egl)
+if (NOT EMSCRIPTEN)
+	add_subdirectory(egl)
+endif ()
 
 if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/randomshaders)
 	add_subdirectory(randomshaders)

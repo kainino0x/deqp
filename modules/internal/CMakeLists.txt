@@ -25,15 +25,24 @@ set(DE_INTERNAL_TESTS_SRCS
 	ditTextureFormatTests.hpp
 	ditAstcTests.cpp
 	ditAstcTests.hpp
-	ditVulkanTests.cpp
-	ditVulkanTests.hpp
 	)
 
 set(DE_INTERNAL_TESTS_LIBS
 	tcutil
 	referencerenderer
-	vkutil
 	)
+
+if (NOT EMSCRIPTEN)
+	set(DE_INTERNAL_TESTS_SRCS
+		${DE_INTERNAL_TESTS_SRCS}
+		ditVulkanTests.cpp
+		ditVulkanTests.hpp
+		)
+	set(DE_INTERNAL_TESTS_LIBS
+		${DE_INTERNAL_TESTS_LIBS}
+		vkutil
+		)
+endif ()
 
 add_deqp_module(de-internal-tests "${DE_INTERNAL_TESTS_SRCS}" "${DE_INTERNAL_TESTS_LIBS}" ditTestPackageEntry.cpp)
 

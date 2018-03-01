@@ -157,9 +157,9 @@ public:
 	void				writeEglConfig			(const qpEglConfigInfo* config);
 	void				endEglConfigSet			(void);
 
-	void				startCase				(const char* testCasePath, qpTestCaseType testCaseType);
-	void				endCase					(qpTestResult result, const char* description);
-	void				terminateCase			(qpTestResult result);
+	virtual void		startCase				(const char* testCasePath, qpTestCaseType testCaseType);
+	virtual void		endCase					(qpTestResult result, const char* description);
+	virtual void		terminateCase			(qpTestResult result);
 
 	void				startSampleList			(const std::string& name, const std::string& description);
 	void				startSampleInfo			(void);

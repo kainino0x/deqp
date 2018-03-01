@@ -82,10 +82,14 @@ if (NOT PNG_INCLUDE_PATH OR NOT PNG_LIBRARY)
 endif ()
 
 # glslang
-add_subdirectory(external/glslang)
+if (NOT EMSCRIPTEN)
+	add_subdirectory(external/glslang)
+endif ()
 
 # spirv-tools
-add_subdirectory(external/spirv-tools)
+if (NOT EMSCRIPTEN)
+	add_subdirectory(external/spirv-tools)
+endif ()
 
 include_directories(${PNG_INCLUDE_PATH})
 
@@ -105,23 +109,23 @@ message(STATUS "DEQP_PLATFORM_LIBRARIES = ${DEQP_PLATFORM_LIBRARIES}")
 add_definitions(-DDEQP_TARGET_NAME="${DEQP_TARGET_NAME}")
 
 # Entry points loaded directly by linking to libGL*?
-if (DEFINED DEQP_GLES2_LIBRARIES)
+if (DEFINED DEQP_GLES2_LIBRARIES OR EMSCRIPTEN)
 	add_definitions(-DDEQP_GLES2_DIRECT_LINK=1)
 endif ()
 
-if (DEFINED DEQP_GLES3_LIBRARIES)
+if (DEFINED DEQP_GLES3_LIBRARIES OR EMSCRIPTEN)
 	add_definitions(-DDEQP_GLES3_DIRECT_LINK=1)
 endif ()
 
-if (DEFINED DEQP_GLES31_LIBRARIES)
+if (DEFINED DEQP_GLES31_LIBRARIES OR EMSCRIPTEN)
 	add_definitions(-DDEQP_GLES31_DIRECT_LINK=1)
 endif ()
 
-if (DEFINED DEQP_GLES32_LIBRARIES)
+if (DEFINED DEQP_GLES32_LIBRARIES OR EMSCRIPTEN)
 	add_definitions(-DDEQP_GLES32_DIRECT_LINK=1)
 endif ()
 
-if (DEFINED DEQP_EGL_LIBRARIES)
+if (DEFINED DEQP_EGL_LIBRARIES OR EMSCRIPTEN)
 	add_definitions(-DDEQP_EGL_DIRECT_LINK=1)
 endif ()
 
@@ -156,11 +160,15 @@ add_subdirectory(framework/delibs/deutil)
 add_subdirectory(framework/delibs/decpp)
 
 # ExecServer
-add_subdirectory(execserver)
+if (NOT EMSCRIPTEN)
+	add_subdirectory(execserver)
+endif ()
 
 # Executor framework and tools
 if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/executor)
-	add_subdirectory(executor)
+	if (NOT EMSCRIPTEN)
+		add_subdirectory(executor)
+	endif ()
 endif ()
 
 # Test framework include directories
@@ -221,7 +229,7 @@ macro (add_deqp_module MODULE_NAME SRCS LIBS ENTRY)
 	set(DEQP_MODULE_LIBRARIES		${DEQP_MODULE_LIBRARIES} PARENT_SCOPE)
 	set(DEQP_MODULE_ENTRY_POINTS	${DEQP_MODULE_ENTRY_POINTS} PARENT_SCOPE)
 
-	if (NOT DE_OS_IS_ANDROID AND NOT DE_OS_IS_IOS)
+	if (NOT DE_OS_IS_ANDROID AND NOT DE_OS_IS_IOS AND NOT EMSCRIPTEN)
 		# Executable target
 		add_executable(${MODULE_NAME} ${PROJECT_SOURCE_DIR}/framework/platform/tcuMain.cpp ${ENTRY})
 		target_link_libraries(${MODULE_NAME} tcutil-platform "${MODULE_NAME}${MODULE_LIB_TARGET_POSTFIX}")
@@ -235,7 +243,10 @@ endmacro (add_deqp_module)
 
 # Macro for adding data dirs to module
 macro (add_data_dir MODULE_NAME SRC_DIR DST_DIR)
-	if (DE_OS_IS_WIN32 OR DE_OS_IS_UNIX OR DE_OS_IS_OSX OR DE_OS_IS_QNX)
+	if (EMSCRIPTEN)
+		set(DEQP_EMSCRIPTEN_PRELOADS "${DEQP_EMSCRIPTEN_PRELOADS} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR}@./${DST_DIR}")
+		set(DEQP_EMSCRIPTEN_PRELOADS ${DEQP_EMSCRIPTEN_PRELOADS} PARENT_SCOPE)
+	elseif (DE_OS_IS_WIN32 OR DE_OS_IS_UNIX OR DE_OS_IS_OSX OR DE_OS_IS_QNX)
 		add_custom_command(TARGET "${MODULE_NAME}${MODULE_DATA_TARGET_POSTFIX}" POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${DST_DIR})
 
 	elseif (DE_OS_IS_ANDROID)
@@ -260,15 +271,24 @@ macro (add_data_file MODULE_NAME SRC_FILE DST_FILE)
 endmacro (add_data_file)
 
 add_subdirectory(framework)
-add_subdirectory(external/vulkancts/framework/vulkan)
+
+if (NOT EMSCRIPTEN)
+	add_subdirectory(external/vulkancts/framework/vulkan)
+endif ()
 
 if (DE_COMPILER_IS_MSC)
 	add_compile_options(/bigobj) # Required by glsBuiltinPrecisionTests.cpp
 endif ()
 
 add_subdirectory(modules)
-add_subdirectory(external/vulkancts/modules/vulkan)
-add_subdirectory(external/openglcts)
+
+if (NOT EMSCRIPTEN)
+	add_subdirectory(external/vulkancts/modules/vulkan)
+endif ()
+
+if (NOT EMSCRIPTEN)
+	add_subdirectory(external/openglcts)
+endif ()
 
 # Single-binary targets
 if (DE_OS_IS_ANDROID)
@@ -318,4 +338,22 @@ elseif (DE_OS_IS_IOS)
 	target_link_libraries(deqp tcutil-platform xscore ${DEQP_MODULE_LIBRARIES})
 	set_target_properties(deqp PROPERTIES XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
 	set_target_properties(deqp PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer: ${DEQP_IOS_CODE_SIGN_IDENTITY}")
+
+elseif (EMSCRIPTEN)
+	set(DEQP_MAIN_SRC framework/platform/emscripten/tcuEmscriptenMain.cpp)
+
+	add_executable(deqp.js ${DEQP_MAIN_SRC} ${DEQP_MODULE_ENTRY_POINTS})
+	target_link_libraries(deqp.js
+		tcutil-platform
+		${DEQP_MODULE_LIBRARIES}
+		)
+	set_target_properties(deqp.js PROPERTIES
+		OUTPUT_NAME "deqp"
+		SUFFIX ".js"
+		# --bind -std=c++11: enable embind (bind.cpp requires C++11).
+		# PRELOADS: Link with data files preloaded into the filesystem.
+		LINK_FLAGS "--bind -std=c++11 ${DEQP_EMSCRIPTEN_PRELOADS}"
+		# tcuEmscriptenMain also requires c++11 to use embind.
+		COMPILE_FLAGS "-std=c++11"
+		)
 endif ()

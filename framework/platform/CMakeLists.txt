@@ -2,7 +2,22 @@
 
 # Target file may define TCUTIL_PLATFORM_SRCS
 if (NOT DEFINED TCUTIL_PLATFORM_SRCS)
-	if (DE_OS_IS_WIN32)
+	if (EMSCRIPTEN)
+		# Toggle this, and enable EGL-related dependencies (search for
+		# NOT EMSCRIPTEN in CMakeLists files), to use EGL on Emscripten.
+		if (FALSE)
+			set(TCUTIL_PLATFORM_SRCS
+				emscripten/tcuEmscriptenPlatformEGL.cpp
+				emscripten/tcuEmscriptenPlatformEGL.hpp
+				)
+		else ()
+			set(TCUTIL_PLATFORM_SRCS
+				emscripten/tcuEmscriptenPlatformWeb.cpp
+				emscripten/tcuEmscriptenPlatformWeb.hpp
+				)
+		endif ()
+
+	elseif (DE_OS_IS_WIN32)
 		set(TCUTIL_PLATFORM_SRCS
 			win32/tcuWin32Platform.hpp
 			win32/tcuWin32Platform.cpp
@@ -143,15 +158,21 @@ endif ()
 add_library(tcutil-platform STATIC ${TCUTIL_PLATFORM_SRCS})
 
 # Add vkutil to the deps before tcutil so that it picks up the c++11 dependencies
-target_link_libraries(tcutil-platform vkutil)
+if (NOT EMSCRIPTEN)
+	target_link_libraries(tcutil-platform vkutil)
+endif ()
 
 target_link_libraries(tcutil-platform tcutil ${TCUTIL_PLATFORM_LIBS})
 
 # Always link to glutil as some platforms such as Win32 always support GL
-target_link_libraries(tcutil-platform glutil)
+if (NOT EMSCRIPTEN)
+	target_link_libraries(tcutil-platform glutil)
+endif ()
 
-# Always link to eglutil
-target_link_libraries(tcutil-platform eglutil)
+if (NOT EMSCRIPTEN)
+	# Always link to eglutil
+	target_link_libraries(tcutil-platform eglutil)
+endif ()
 
 # X11 libraries
 if (DEQP_USE_X11)
